@@ -1,0 +1,38 @@
+*.egg-info/
+.ipynb_checkpoints/
+.tern-project
+npm-debug.log
+dist/
+build/
+*.py[cod]
+node_modules/
+.vscode
+.idea
+
+# Compiled javascript
+pythreejs/static/
+
+# OS X
+.DS_Store
+
+# Autogen files
+*_autogen.py
+*_autogen.rst
+*.autogen.js
+*.autogen.json
+js/src/**/index.js
+pythreejs/**/__init__.py
+docs/source/api/**/index.rst
+
+# Test and coverage
+.coverage
+.cache
+htmlcov/
+
+
+docs/source/_static/jupyter-threejs.js
+docs/source/_static/three.js
+docs/source/examples/img
+
+js/lab-dist
+
