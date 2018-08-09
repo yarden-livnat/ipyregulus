@@ -1,0 +1,14 @@
+.rg_tree .view {
+  user-select: none;
+}
+
+.rg_tree .view .node {
+  fill: white;
+  stroke: gray;
+  stroke-width: 0.5px;
+}
+
+.rg_tree .view .axis .axis-label {
+  fill: black;
+  font-size: 10pt;
+}

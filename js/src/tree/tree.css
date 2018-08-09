@@ -1,0 +1,10 @@
+.rg_tree .title {
+  font-size: 12pt;
+}
+.rg_tree .controls {
+  /* background-color: blue; */
+}
+
+.rg_tree .rtree {
+  background-color: lightgray;
+}

@@ -1,0 +1,5 @@
+name: ipyregulus
+channels:
+  - conda-forge
+dependencies:
+
