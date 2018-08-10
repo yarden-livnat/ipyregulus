@@ -17,7 +17,9 @@ export
 class Tree extends DOMWidgetView {
   render() {
     this.model.on('all', function(msg) { console.log('Tree:msg=', msg,arguments)});
-    this.d3el = d3.select(this.el);
+    this.d3el = d3.select(this.el)
+      .classed('rg_tree', true);
+
     this.d3el.html(template);
     this.panel = Panel().el(d3.select(this.el).select('.view'));
     this.model.on('change:title', this.on_title_changed, this);
@@ -35,9 +37,14 @@ class Tree extends DOMWidgetView {
   }
 
   processPhosphorMessage(msg:Message) {
-    // console.log('Tree phosphor message', msg);
-    if (msg.type == 'resize') {
-      this.panel.resize();
+    console.log('Tree phosphor message', msg);
+    switch (msg.type) {
+      case 'after-attach':
+        d3.select(this.el.parentNode).classed('rg_output', true);
+        break;
+      case 'resize':
+        this.panel.resize();
+        break;
     }
   }
 

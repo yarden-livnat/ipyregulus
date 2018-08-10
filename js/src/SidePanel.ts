@@ -24,6 +24,7 @@ import {
   SidePanelModel
 } from './SidePanelModel';
 
+import './SidePanel.css';
 
 export
 class SidePanel extends SimplifiedOutputView {

@@ -14,6 +14,7 @@ import {
 
 import * as $ from 'jquery';
 
+
 export
 class SimplifiedOutputView extends outputBase.OutputView {
 
