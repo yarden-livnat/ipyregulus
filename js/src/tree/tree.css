@@ -1,10 +1,12 @@
-.rg_tree .title {
-  font-size: 12pt;
-}
-.rg_tree .controls {
-  /* background-color: blue; */
+.rg_tree {
+  padding: 10px;
 }
 
-.rg_tree .rtree {
-  background-color: lightgray;
+.rg_tree .title {
+  font-size: 10pt;
+}
+.rg_tree .controls {
+}
+
+.rg_tree .view {
 }

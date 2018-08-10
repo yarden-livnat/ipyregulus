@@ -3,11 +3,13 @@
 import * as d3 from 'd3';
 import './panel.css';
 
+let DEFAULT_WIDTH = 800;
+let DEFAULT_HEIGHT = 500;
 
 export default function Panel() {
   let margin = {top: 10, right: 30, bottom: 50, left:60},
-  width = 800 - margin.left - margin.right,
-  height = 500 - margin.top - margin.bottom;
+  width = DEFAULT_WIDTH - margin.left - margin.right,
+  height = DEFAULT_HEIGHT - margin.top - margin.bottom;
 
   let svg = null;
   let root = null;
@@ -85,17 +87,14 @@ export default function Panel() {
     d3nodes.exit().remove();
   }
 
-  function panel(selection) {
-    width = parseInt(selection.style('width'))-margin.left - margin.right;
-    height = parseInt(selection.style('height')) - margin.top - margin.bottom;
-    console.log('panel:', width, height);
-    if (isNaN(width) || isNaN(height)) return;
+  let panel = {};
 
-    let g = selection.selectAll('g')
-      .data([1])
-      .enter()
-        .append('g')
-        .attr('transform', `translate(${margin.left},${margin.top})`);
+  panel.el = function(_) {
+    // svg = d3.select(_);
+    svg = _;
+
+    let g = svg.append('g')
+      .attr('transform', `translate(${margin.left},${margin.top})`);
 
     g.append('g')
       .attr('class', 'nodes');
@@ -119,30 +118,39 @@ export default function Panel() {
         .attr('dy', '1em')
         .style('text-anchor', 'middle')
         .text('Persistence');
+    return this;
+  }
 
-    svg = selection.merge(g);
+  panel.resize = function() {
+    if (!svg) return;
 
-     svg.select('.x')
-       .attr('transform', `translate(0,${height})`)
-       .select('text')
-       .attr('transform', `translate(${width/2},${margin.top + 20})`);
+    let w = parseInt(svg.style('width')) || DEFAULT_WIDTH;
+    let h = parseInt(svg.style('height')) || DEFAULT_HEIGHT;
+    width =  w -margin.left - margin.right;
+    height = h - margin.top - margin.bottom ;
 
-     svg.select('.y text')
-       .attr('y', 0 - margin.left)
-       .attr('x',0 - (height / 2));
+    svg.select('.x')
+     .attr('transform', `translate(0,${height})`)
+     .select('text')
+     .attr('transform', `translate(${width/2},${margin.top + 20})`);
+
+    svg.select('.y text')
+     .attr('y', 0 - margin.left)
+     .attr('x',0 - (height / 2));
 
      sx.range([0, width]);
      sy.range([height, 0]);
 
      render();
 
-     return panel;
+     return this;
   }
 
   panel.data = function(_) {
     root = _;
     preprocess();
     layout();
+    render();
     return this;
   };
 
