@@ -3,6 +3,7 @@
 .tern-project
 npm-debug.log
 dist/
+lib/
 build/
 *.py[cod]
 node_modules/
@@ -35,4 +36,3 @@ docs/source/_static/three.js
 docs/source/examples/img
 
 js/lab-dist
-

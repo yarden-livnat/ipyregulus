@@ -21,9 +21,8 @@ class Tree extends DOMWidgetView {
 
     this.title_updated();
     let self = this;
-    setTimeout( function() {
-     console.log('delayed', self);
-     d3.select(self.el).select('.view').call(self.panel);
+    setTimeout( function() {  
+      d3.select(self.el).select('.view').call(self.panel);
       self.data_updated();
       self.draw();
       },

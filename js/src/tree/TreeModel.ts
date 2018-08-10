@@ -1,13 +1,6 @@
 import {
-  DOMWidgetModel
-} from "@jupyter-widgets/base";
-
-import {
-  EXTENSION_SPEC_VERSION
-} from '../version';
-
-
-const MODULE_NAME = '@regulus/ipyregulus';
+  BaseModel
+} from "../BaseModel";
 
 class Node {
   constructor(parent:Node, data:Object) {
@@ -37,16 +30,12 @@ function unpack_tree(array):Node {
 }
 
 export
-class TreeModel extends DOMWidgetModel {
+class TreeModel extends BaseModel {
 
   defaults() {
     return {
       ...super.defaults(),
-      _model_module: TreeModel.model_module,
-      _model_module_version: TreeModel.model_module_version,
       _view_name: TreeModel.view_name,
-      _view_module: TreeModel.view_module,
-      _view_module_version: TreeModel.view_module_version,
 
       title: "",
       field: null,
@@ -55,14 +44,14 @@ class TreeModel extends DOMWidgetModel {
   }
 
   static serializers = {
-    ...DOMWidgetModel.serializers,
+    ...BaseModel.serializers,
     root: {deserialize: unpack_tree}
   };
+  // static serializers = {
+  //   ...DOMWidgeModel.serializers,
+  //   root: {deserialize: unpack_tree}
+  // };
 
   static model_name = "TreeModel";
-  static model_module = MODULE_NAME;
-  static model_module_version = EXTENSION_SPEC_VERSION;
   static view_name = "Tree";
-  static view_module = MODULE_NAME;
-  static view_module_version = EXTENSION_SPEC_VERSION;
 }
