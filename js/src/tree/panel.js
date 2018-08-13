@@ -14,7 +14,13 @@ export default function Panel() {
   let svg = null;
   let root = null;
   let nodes = [];
+  let field = null;
+
   let selected = null;
+
+  // let cmap = ['thistle', 'lightyellow', 'lightgreen'];
+  let cmap = ['white', 'lightgreen'];
+  let colorScale = d3.scaleSequential(d3.interpolateRgbBasis(cmap)).domain([0, 1]).clamp(true);
 
   let x_type = 'linear';
   let y_type = 'linear';
@@ -48,7 +54,8 @@ export default function Panel() {
 
     function visit(node, range) {
       let w = range[1] - range[0];
-      node.pos = {x: range[0], y: node.lvl, w: w, yp: node.parent && node.parent.lvl || 1};
+      // node.pos = {x: range[0], y: node.lvl, w: w, yp: node.parent && node.parent.lvl || 1};
+      node.pos = {x: node.offset, y: node.lvl, w: node.size, yp: node.parent && node.parent.lvl || 1};
       let from = range[0];
       for (let child of node.children) {
         let to = from + child.size; // w * child.size / node.size;
@@ -59,7 +66,7 @@ export default function Panel() {
   }
 
   function render() {
-    if (!svg) return;
+    if (!svg || !root) return;
 
     svg.select('.x').call(x_axis);
     svg.select('.y').call(y_axis);
@@ -79,6 +86,9 @@ export default function Panel() {
       .attr('y', d => sy(d.pos.yp))
       .attr('width', d => Math.max(1, sx(d.pos.x + d.pos.w) - sx(d.pos.x)-1))
       .attr('height', d => Math.max(0, sy(d.pos.y) - sy(d.pos.yp)-1))
+      .style('fill', d =>
+        {//console.log(d[field], colorScale(d[field]));
+          return field && d[field] && colorScale(d[field]) || 'white'; })
       // .classed('highlight', d => d.highlight)
       // .classed('selected', d => d.selected)
       // .classed('details', d => d.details);
@@ -87,77 +97,83 @@ export default function Panel() {
     d3nodes.exit().remove();
   }
 
-  let panel = {};
+  let panel = {
 
-  panel.el = function(_) {
-    // svg = d3.select(_);
-    svg = _;
+    el(_) {
+      // svg = d3.select(_);
+      svg = _;
 
-    let g = svg.append('g')
-      .attr('transform', `translate(${margin.left},${margin.top})`);
+      let g = svg.append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
 
-    g.append('g')
-      .attr('class', 'nodes');
+      g.append('g')
+        .attr('class', 'nodes');
 
-    g.append('g')
-      .attr('class', 'names');
+      g.append('g')
+        .attr('class', 'names');
 
-    g.append('g')
-      .attr('class', 'x axis')
-      .append('text')
-        .attr('class', 'axis-label')
-        .style('text-anchor', 'middle')
-        .text('Points');
+      g.append('g')
+        .attr('class', 'x axis')
+        .append('text')
+          .attr('class', 'axis-label')
+          .style('text-anchor', 'middle')
+          .text('Points');
 
-    g.append('g')
-      .attr('class', 'y axis')
-      .append('text')
-        .attr('class', 'axis-label')
-        .attr('transform', 'rotate(-90)')
+      g.append('g')
+        .attr('class', 'y axis')
+        .append('text')
+          .attr('class', 'axis-label')
+          .attr('transform', 'rotate(-90)')
 
-        .attr('dy', '1em')
-        .style('text-anchor', 'middle')
-        .text('Persistence');
-    return this;
+          .attr('dy', '1em')
+          .style('text-anchor', 'middle')
+          .text('Persistence');
+      return this;
+    },
+
+    resize() {
+      if (!svg) return;
+
+      let w = parseInt(svg.style('width')) || DEFAULT_WIDTH;
+      let h = parseInt(svg.style('height')) || DEFAULT_HEIGHT;
+      width =  w -margin.left - margin.right;
+      height = h - margin.top - margin.bottom ;
+
+      svg.select('.x')
+       .attr('transform', `translate(0,${height})`)
+       .select('text')
+       .attr('transform', `translate(${width/2},${margin.top + 20})`);
+
+      svg.select('.y text')
+       .attr('y', 0 - margin.left)
+       .attr('x',0 - (height / 2));
+
+       sx.range([0, width]);
+       sy.range([height, 0]);
+
+       render();
+
+       return this;
+    },
+
+    field (_) {
+      field = _;
+      render();
+    },
+
+    data(_) {
+      root = _;
+      preprocess();
+      layout();
+      render();
+      return this;
+    },
+
+    on(event, cb) {
+      dispatch.on(event, cb);
+      return this;
+    }
   }
-
-  panel.resize = function() {
-    if (!svg) return;
-
-    let w = parseInt(svg.style('width')) || DEFAULT_WIDTH;
-    let h = parseInt(svg.style('height')) || DEFAULT_HEIGHT;
-    width =  w -margin.left - margin.right;
-    height = h - margin.top - margin.bottom ;
-
-    svg.select('.x')
-     .attr('transform', `translate(0,${height})`)
-     .select('text')
-     .attr('transform', `translate(${width/2},${margin.top + 20})`);
-
-    svg.select('.y text')
-     .attr('y', 0 - margin.left)
-     .attr('x',0 - (height / 2));
-
-     sx.range([0, width]);
-     sy.range([height, 0]);
-
-     render();
-
-     return this;
-  }
-
-  panel.data = function(_) {
-    root = _;
-    preprocess();
-    layout();
-    render();
-    return this;
-  };
-
-  panel.on = function(event, cb) {
-    dispatch.on(event, cb);
-    return this;
-  };
 
   return panel;
 }

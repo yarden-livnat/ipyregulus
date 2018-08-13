@@ -39,18 +39,14 @@ class TreeModel extends BaseModel {
 
       title: "",
       field: null,
-      root: new Node(null, null),
+      tree: new Node(null, null),
     };
   }
 
   static serializers = {
     ...BaseModel.serializers,
-    root: {deserialize: unpack_tree}
+    tree: {deserialize: unpack_tree}
   };
-  // static serializers = {
-  //   ...DOMWidgeModel.serializers,
-  //   root: {deserialize: unpack_tree}
-  // };
 
   static model_name = "TreeModel";
   static view_name = "Tree";

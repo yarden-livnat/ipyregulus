@@ -14,7 +14,7 @@ MODULE_NAME = '@regulus/ipyregulus'
 
 def _tree_to_json(value, widget):
     def marshal(node, l):
-        l.append(node.data)
+        l.append(widget._select(node))
         for child in node.children:
             marshal(child, l)
         l.append(None)
@@ -39,10 +39,22 @@ class TreeView(DOMWidget):
 
     title = Unicode('title').tag(sync=True)
     field = Unicode('field').tag(sync=True)
-    root = Instance(klass=Node).tag(sync=True, to_json=_tree_to_json)
-    # root = Instance(klass=Node).tag(sync=True, **tree_serialization)
+    tree = Instance(klass=Node, allow_none=True).tag(sync=True, to_json=_tree_to_json)
 
-    # def __init__(self, **kwargs):
-    #     super(TreeView, self).__init__(**kwargs)
-    #     print('Tree')
-    #     # print('\tto_json', tree_serialization['to_json'](self.value, self))
+
+    def __init__(self, select=lambda x:{}, **kwargs):
+        self.user_select = select
+        super().__init__(**kwargs)
+
+    def _select(self, node):
+        if node.data is not None:
+            d = {
+                'id': node.data.id,
+                'lvl': node.data.persistence if len(node.children) > 0 else 0,
+                'size': node.data.size(),
+                'offset': node.offset,
+                **self.user_select(node)
+                }
+        else:
+            d = {'id': -1, 'lvl': 1, 'size': 0, 'offset': 0}
+        return d

@@ -6,10 +6,6 @@ import {
     UUID
 } from '@phosphor/coreutils';
 
-// import {
-//   Widget
-// } from '@phosphor/widgets';
-
 // TODO: import from @jupyter-widgets/jupyterlab-manager once Output is
 // exported by the main module.
 // import {
@@ -53,7 +49,6 @@ class SidePanel extends SimplifiedOutputView {
       //   });
       // } else {
         let { shell } = this.app;
-        console.log('mode:', this.model.get('side'))
         shell.addToMainArea(w, {mode : this.model.get('side')});
         // shell.activateById(w.id);
       // }

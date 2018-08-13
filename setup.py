@@ -81,7 +81,6 @@ setup_args = dict(
         'ipywidgets>=7.0.0',
         'traitlets>4.3.0',
         'traittypes',
-        'numpy>1.14.0',
         'pandas',
         'regulus'
     ],
