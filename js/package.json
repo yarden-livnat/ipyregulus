@@ -1,6 +1,6 @@
 {
   "name": "@regulus/ipyregulus",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Regulus widgets for JupyterLab",
   "author": "Yarden Livnat",
   "license": "BSD-3-Clause",
