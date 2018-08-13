@@ -8,3 +8,7 @@ declare module '*.html' {
   const content: string;
   export = content;
 }
+
+declare interface ObjectConstructor {
+    assign(...objects: Object[]): Object;
+}

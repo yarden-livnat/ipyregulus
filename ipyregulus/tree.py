@@ -1,16 +1,11 @@
-# Copyright (c) University of Utah
+"""
+    Regulus Tree widget
+"""
 
-from traitlets import (
-    Unicode, Instance, List, Dict, Enum, Float, Int, Undefined, TraitError, default,
-    validate
-)
-from ipywidgets import DOMWidget, register, widget_serialization
-from regulus.tree.tree import Node
-
-# from .serializer import tree_serialization
-from ._version import EXTENSION_SPEC_VERSION
-
-MODULE_NAME = '@regulus/ipyregulus'
+from ipywidgets import register, widget_serialization
+from traitlets import Instance, Unicode, Undefined, validate
+from regulus.tree import Tree
+from .base import RegulusWidget
 
 def _tree_to_json(value, widget):
     def marshal(node, l):
@@ -23,38 +18,45 @@ def _tree_to_json(value, widget):
     if value is None:
         return None
     if value is Undefined:
-        raise TraitError('Cannot serialize undefined tree')
+        return None
     return marshal(value, [])
 
+
 @register
-class TreeView(DOMWidget):
-    """"""
+class TreeWidget(RegulusWidget):
+    "A widget represeting a tree"
+
     _model_name = Unicode('TreeModel').tag(sync=True)
-    _model_module = Unicode(MODULE_NAME).tag(sync=True)
-    _model_module_version = Unicode(EXTENSION_SPEC_VERSION).tag(sync=True)
 
-    _view_name = Unicode('Tree').tag(sync=True)
-    _view_module = Unicode(MODULE_NAME).tag(sync=True)
-    _view_module_version = Unicode(EXTENSION_SPEC_VERSION).tag(sync=True)
-
-    title = Unicode('title').tag(sync=True)
-    field = Unicode('field').tag(sync=True)
-    tree = Instance(klass=Node, allow_none=True).tag(sync=True, to_json=_tree_to_json)
-    attrs = Dict({}).tag(sync=True)
+    root = Instance(klass=Tree, allow_none=True).tag(sync=True, to_json=_tree_to_json)
 
     def __init__(self, select=lambda x:{}, **kwargs):
         self.user_select = select
         super().__init__(**kwargs)
 
+    @validate('root')
+    def _validate_tree(self, proposal):
+        """validate the tree"""
+        value = proposal['value']
+        # validate
+        return value
+
+    def _default_select(self, node):
+        return {
+            'id': node.data.id,
+            'lvl': node.data.persistence if len(node.children) > 0 else 0,
+            'size': node.data.size(),
+            'offset': node.offset
+            }
+
+
     def _select(self, node):
+        d = self._default_select(node)
         if node.data is not None:
-            d = {
-                'id': node.data.id,
-                'lvl': node.data.persistence if len(node.children) > 0 else 0,
-                'size': node.data.size(),
-                'offset': node.offset,
-                **self.user_select(node)
-                }
-        else:
-            d = {'id': -1, 'lvl': 1, 'size': 0, 'offset': 0}
+            d.update(self.user_select(node))
         return d
+
+
+    def touch(self):
+        """inform the widget the tree was mutated"""
+        self._notify_trait('root', self.root, self.root)

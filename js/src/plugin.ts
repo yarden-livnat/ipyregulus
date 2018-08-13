@@ -6,13 +6,15 @@ import {
   IJupyterWidgetRegistry
 } from '@jupyter-widgets/base';
 
-import {
-  TreeModel
-} from './tree/TreeModel';
+import { Tree } from './models/tree';
 
 import {
-  Tree
-} from "./tree/tree";
+  TreeViewModel
+} from './tree/TreeViewModel';
+
+import {
+  TreeView
+} from "./tree/treeview";
 
 import {
   SidePanelModel
@@ -50,8 +52,9 @@ function activateRegulusExtension(app: JupyterLab, registry: IJupyterWidgetRegis
     name: '@regulus/ipyregulus',
     version: EXTENSION_SPEC_VERSION,
     exports: {
-      TreeModel: TreeModel,
-      Tree: Tree,
+      TreeModel: Tree,
+      TreeViewModel: TreeViewModel,
+      TreeView: TreeView,
       SidePanelModel: SidePanelModel,
       SidePanel: AppSidePanel
     }

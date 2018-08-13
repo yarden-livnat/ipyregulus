@@ -3,7 +3,7 @@ import {
 } from "@jupyter-widgets/base";
 
 import {
-  ConflatableMessage, IMessageHandler, Message, MessageLoop
+   Message
 } from '@phosphor/messaging';
 
 import * as d3 from 'd3';
@@ -14,16 +14,24 @@ import './tree.css';
 import * as template from './tree.html';
 
 export
-class Tree extends DOMWidgetView {
+class TreeView extends DOMWidgetView {
+
+  initialize(parameters) {
+    super.initialize(parameters);
+  }
   render() {
     this.d3el = d3.select(this.el)
       .classed('rg_tree', true);
 
     this.d3el.html(template);
     this.panel = Panel().el(d3.select(this.el).select('.view'));
+
+    this.model.get('tree').on('change:tree', this.on_tree_updated, this);
+    this.model.get('tree').on('change', this.on_tree_updated, this);
+
     this.model.on('change:title', this.on_title_changed, this);
     this.model.on('change:field', this.on_field_changed, this);
-    this.model.on('change:tree', this.on_data_changed, this);
+    this.model.on('change:tree', this.on_tree_changed, this);
     this.model.on('change:attrs', this.on_attrs_changed, this);
 
     this.on_title_changed();
@@ -31,7 +39,7 @@ class Tree extends DOMWidgetView {
     let self = this;
     setTimeout( function() {
       self.panel.resize();
-      self.on_data_changed();
+      self.on_tree_changed();
       },
     0);
 
@@ -59,6 +67,26 @@ class Tree extends DOMWidgetView {
   //   this.touch();
   // }
 
+
+
+  on_tree_changed() {
+    console.log('tree changed:', this.model.get('tree'), this.model.previous('tree'));
+    let prev = this.model.previous('tree');
+    if (prev) {
+      prev.off('change', this.on_tree_updated, this);
+    }
+    let current = this.model.get('tree');
+    if (current) {
+      current.on('change', this.on_tree_updated, this);
+    }
+    this.on_tree_updated()
+  }
+
+  on_tree_updated() {
+    console.log('tree updated', this.model.get('tree').get('root'));
+    this.panel.data(this.model.get('tree').get('root'));
+  }
+
   on_title_changed() {
     this.d3el.select('.title').text(this.model.get('title'));
   }
@@ -71,10 +99,7 @@ class Tree extends DOMWidgetView {
     console.log('attrs changed');
   }
 
-  on_data_changed() {
-    this.panel.data(this.model.get('tree'));
-  }
-
   d3el: any;
   panel: any;
+  tree: any;
 }

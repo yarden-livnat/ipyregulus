@@ -10,14 +10,14 @@ const MODULE_NAME = '@regulus/ipyregulus';
 
 
 export
-class BaseModel extends DOMWidgetModel {
+class RegulusViewModel extends DOMWidgetModel {
   defaults() {
     return {
       ...super.defaults(),
-      _model_module: BaseModel.model_module,
-      _model_module_version: BaseModel.model_module_version,
-      _view_module: BaseModel.view_module,
-      _view_module_version: BaseModel.view_module_version,
+      _model_module: RegulusViewModel.model_module,
+      _model_module_version: RegulusViewModel.model_module_version,
+      _view_module: RegulusViewModel.view_module,
+      _view_module_version: RegulusViewModel.view_module_version,
     };
   }
 
