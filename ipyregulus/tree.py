@@ -40,7 +40,7 @@ class TreeView(DOMWidget):
     title = Unicode('title').tag(sync=True)
     field = Unicode('field').tag(sync=True)
     tree = Instance(klass=Node, allow_none=True).tag(sync=True, to_json=_tree_to_json)
-
+    attrs = Dict({}).tag(sync=True)
 
     def __init__(self, select=lambda x:{}, **kwargs):
         self.user_select = select

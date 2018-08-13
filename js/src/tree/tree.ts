@@ -24,6 +24,7 @@ class Tree extends DOMWidgetView {
     this.model.on('change:title', this.on_title_changed, this);
     this.model.on('change:field', this.on_field_changed, this);
     this.model.on('change:tree', this.on_data_changed, this);
+    this.model.on('change:attrs', this.on_attrs_changed, this);
 
     this.on_title_changed();
     this.on_field_changed();
@@ -64,6 +65,10 @@ class Tree extends DOMWidgetView {
 
   on_field_changed() {
     this.panel.field(this.model.get('field'));
+  }
+
+  on_attrs_changed() {
+    console.log('attrs changed');
   }
 
   on_data_changed() {

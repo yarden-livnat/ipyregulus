@@ -40,6 +40,7 @@ class TreeModel extends BaseModel {
       title: "",
       field: null,
       tree: new Node(null, null),
+      attrs: {}
     };
   }
 
