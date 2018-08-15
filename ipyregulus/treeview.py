@@ -16,11 +16,6 @@ class TreeView(RegulusDOMWidget):
     tree = TreeTrait(allow_none=True).tag(sync=True, **widget_serialization)
     attrs = Dict({}).tag(sync=True)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        # self.observe(self.field_changed, names=['field'])
-
-
     @property
     def measure(self):
         return self.field
@@ -28,6 +23,11 @@ class TreeView(RegulusDOMWidget):
     @measure.setter
     def measure(self, value):
         if value not in self.attrs:
-            self.attrs[value] = self.tree.model.attrs[value]
-            self._notify_trait('attrs', self.attrs, self.attrs)
+            if value in self.tree.model.attrs:
+                self.attrs[value] = self.tree.model.attrs[value]
+                self._notify_trait('attrs', self.attrs, self.attrs)
         self.field = value
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.measure = kwargs.get('measure', 'lvl')

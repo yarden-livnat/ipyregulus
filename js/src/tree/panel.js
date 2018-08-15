@@ -20,7 +20,7 @@ export default function Panel() {
   let selected = null;
 
   // let cmap = ['thistle', 'lightyellow', 'lightgreen'];
-  let cmap = ['white', 'lightgreen'];
+  let cmap = ['white', 'blue', 'red', 'lightgreen'];
   let colorScale = d3.scaleSequential(d3.interpolateRgbBasis(cmap)).domain([0, 1]).clamp(true);
 
   let x_type = 'linear';
@@ -161,7 +161,6 @@ export default function Panel() {
 
     field(_) {
       field = _;
-      render();
       return this;
     },
 
@@ -174,6 +173,10 @@ export default function Panel() {
       root = _;
       preprocess();
       layout();
+      return this;
+    },
+
+    redraw() {
       render();
       return this;
     },

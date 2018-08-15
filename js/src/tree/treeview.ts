@@ -32,11 +32,13 @@ class TreeView extends DOMWidgetView {
 
 
     this.on_title_changed();
-    this.on_field_changed();
+
     let self = this;
     setTimeout( function() {
-      self.panel.resize();
-      self.on_tree_changed();
+        self.panel.resize();
+        self.on_attrs_changed();
+        self.on_field_changed();
+        self.on_tree_changed();
       },
     0);
 
@@ -82,24 +84,25 @@ class TreeView extends DOMWidgetView {
     this.on_tree_updated();
   }
 
-  on_tree_updated() {
-    // console.log('tree upated:', event)
-    console.log('tree:', this.model.get('tree'));
-    this.panel.data(this.model.get('tree').get('root'));
-  }
-
   on_title_changed() {
     this.d3el.select('.title').text(this.model.get('title'));
   }
 
+  on_tree_updated() {
+    this.panel.data(this.model.get('tree').get('root'))
+      .redraw();
+  }
+
   on_field_changed() {
-    console.log('field changed:', this.model.get('field'))
-    this.panel.field(this.model.get('field'));
+    let field = this.model.get('field');
+    this.d3el.select('.measure').html(field)
+    this.panel.field(field)
+      .redraw();
   }
 
   on_attrs_changed() {
-    console.log('attrs changed', this.model.get('attrs'));
-    this.panel.attrs(this.model.get('attrs'));
+    this.panel.attrs(this.model.get('attrs'))
+      .redraw();
   }
 
   d3el: any;
