@@ -1,13 +1,8 @@
 # Copyright (c) University of Utah
 
-from traitlets import (
-    Unicode, Instance, List, Dict, Enum, Float, Int, Undefined, TraitError, default,
-    validate
-)
+from traitlets import Dict, Unicode
 from ipywidgets import register, widget_serialization
 from .base import RegulusDOMWidget
-from .tree import TreeWidget
-from regulus.tree import Node
 from .treetrait import TreeTrait
 
 @register
@@ -21,12 +16,18 @@ class TreeView(RegulusDOMWidget):
     tree = TreeTrait(allow_none=True).tag(sync=True, **widget_serialization)
     attrs = Dict({}).tag(sync=True)
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # self.observe(self.field_changed, names=['field'])
 
-    # @validate('tree')
-    # def _valid_tree(self, proposal):
-    #     value = proposal['value']
-    #     if isinstance(value, TreeWidget):
-    #         return value
-    #     if isinstance(value, Node):
-    #         return TreeWidget(root=value)
-    #     raise TraitError('tree must be a Node or a TreeWidget')
+
+    @property
+    def measure(self):
+        return self.field
+
+    @measure.setter
+    def measure(self, value):
+        if value not in self.attrs:
+            self.attrs[value] = self.tree.model.attrs[value]
+            self._notify_trait('attrs', self.attrs, self.attrs)
+        self.field = value

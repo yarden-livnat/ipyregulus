@@ -15,6 +15,7 @@ export default function Panel() {
   let root = null;
   let nodes = [];
   let field = null;
+  let attrs = {};
 
   let selected = null;
 
@@ -88,7 +89,10 @@ export default function Panel() {
       .attr('height', d => Math.max(0, sy(d.pos.y) - sy(d.pos.yp)-1))
       .style('fill', d =>
         {//console.log(d[field], colorScale(d[field]));
-          return field && d[field] && colorScale(d[field]) || 'white'; })
+          if (!field) return 'white';
+          let value = field in d ? d[field]: field in attrs ? attrs[field][d.id] : null;
+          return value != null && colorScale(value) || 'white';
+        })
       // .classed('highlight', d => d.highlight)
       // .classed('selected', d => d.selected)
       // .classed('details', d => d.details);
@@ -152,13 +156,18 @@ export default function Panel() {
        sy.range([height, 0]);
 
        render();
-
        return this;
     },
 
-    field (_) {
+    field(_) {
       field = _;
       render();
+      return this;
+    },
+
+    attrs(_) {
+      attrs = _;
+      return this;
     },
 
     data(_) {

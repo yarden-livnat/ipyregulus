@@ -3,8 +3,9 @@
 """
 
 from ipywidgets import register, widget_serialization
-from traitlets import Instance, Unicode, Undefined, validate
-from regulus.tree import Tree
+from traitlets import Dict, Instance, Unicode, Undefined, validate
+from regulus.topo import RegulusTree
+from regulus.tree import Node
 from .base import RegulusWidget
 
 def _tree_to_json(value, widget):
@@ -19,7 +20,9 @@ def _tree_to_json(value, widget):
         return None
     if value is Undefined:
         return None
+
     return marshal(value, [])
+
 
 
 @register
@@ -28,13 +31,25 @@ class TreeWidget(RegulusWidget):
 
     _model_name = Unicode('TreeModel').tag(sync=True)
 
-    root = Instance(klass=Tree, allow_none=True).tag(sync=True, to_json=_tree_to_json)
+    model = Instance(klass=RegulusTree, allow_none=True).tag(sync=False)
+    root = Instance(klass=Node, allow_none=True).tag(sync=True, to_json=_tree_to_json)
+    attrs = Dict(allow_null=True).tag(sync=True)
 
     def __init__(self, select=lambda x:{}, **kwargs):
+        if 'model' in kwargs:
+            kwargs['root'] = kwargs['model'].root
+            # kwargs['attrs'] = kwargs['model'].attrs
         self.user_select = select
         super().__init__(**kwargs)
+        self.observe(self.model_changed, names=['model'])
 
-    @validate('root')
+
+    def model_changed(self, change):
+        model = change['new']
+        self.root = model.root
+        # self.attrs = model.attrs
+
+    @validate('model')
     def _validate_tree(self, proposal):
         """validate the tree"""
         value = proposal['value']
@@ -43,7 +58,7 @@ class TreeWidget(RegulusWidget):
 
     def _default_select(self, node):
         return {
-            'id': node.data.id,
+            'id': node.ref,
             'lvl': node.data.persistence if len(node.children) > 0 else 0,
             'size': node.data.size(),
             'offset': node.offset

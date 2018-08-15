@@ -7,13 +7,15 @@ export
 class Tree extends RegulusModel {
   defaults() {
     return {...super.defaults(), ...{
-      _model_name: 'TreeModel'
+      _model_name: 'TreeModel',
+      root: null,
+      attrs: null,
     }}
   }
 
   static serializers  = {
     ...RegulusModel.serializers,
-    root: { deserialize: unpack_tree}
+    root: { deserialize: unpack_tree},
   }
 }
 
@@ -33,12 +35,8 @@ class Node {
 
 
 function unpack_tree(array: any,  _: ManagerBase<any>) {
-  if (array == null) {
-    return null;
-  }
-
   let i = 0;
-  return unpack(null);
+  return array && unpack(null) || null;
 
   function unpack(parent) {
     let node = new Node(parent, array[i]);

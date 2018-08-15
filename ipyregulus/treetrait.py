@@ -1,18 +1,18 @@
 from traitlets import TraitType
-from regulus.tree import Tree
+from regulus.topo import RegulusTree
 from .tree import TreeWidget
 
 class TreeTrait(TraitType):
-    """A trait for a Regulus TreeWidget or a Tree"""
+    """A trait for a Regulus TreeWidget or a RegulusTree"""
 
     default_value = TreeWidget()
-    info_text = 'a Tree or a TreeWidget'
+    info_text = 'a TreeWidgetor a RegulusTree'
 
     def validate(self, obj, value):
         if value is None:
             return TreeWidget()
         if isinstance(value, TreeWidget):
             return value
-        if isinstance(value, Tree):
-            return TreeWidget(root=value)
+        if isinstance(value, RegulusTree):
+            return TreeWidget(model=value)
         self.error(obj, value)

@@ -25,14 +25,11 @@ class TreeView extends DOMWidgetView {
 
     this.d3el.html(template);
     this.panel = Panel().el(d3.select(this.el).select('.view'));
-
-    this.model.get('tree').on('change:tree', this.on_tree_updated, this);
-    this.model.get('tree').on('change', this.on_tree_updated, this);
-
     this.model.on('change:title', this.on_title_changed, this);
     this.model.on('change:field', this.on_field_changed, this);
-    this.model.on('change:tree', this.on_tree_changed, this);
+    this.model.on('change:tree',  this.on_tree_changed, this);
     this.model.on('change:attrs', this.on_attrs_changed, this);
+
 
     this.on_title_changed();
     this.on_field_changed();
@@ -70,20 +67,24 @@ class TreeView extends DOMWidgetView {
 
 
   on_tree_changed() {
-    console.log('tree changed:', this.model.get('tree'), this.model.previous('tree'));
     let prev = this.model.previous('tree');
     if (prev) {
-      prev.off('change', this.on_tree_updated, this);
+      prev.off('change:root', this.on_tree_updated, this);
+      prev.off('change:attrs', this.on_tree_updated, this);
+      prev.off('change:all', this.on_tree_updated, this);
     }
     let current = this.model.get('tree');
     if (current) {
-      current.on('change', this.on_tree_updated, this);
+      current.on('change:root', this.on_tree_updated, this);
+      current.on('change:attrs', this.on_tree_updated, this);
+      current.on('change:all', this.on_tree_updated, this);
     }
-    this.on_tree_updated()
+    this.on_tree_updated();
   }
 
   on_tree_updated() {
-    console.log('tree updated', this.model.get('tree').get('root'));
+    // console.log('tree upated:', event)
+    console.log('tree:', this.model.get('tree'));
     this.panel.data(this.model.get('tree').get('root'));
   }
 
@@ -92,11 +93,13 @@ class TreeView extends DOMWidgetView {
   }
 
   on_field_changed() {
+    console.log('field changed:', this.model.get('field'))
     this.panel.field(this.model.get('field'));
   }
 
   on_attrs_changed() {
-    console.log('attrs changed');
+    console.log('attrs changed', this.model.get('attrs'));
+    this.panel.attrs(this.model.get('attrs'));
   }
 
   d3el: any;
