@@ -20,8 +20,11 @@ export default function Panel() {
   let selected = null;
 
   // let cmap = ['thistle', 'lightyellow', 'lightgreen'];
-  let cmap = ['white', 'blue', 'red', 'lightgreen'];
-  let colorScale = d3.scaleSequential(d3.interpolateRgbBasis(cmap)).domain([0, 1]).clamp(true);
+  let cmap = ['white', 'blue'];
+  // let colorScale = d3.scaleSequential(d3.interpolateRgbBasis(cmap)).domain([0, 1]).clamp(true);
+  // let colorScale = d3.scaleSequential(d3.interpolateGreens).domain([0, 1]).clamp(true);
+  // let colorScale = d3.scaleQuantize().range(d3.schemeGreens[8]).domain([0, 1]);
+  let colorScale = d3.scaleQuantize().range(d3.schemeRdYlBu[8].concat().reverse());
 
   let x_type = 'linear';
   let y_type = 'linear';
@@ -29,8 +32,8 @@ export default function Panel() {
   let sx = d3.scaleLinear().domain([0, 1]).range([0, width]).clamp(true);
   let sy = d3.scaleLinear().domain([Number.EPSILON, 1]).range([height, 0]).clamp(true);
 
-  let y_axis = d3.axisLeft(sy).ticks(4, '.1e');
-  let x_axis = d3.axisBottom(sx).ticks(8, 's');
+  let y_axis = d3.axisLeft(sy).ticks(4, '.1');
+  let x_axis = d3.axisBottom(sx).ticks(8, 'd');
 
   let dispatch = d3.dispatch('highlight', 'select', 'details');
 
@@ -64,6 +67,9 @@ export default function Panel() {
         from = to;
       }
     }
+  }
+
+  function update() {
   }
 
   function render() {
@@ -161,11 +167,13 @@ export default function Panel() {
 
     field(_) {
       field = _;
+      update()
       return this;
     },
 
     attrs(_) {
       attrs = _;
+      update()
       return this;
     },
 
@@ -173,6 +181,7 @@ export default function Panel() {
       root = _;
       preprocess();
       layout();
+      update();
       return this;
     },
 
