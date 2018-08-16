@@ -64,7 +64,6 @@ class TreeWidget(RegulusWidget):
             'offset': node.offset
             }
 
-
     def _select(self, node):
         d = self._default_select(node)
         if node.data is not None:

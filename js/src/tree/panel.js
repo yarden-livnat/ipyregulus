@@ -54,16 +54,17 @@ export default function Panel() {
 
   function layout() {
     if (!root) return;
-    visit(root, [0, root.size]);
+    visit(root, [0, root.size], 0);
 
-    function visit(node, range) {
+    function visit(node, range, depth) {
       let w = range[1] - range[0];
       // node.pos = {x: range[0], y: node.lvl, w: w, yp: node.parent && node.parent.lvl || 1};
       node.pos = {x: node.offset, y: node.lvl, w: node.size, yp: node.parent && node.parent.lvl || 1};
+      console.log(`${".".repeat(depth)} id:${node.id} x:${node.pos.x} y:${node.pos.y} w:${node.pos.w} yp:${node.pos.yp}`)
       let from = range[0];
       for (let child of node.children) {
         let to = from + child.size; // w * child.size / node.size;
-        visit(child, [from, to]);
+        visit(child, [from, to], depth+1);
         from = to;
       }
     }
