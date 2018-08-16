@@ -36,24 +36,28 @@ class TreeWidget(RegulusWidget):
     attrs = Dict(allow_null=True).tag(sync=True)
 
     def __init__(self, select=lambda x:{}, **kwargs):
-        if 'model' in kwargs:
-            kwargs['root'] = kwargs['model'].root
-            # kwargs['attrs'] = kwargs['model'].attrs
         self.user_select = select
-        super().__init__(**kwargs)
         self.observe(self.model_changed, names=['model'])
+        super().__init__(**kwargs)
 
 
     def model_changed(self, change):
         model = change['new']
         self.root = model.root
-        # self.attrs = model.attrs
+        self.attrs = dict()
+
+    def ensure(self, attr):
+        if attr not in self.attrs:
+            if attr in self.model:
+                self.attrs[attr] = self.model.retrieve(attr)
+                return True
+        return False
 
     @validate('model')
     def _validate_tree(self, proposal):
         """validate the tree"""
         value = proposal['value']
-        # validate
+        # TODO: validate
         return value
 
     def _default_select(self, node):

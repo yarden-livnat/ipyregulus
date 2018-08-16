@@ -19,12 +19,8 @@ export default function Panel() {
 
   let selected = null;
 
-  // let cmap = ['thistle', 'lightyellow', 'lightgreen'];
-  let cmap = ['white', 'blue'];
-  // let colorScale = d3.scaleSequential(d3.interpolateRgbBasis(cmap)).domain([0, 1]).clamp(true);
   // let colorScale = d3.scaleSequential(d3.interpolateGreens).domain([0, 1]).clamp(true);
-  // let colorScale = d3.scaleQuantize().range(d3.schemeGreens[8]).domain([0, 1]);
-  let colorScale = d3.scaleQuantize().range(d3.schemeRdYlBu[8].concat().reverse());
+  let colorScale = d3.scaleQuantize().range(d3.schemeRdYlBu[12].concat().reverse());
 
   let x_type = 'linear';
   let y_type = 'linear';
@@ -60,7 +56,7 @@ export default function Panel() {
       let w = range[1] - range[0];
       // node.pos = {x: range[0], y: node.lvl, w: w, yp: node.parent && node.parent.lvl || 1};
       node.pos = {x: node.offset, y: node.lvl, w: node.size, yp: node.parent && node.parent.lvl || 1};
-      console.log(`${".".repeat(depth)} id:${node.id} x:${node.pos.x} y:${node.pos.y} w:${node.pos.w} yp:${node.pos.yp}`)
+      // console.log(`${".".repeat(depth)} id:${node.id} x:${node.pos.x} y:${node.pos.y} w:${node.pos.w} yp:${node.pos.yp}`)
       let from = range[0];
       for (let child of node.children) {
         let to = from + child.size; // w * child.size / node.size;
