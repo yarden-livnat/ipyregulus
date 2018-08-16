@@ -1,6 +1,8 @@
 
 
 import * as d3 from 'd3';
+import '../d3-tip';
+
 import './panel.css';
 
 let DEFAULT_WIDTH = 800;
@@ -16,11 +18,13 @@ export default function Panel() {
   let nodes = [];
   let field = null;
   let attrs = {};
+  let node_tip;
+  let format = d3.format('.3s');
 
   let selected = null;
 
   // let colorScale = d3.scaleSequential(d3.interpolateGreens).domain([0, 1]).clamp(true);
-  let colorScale = d3.scaleQuantize().range(d3.schemeRdYlBu[12].concat().reverse());
+  let colorScale = d3.scaleQuantize().range(d3.schemeRdYlBu[11].concat().reverse());
 
   let x_type = 'linear';
   let y_type = 'linear';
@@ -50,23 +54,32 @@ export default function Panel() {
 
   function layout() {
     if (!root) return;
-    visit(root, [0, root.size], 0);
+    visit(root);
 
-    function visit(node, range, depth) {
-      let w = range[1] - range[0];
-      // node.pos = {x: range[0], y: node.lvl, w: w, yp: node.parent && node.parent.lvl || 1};
+    function visit(node) {
       node.pos = {x: node.offset, y: node.lvl, w: node.size, yp: node.parent && node.parent.lvl || 1};
-      // console.log(`${".".repeat(depth)} id:${node.id} x:${node.pos.x} y:${node.pos.y} w:${node.pos.w} yp:${node.pos.yp}`)
-      let from = range[0];
       for (let child of node.children) {
-        let to = from + child.size; // w * child.size / node.size;
-        visit(child, [from, to], depth+1);
-        from = to;
+        visit(child);
       }
+      // let w = range[1] - range[0];
+      // node.pos = {x: node.offset, y: node.lvl, w: node.size, yp: node.parent && node.parent.lvl || 1};
+      // let from = range[0];
+      // for (let child of node.children) {
+      //   let to = from + child.size; // w * child.size / node.size;
+      //   visit(child, [from, to], depth+1);
+      //   from = to;
+      // }
     }
   }
 
   function update() {
+  }
+
+  function value(d) {
+    if (!field) return null;
+    if (field in d) return d[field]
+    if (field in attrs) return attrs[field][d.id];
+    return null;
   }
 
   function render() {
@@ -81,8 +94,8 @@ export default function Panel() {
     d3nodes.enter()
     .append('rect')
       .attr('class', 'node')
-      // .on('mouseenter', d => hover(d, true))
-      // .on('mouseleave', d => hover(d, false))
+      .on('mouseenter', node_tip.show)
+      .on('mouseleave', node_tip.hide)
       // .on('click', ensure_single(details))
       // .on('dblclick', select)
     .merge(d3nodes)
@@ -90,18 +103,22 @@ export default function Panel() {
       .attr('y', d => sy(d.pos.yp))
       .attr('width', d => Math.max(1, sx(d.pos.x + d.pos.w) - sx(d.pos.x)-1))
       .attr('height', d => Math.max(0, sy(d.pos.y) - sy(d.pos.yp)-1))
-      .style('fill', d =>
-        {//console.log(d[field], colorScale(d[field]));
-          if (!field) return 'white';
-          let value = field in d ? d[field]: field in attrs ? attrs[field][d.id] : null;
-          return value != null && colorScale(value) || 'white';
-        })
+      .style('fill', d => colorScale(value(d) || 0))
       // .classed('highlight', d => d.highlight)
       // .classed('selected', d => d.selected)
       // .classed('details', d => d.details);
       ;
 
     d3nodes.exit().remove();
+  }
+
+  function hover(d, on) {
+    if (on) {
+      node_tip.show();
+    } else {
+      node_tip().hide()
+    }
+    dispatch.call('highlight',this, d, on);
   }
 
   let panel = {
@@ -135,6 +152,18 @@ export default function Panel() {
           .attr('dy', '1em')
           .style('text-anchor', 'middle')
           .text('Persistence');
+
+      node_tip = d3.tip()
+        .attr('class', 'd3-tip')
+        .offset( function() {
+          let m = d3.mouse(this);
+          let bb = this.getBBox();
+          return [m[1]-bb.y-10, m[0]-bb.x-bb.width/2];
+        })
+        .html(d => `id: ${d.id}<br>lvl: ${format(d.lvl)}<br>size: ${d.size}<br>${field}: ${format(value(d))}`);
+
+      svg.call(node_tip);
+
       return this;
     },
 

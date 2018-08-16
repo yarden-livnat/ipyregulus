@@ -30,6 +30,7 @@
     "@jupyter-widgets/base": "^1.2.1",
     "@jupyter-widgets/jupyterlab-manager": "^0.36.0",
     "d3": "^5.5.0",
+    "d3-tip": "^0.9.1",
     "jquery": "^3.3.1"
   },
   "devDependencies": {
