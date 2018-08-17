@@ -1,6 +1,6 @@
 # Copyright (c) University of Utah
 
-from traitlets import Dict, Unicode, observe
+from traitlets import Dict, Unicode, observe, Set
 from ipywidgets import register, widget_serialization
 from .base import RegulusDOMWidget
 from .treetrait import TreeTrait
@@ -15,6 +15,7 @@ class TreeView(RegulusDOMWidget):
     field = Unicode('').tag(sync=True)
     tree = TreeTrait(allow_none=True).tag(sync=True, **widget_serialization)
     attrs = Dict({}).tag(sync=True)
+    hide = Set().tag(sync=True)
 
     @property
     def measure(self):
@@ -22,7 +23,6 @@ class TreeView(RegulusDOMWidget):
 
     @measure.setter
     def measure(self, name):
-        print('measure = ', name)
         self.ensure(name)
         self.field = name
 
@@ -38,7 +38,6 @@ class TreeView(RegulusDOMWidget):
 
     @observe('tree')
     def tree_changed(self, change):
-        # print('tree changed', change)
         if change['old'] is not None:
             change['old'].unobserve(self.tree_modified, names='model')
         if change['new'] is not None:
@@ -47,4 +46,5 @@ class TreeView(RegulusDOMWidget):
 
     def tree_modified(self, change):
         self.attrs = dict()
+        self.hide = set()
         self.ensure(self.measure, force=True)

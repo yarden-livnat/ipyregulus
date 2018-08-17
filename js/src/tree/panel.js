@@ -18,6 +18,7 @@ export default function Panel() {
   let nodes = [];
   let field = null;
   let attrs = {};
+  let hide = new Set();
   let node_tip;
   let format = d3.format('.3s');
 
@@ -99,6 +100,7 @@ export default function Panel() {
       // .on('click', ensure_single(details))
       // .on('dblclick', select)
     .merge(d3nodes)
+      .style('visibility', d => hide.has(d.id) && 'hidden' || 'visible')
       .attr('x', d => sx(d.pos.x))
       .attr('y', d => sy(d.pos.yp))
       .attr('width', d => Math.max(1, sx(d.pos.x + d.pos.w) - sx(d.pos.x)-1))
@@ -200,6 +202,11 @@ export default function Panel() {
     attrs(_) {
       attrs = _;
       update()
+      return this;
+    },
+
+    hide(_) {
+      hide = new Set(_);
       return this;
     },
 
