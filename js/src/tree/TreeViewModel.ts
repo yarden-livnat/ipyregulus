@@ -20,7 +20,7 @@ class TreeViewModel extends RegulusViewModel {
       field: null,
       tree: null,
       attrs: {},
-      hide: new Set()
+      show: null
     };
   }
 

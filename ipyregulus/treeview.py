@@ -15,7 +15,7 @@ class TreeView(RegulusDOMWidget):
     field = Unicode('').tag(sync=True)
     tree = TreeTrait(allow_none=True).tag(sync=True, **widget_serialization)
     attrs = Dict({}).tag(sync=True)
-    hide = Set().tag(sync=True)
+    show = Set(None, allow_none=True).tag(sync=True)
 
     @property
     def measure(self):
@@ -46,5 +46,5 @@ class TreeView(RegulusDOMWidget):
 
     def tree_modified(self, change):
         self.attrs = dict()
-        self.hide = set()
+        self.show = None
         self.ensure(self.measure, force=True)

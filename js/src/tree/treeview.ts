@@ -29,7 +29,7 @@ class TreeView extends DOMWidgetView {
     this.model.on('change:field', this.on_field_changed, this);
     this.model.on('change:tree',  this.on_tree_changed, this);
     this.model.on('change:attrs', this.on_attrs_changed, this);
-    this.model.on('change:hide', this.on_hide_changed, this);
+    this.model.on('change:show', this.on_show_changed, this);
 
 
     this.on_title_changed();
@@ -106,8 +106,9 @@ class TreeView extends DOMWidgetView {
       .redraw();
   }
 
-  on_hide_changed() {
-    this.panel.hide(this.model.get('hide'))
+  on_show_changed() {
+    // console.log('show changed:', this.model.get('show'));
+    this.panel.show(this.model.get('show'))
       .redraw();
   }
 

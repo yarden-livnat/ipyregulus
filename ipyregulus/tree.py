@@ -62,7 +62,7 @@ class TreeWidget(RegulusWidget):
 
     def _default_select(self, node):
         return {
-            'id': node.ref,
+            'id': node.id,
             'lvl': node.data.persistence if len(node.children) > 0 else 0,
             'size': node.data.size(),
             'offset': node.offset
