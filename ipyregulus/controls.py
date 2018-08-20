@@ -68,18 +68,18 @@ class TreeFilter(TreeControler):
             self.visible = filter_tree(self.ref, self.apply)
         else:
             self.visible = None
-        for target, attr in self._cbs:
-            print('assign', target, attr, self.visible)
-            target[attr] = self.visible
+        for func in self._cbs:
+            func(self.visible)
 
-    def connect(self, target, attr):
-        self._cbs.append([target, attr])
 
     def on(self, func):
         self._cbs.append(func)
 
     def off(self, func):
-        self._cbs.remove(func)
+        if func is None:
+            self._cbs = []
+        else:
+            self._cbs.remove(func)
 
 
 class TreeReducer(TreeControler):

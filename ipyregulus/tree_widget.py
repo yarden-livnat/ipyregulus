@@ -33,9 +33,6 @@ class TreeWidget(HasTree, RegulusWidget):
 
     def __init__(self, tree, select=lambda x:{}, **kwargs):
         self.user_select = select
-        # HasTree.__init__(self, tree)
-        # RegulusWidget.__init__(self)
-        print('TreeWidget.init', tree, **kwargs)
         super().__init__(tree)
 
 
