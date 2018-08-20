@@ -6,7 +6,8 @@ from ipywidgets import register, widget_serialization
 from traitlets import Dict, Instance, Unicode, Undefined, validate
 from regulus.topo import RegulusTree
 from regulus.tree import Node
-from .base import RegulusWidget
+from ipyregulus.base import RegulusWidget
+from ipyregulus.has_tree import HasTree
 
 def _tree_to_json(value, widget):
     def marshal(node, l):
@@ -16,42 +17,40 @@ def _tree_to_json(value, widget):
         l.append(None)
         return l
 
-    if value is None:
+    if value is None or value is Undefined:
         return None
-    if value is Undefined:
-        return None
-
     return marshal(value, [])
 
 
-
 @register
-class TreeWidget(RegulusWidget):
+class TreeWidget(HasTree, RegulusWidget):
     "A widget represeting a tree"
 
     _model_name = Unicode('TreeModel').tag(sync=True)
 
-    model = Instance(klass=RegulusTree, allow_none=True).tag(sync=False)
     root = Instance(klass=Node, allow_none=True).tag(sync=True, to_json=_tree_to_json)
     attrs = Dict(allow_null=True).tag(sync=True)
 
-    def __init__(self, select=lambda x:{}, **kwargs):
+    def __init__(self, tree, select=lambda x:{}, **kwargs):
         self.user_select = select
-        self.observe(self.model_changed, names=['model'])
-        super().__init__(**kwargs)
+        # HasTree.__init__(self, tree)
+        # RegulusWidget.__init__(self)
+        print('TreeWidget.init', tree, **kwargs)
+        super().__init__(tree)
 
 
-    def model_changed(self, change):
-        model = change['new']
-        self.root = model.root
+    def update(self, change):
+        super().update(change)
+        self.root = self.tree.root if self.tree is not None else None
         self.attrs = dict()
 
     def ensure(self, attr):
         if attr not in self.attrs:
-            if attr in self.model:
-                self.attrs[attr] = self.model.retrieve(attr)
+            if attr in self.tree:
+                self.attrs[attr] = self.tree.retrieve(attr)
                 return True
         return False
+
 
     @validate('model')
     def _validate_tree(self, proposal):

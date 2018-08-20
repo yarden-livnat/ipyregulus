@@ -1,6 +1,6 @@
 from traitlets import TraitType
 from regulus.topo import RegulusTree
-from .tree import TreeWidget
+from .tree_widget import TreeWidget
 
 class TreeTrait(TraitType):
     """A trait for a Regulus TreeWidget or a RegulusTree"""

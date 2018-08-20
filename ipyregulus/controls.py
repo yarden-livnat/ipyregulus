@@ -1,18 +1,19 @@
-from regulus.tree.alg import filter as filter_tree
 from ipywidgets import Label, HBox, FloatSlider
 
-class TreeAttrFilter(object):
-    def __init__(self, view, attr, filter, value=None):
+from regulus.tree.alg import filter as filter_tree, reduce as reduce_tree
+from .has_tree import *
+
+class TreeControler(HasTree):
+    def __init__(self, ref, attr, func, widget=None):
         self._attr = None
-        self._tree_attr = None
-        self.view = view
-        self.view.tree.observe(self.tree_changed, names='model')
-        self.filter = filter
-        self.control = value if value is not None else FloatSlider(min=0, max=1, step=0.01)
-        self.control.observe(self.update, names='value')
-        self.value = self.control.value
+        self.monitored = None
+        self.func = func
+        self.widget = widget if widget is not None else FloatSlider(min=0, max=1, step=0.01)
+        self.value = self.widget.value
         self.label = Label()
+        super().__init__(ref)
         self.attr = attr
+        self.widget.observe(self.update, names='value')
         self.update(None)
 
     @property
@@ -21,48 +22,70 @@ class TreeAttrFilter(object):
 
     @attr.setter
     def attr(self, name):
+        if self._attr == name:
+            return
         self._attr = name
-        self._tree_attr = self.view.tree.model.attr[name]
         self.label.value = name
-
-    def tree_changed(self, change):
-        self._tree_attr = self.view.tree.model.attr[self._attr]
+        if self.ref is not None:
+            self.monitored = self.ref.attr[name]
         self.update(None)
+
+    def ref_changed(self, change):
+        super().ref_changed(change)
+        if self.ref is not None and self._attr is not None:
+            self.monitored = self.ref.attr[self._attr]
+        else:
+            self.monitored = None
+        self.update(None)
+
+    def apply(self, node):
+        return self.func(self.monitored[node], self.value)
 
     def update(self, change):
         if change is not None:
             self.value = change['new']
-        self.view.show = filter_tree(self.view.tree.model, lambda n: self.filter(self._tree_attr[n], self.value))
 
     def _ipython_display_(self, **kwargs):
-        display(HBox([self.label, self.control]))
+        display(HBox([self.label, self.widget]))
 
 
-from regulus.tree.alg import reduce as reduce_tree
-class TreeAttrReduce(object):
-    def __init__(self, tw, tree, attr, filter, value=None):
-        self._attr = None
-        self._tree_attr = None
-        self.tw = tw
-        self.tree = tree
-        self.filter = filter
-        self.control = value if value is not None else FloatSlider(min=0, max=1, step=0.01)
-        self.control.observe(self.update, names='value')
-        self.label = Label()
-        self.attr = attr
+class TreeFilter(TreeControler):
+    visible = Set(None, allow_none=True)
 
-    @property
-    def attr(self):
-        return self._attr
+    def __init__(self, ref, attr, func, **kwargs):
+        self._cbs = []
+        super().__init__(ref, attr, func, **kwargs)
+        self.tree = self.ref
 
-    @attr.setter
-    def attr(self, name):
-        self._attr = name
-        self._tree_attr = self.tree.attr[name]
-        self.label.value = name
+    def ref_changed(self, change):
+        super().ref_changed(change)
+        self.tree = self.ref
+        self.update(None)
 
     def update(self, change):
-        self.tw.model = reduce_tree(self.tree, lambda n: self.filter(self._tree_attr[n], change['new']))
+        super().update(change)
+        if self.ref is not None and self.monitored is not None:
+            self.visible = filter_tree(self.ref, self.apply)
+        else:
+            self.visible = None
+        for target, attr in self._cbs:
+            print('assign', target, attr, self.visible)
+            target[attr] = self.visible
 
-    def _ipython_display_(self, **kwargs):
-        display(HBox([self.label, self.control]))
+    def connect(self, target, attr):
+        self._cbs.append([target, attr])
+
+    def on(self, func):
+        self._cbs.append(func)
+
+    def off(self, func):
+        self._cbs.remove(func)
+
+
+class TreeReducer(TreeControler):
+    def update(self, change):
+        super().updaet(change)
+        if self.ref is not None and self.monitored is not None:
+            self.tree = reduce_tree(self.ref, self.appy)
+        else:
+            self.tree = self.ref

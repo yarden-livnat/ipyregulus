@@ -27,7 +27,7 @@ class TreeView extends DOMWidgetView {
     this.panel = Panel().el(d3.select(this.el).select('.view'));
     this.model.on('change:title', this.on_title_changed, this);
     this.model.on('change:field', this.on_field_changed, this);
-    this.model.on('change:tree',  this.on_tree_changed, this);
+    this.model.on('change:tree_model',  this.on_tree_changed, this);
     this.model.on('change:attrs', this.on_attrs_changed, this);
     this.model.on('change:show', this.on_show_changed, this);
 
@@ -70,13 +70,13 @@ class TreeView extends DOMWidgetView {
 
 
   on_tree_changed() {
-    let prev = this.model.previous('tree');
+    let prev = this.model.previous('tree_model');
     if (prev) {
       prev.off('change:root', this.on_tree_updated, this);
       prev.off('change:attrs', this.on_tree_updated, this);
       prev.off('change:all', this.on_tree_updated, this);
     }
-    let current = this.model.get('tree');
+    let current = this.model.get('tree_model');
     if (current) {
       current.on('change:root', this.on_tree_updated, this);
       current.on('change:attrs', this.on_tree_updated, this);
@@ -90,7 +90,7 @@ class TreeView extends DOMWidgetView {
   }
 
   on_tree_updated() {
-    this.panel.data(this.model.get('tree').get('root'))
+    this.panel.data(this.model.get('tree_model').get('root'))
       .redraw();
   }
 

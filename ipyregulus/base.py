@@ -17,4 +17,6 @@ class RegulusWidget(Widget):
 
 
 class RegulusDOMWidget(DOMWidget, RegulusWidget):
-        """An abstract widget class representing regulus view widgets"""
+    """An abstract widget class representing regulus view widgets"""
+    def __init__(self, *args, **kwargs):
+        super().__init__(**kwargs)

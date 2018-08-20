@@ -18,7 +18,6 @@ class TreeViewModel extends RegulusViewModel {
 
       title: "",
       field: null,
-      tree: null,
       attrs: {},
       show: null
     };
@@ -26,7 +25,7 @@ class TreeViewModel extends RegulusViewModel {
 
   static serializers = {
     ...RegulusViewModel.serializers,
-      tree: {deserialize: unpack_models},
+      tree_model: {deserialize: unpack_models},
   }
 
   static model_name = "TreeViewModel";
