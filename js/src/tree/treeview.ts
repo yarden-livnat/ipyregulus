@@ -79,7 +79,7 @@ class TreeView extends DOMWidgetView {
     let current = this.model.get('tree_model');
     if (current) {
       current.on('change:root', this.on_tree_updated, this);
-      current.on('change:attrs', this.on_tree_updated, this);
+      current.on('change:attrs', this.on_attrs_changed, this);
       current.on('change:all', this.on_tree_updated, this);
     }
     this.on_tree_updated();
@@ -102,12 +102,14 @@ class TreeView extends DOMWidgetView {
   }
 
   on_attrs_changed() {
-    this.panel.attrs(this.model.get('attrs'))
-      .redraw();
+    let attr = {
+      ...this.model.get('tree_model').get('attrs'),
+      ...this.model.get('attrs'),
+    }
+    this.panel.attrs(attr).redraw();
   }
 
   on_show_changed() {
-    // console.log('show changed:', this.model.get('show'));
     this.panel.show(this.model.get('show'))
       .redraw();
   }

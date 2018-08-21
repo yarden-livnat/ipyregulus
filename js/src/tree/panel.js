@@ -20,7 +20,7 @@ export default function Panel() {
   let attrs = {};
   let show = null;
   let node_tip;
-  let format = d3.format('.3s');
+  let format = d3.format('.3f');
 
   let selected = null;
 
@@ -167,7 +167,7 @@ export default function Panel() {
           let bb = this.getBBox();
           return [m[1]-bb.y-10, m[0]-bb.x-bb.width/2];
         })
-        .html(d => `id: ${d.id}<br>lvl: ${format(d.lvl)}<br>size: ${d.size}<br>${field}: ${format(value(d))}`);
+        .html(d => `id: ${d.id}<br>lvl: ${format(d.lvl)}<br>${field}: ${format(value(d))}<br>size: ${d.size}`);
 
       svg.call(node_tip);
 

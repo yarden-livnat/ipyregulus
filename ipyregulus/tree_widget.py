@@ -45,6 +45,7 @@ class TreeWidget(HasTree, RegulusWidget):
         if attr not in self.attrs:
             if attr in self.tree:
                 self.attrs[attr] = self.tree.retrieve(attr)
+                self._notify_trait('attrs', self.attrs, self.attrs)
                 return True
         return False
 
