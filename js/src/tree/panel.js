@@ -100,8 +100,8 @@ export default function Panel() {
     d3nodes.enter()
     .append('rect')
       .attr('class', 'node')
-      .on('mouseenter', node_tip.show)
-      .on('mouseleave', node_tip.hide)
+      .on('mouseenter', show_tip) 
+      .on('mouseleave', hide_tip)
       // .on('click', ensure_single(details))
       // .on('dblclick', select)
     .merge(d3nodes)
@@ -117,6 +117,20 @@ export default function Panel() {
       ;
 
     d3nodes.exit().remove();
+  }
+
+  function show_tip() {
+    node_tip.show.apply(this, arguments);
+    d3.select(this).on('mousemove', update_tip)
+  }
+
+  function hide_tip() {
+    node_tip.hide.apply(this, arguments);
+    d3.select(this).on('mousemove', null);
+  }
+
+  function update_tip() {
+    node_tip.show.apply(this, arguments);
   }
 
   function hover(d, on) {
