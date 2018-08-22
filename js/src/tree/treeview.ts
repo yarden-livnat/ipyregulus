@@ -24,12 +24,17 @@ class TreeView extends DOMWidgetView {
       .classed('rg_tree', true);
 
     this.d3el.html(template);
-    this.panel = Panel().el(d3.select(this.el).select('.view'));
+    this.panel = Panel().el(d3.select(this.el).select('.view'))
+      .on('details', (d, is_on) => this.on_details(d, is_on))
+      .on('select', (d, is_on) => this.on_select(d, is_on));
+
     this.model.on('change:title', this.on_title_changed, this);
     this.model.on('change:field', this.on_field_changed, this);
     this.model.on('change:tree_model',  this.on_tree_changed, this);
     this.model.on('change:attrs', this.on_attrs_changed, this);
     this.model.on('change:show', this.on_show_changed, this);
+    this.model.on('change:selected', this.on_selected_changed, this);
+    this.model.on('change:details', this.on_details_changed, this);
 
 
     this.on_title_changed();
@@ -112,6 +117,43 @@ class TreeView extends DOMWidgetView {
   on_show_changed() {
     this.panel.show(this.model.get('show'))
       .redraw();
+  }
+
+  on_selected_changed() {
+    console.log('seleted changed', this.model.get('selected'));
+  }
+
+  on_details_changed() {
+    console.log('details changed', this.model.get('details'));
+  }
+
+
+  /*
+   * events from Panel
+   */
+
+  on_select(node, is_on) {
+    console.log('on select', this, node, is_on);
+    if (is_on) {
+      this.model.get('selected').add(node.id);
+    } else {
+      this.model.get('selected').delete(node.id);
+    }
+    this.touch();
+  }
+
+  on_details(node, is_on) {
+    console.log('on details', node, is_on);
+    if (is_on) {
+      let details = this.model.get('details');
+      // details.push(node.id);
+      let d = new Set(details);
+      d.add(node.id);
+      this.model.set('details', d);
+    } else {
+      this.model.get('details').delete(node.id);
+    }
+    this.touch();
   }
 
   d3el: any;

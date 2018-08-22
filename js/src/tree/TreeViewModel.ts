@@ -19,13 +19,17 @@ class TreeViewModel extends RegulusViewModel {
       title: "",
       field: null,
       attrs: {},
-      show: null
+      show: null,
+      selected: new Set(),
+      details: new Set()
     };
   }
 
   static serializers = {
     ...RegulusViewModel.serializers,
       tree_model: {deserialize: unpack_models},
+      details: {serialize: function(s:any) { return Array.from(s); }, deserialize: function(array:any) { return new Set(array); }},
+      selected: {serialize: function(s:any) { return s; }, deserialize: function(array:any) { return new Set(array); }}
   }
 
   static model_name = "TreeViewModel";

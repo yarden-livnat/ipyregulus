@@ -1,4 +1,4 @@
-from ipywidgets import Label, HBox, FloatSlider, Set
+from ipywidgets import Label, HBox, FloatSlider,
 
 from regulus.tree.alg import filter as filter_tree, reduce as reduce_tree
 from .tree import HasTree

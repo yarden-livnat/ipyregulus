@@ -3,9 +3,8 @@
 from traitlets import Dict, HasTraits, Instance, Unicode, observe, Set
 from ipywidgets import register, widget_serialization
 
-from ..base import RegulusDOMWidget
-from .has_tree import HasTree
-from .tree_widget import TreeWidget
+from .base import RegulusDOMWidget
+from .tree import HasTree, TreeWidget
 
 
 @register
@@ -18,20 +17,21 @@ class TreeView(HasTree, RegulusDOMWidget):
     field = Unicode('').tag(sync=True)
     attrs = Dict({}).tag(sync=True)
     show = Set(None, allow_none=True).tag(sync=True)
-    selected = Set()
+    selected = Set(set()).tag(sync=True)
+    details = Set(set()).tag(sync=True)
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
 
     @property
-    def measure(self):
+    def attr(self):
         return self.field
 
-    @measure.setter
-    def measure(self, name):
+    @attr.setter
+    def attr(self, name):
         self.ensure(name)
         self.field = name
 
     def __init__(self, *args, **kwargs):
-        self.measure = kwargs.pop('measure', 'start')
+        self.attr = kwargs.pop('attr', 'start')
         super().__init__(*args, **kwargs)
 
 
@@ -41,8 +41,7 @@ class TreeView(HasTree, RegulusDOMWidget):
         if name not in self.attrs or force:
             if name in self.tree:
                 self._owner.ensure(name)
-                # self.attrs[name] = self.tree.retrieve(name)
-                # self._notify_trait('attrs', self.attrs, self.attrs)
+                
 
     def update(self, change):
         super().update(change)
@@ -52,19 +51,6 @@ class TreeView(HasTree, RegulusDOMWidget):
             if self.tree is not None:
                 if self._owner is not None:
                     self.tree_model = self._owner
-                    self.ensure(self.measure, force=True)
+                    self.ensure(self.attr, force=True)
                 else:
                     self.ref = TreeWidget(self.tree)
-
-    # @observe('tree')
-    # def tree_changed(self, change):
-    #     if change['old'] is not None:
-    #         change['old'].unobserve(self.tree_modified, names='model')
-    #     if change['new'] is not None:
-    #         change['new'].observe(self.tree_modified, names='model')
-    #     self.tree_modified(None)
-    #
-    # def tree_modified(self, change):
-    #     self.attrs = dict()
-    #     self.show = None
-    #     self.ensure(self.measure, force=True)

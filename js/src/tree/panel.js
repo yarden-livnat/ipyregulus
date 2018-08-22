@@ -1,8 +1,8 @@
 
 
 import * as d3 from 'd3';
-import '../d3-tip';
-
+import '../utils/d3-tip';
+import {ensure_single} from '../utils/events';
 import './panel.css';
 
 let DEFAULT_WIDTH = 800;
@@ -100,10 +100,10 @@ export default function Panel() {
     d3nodes.enter()
     .append('rect')
       .attr('class', 'node')
-      .on('mouseenter', show_tip) 
+      .on('mouseenter', show_tip)
       .on('mouseleave', hide_tip)
-      // .on('click', ensure_single(details))
-      // .on('dblclick', select)
+      .on('click', ensure_single(details))
+      .on('dblclick', select)
     .merge(d3nodes)
       .style('visibility', d => !show || show.has(d.id) ? 'visible' : 'hidden')
       .attr('x', d => sx(d.pos.x))
@@ -142,8 +142,20 @@ export default function Panel() {
     dispatch.call('highlight',this, d, on);
   }
 
-  let panel = {
+  function select(d) {
+      d.selected = !d.selected;
+      // render_names();
+      dispatch.call('select', this, d, d.selected);
+    }
 
+  function details(d) {
+    d.details = !d.details;
+    dispatch.call('details', this, d, d.details);
+    if (d.details) select(d);
+  }
+
+
+  let panel = {
     el(_) {
       // svg = d3.select(_);
       svg = _;
