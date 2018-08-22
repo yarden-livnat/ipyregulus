@@ -16,12 +16,6 @@ import {
   TreeView
 } from "./tree/treeview";
 
-import {
-  SidePanelModel
-} from "./sidepanel/SidePanelModel"
-import {
-  SidePanel
-} from "./sidepanel/SidePanel";
 
 import {
   EXTENSION_SPEC_VERSION
@@ -40,23 +34,13 @@ const regulusPlugin: JupyterLabPlugin<void> = {
 export default  regulusPlugin;
 
 function activateRegulusExtension(app: JupyterLab, registry: IJupyterWidgetRegistry): void {
-  console.log('Activate RegulusExtension');
-
-  let AppSidePanel = class extends SidePanel {
-    constructor(options) {
-      super({app, ...options});
-    }
-  }
-
   registry.registerWidget({
     name: '@regulus/ipyregulus',
     version: EXTENSION_SPEC_VERSION,
     exports: {
       TreeModel: Tree,
       TreeViewModel: TreeViewModel,
-      TreeView: TreeView,
-      SidePanelModel: SidePanelModel,
-      SidePanel: AppSidePanel
+      TreeView: TreeView
     }
   });
 }

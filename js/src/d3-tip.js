@@ -59,6 +59,10 @@ d3.tip = function() {
     return tip
   }
 
+tip.move = function() {
+  var args = Array.prototype.slice.call(arguments)
+  if(args[args.length - 1] instanceof SVGElement) target = args.pop()
+}
   // Public - hide the tooltip
   //
   // Returns a tip

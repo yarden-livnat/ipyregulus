@@ -17,6 +17,7 @@ class TreeView(HasTree, RegulusDOMWidget):
     field = Unicode('').tag(sync=True)
     attrs = Dict({}).tag(sync=True)
     show = Set(None, allow_none=True).tag(sync=True)
+    selected = Set()
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
 
     @property
