@@ -6,8 +6,8 @@ from ipywidgets import register, widget_serialization
 from traitlets import Dict, Instance, Unicode, Undefined, validate
 from regulus.topo import RegulusTree
 from regulus.tree import Node
-from ipyregulus.base import RegulusWidget
-from ipyregulus.has_tree import HasTree
+from .has_tree import HasTree
+from ..base import RegulusWidget
 
 def _tree_to_json(value, widget):
     def marshal(node, l):

@@ -1,7 +1,7 @@
-from ipywidgets import Label, HBox, FloatSlider
+from ipywidgets import Label, HBox, FloatSlider, Set
 
 from regulus.tree.alg import filter as filter_tree, reduce as reduce_tree
-from .has_tree import *
+from .tree import HasTree
 
 class TreeControler(HasTree):
     def __init__(self, ref, attr, func, widget=None):
