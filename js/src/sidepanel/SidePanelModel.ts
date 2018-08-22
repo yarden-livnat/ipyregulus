@@ -4,7 +4,7 @@ import {
 
 import {
   EXTENSION_SPEC_VERSION
-} from './version';
+} from '../version';
 
 const MODULE_NAME = '@regulus/ipyregulus';
 

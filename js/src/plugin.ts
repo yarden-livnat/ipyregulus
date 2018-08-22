@@ -18,10 +18,10 @@ import {
 
 import {
   SidePanelModel
-} from "./SidePanelModel"
+} from "./sidepanel/SidePanelModel"
 import {
   SidePanel
-} from "./SidePanel";
+} from "./sidepanel/SidePanel";
 
 import {
   EXTENSION_SPEC_VERSION
