@@ -1,0 +1,19 @@
+.rg_details{
+  padding: 10px;
+  flex-grow: 1;
+  flex-shrink: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.rg_details .title {
+  font-size: 10pt;
+}
+
+.rg_details .controls {
+  font-size: 10pt;
+}
+
+.rg_details .view {
+  flex-grow: 1;
+}

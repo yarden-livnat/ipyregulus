@@ -6,11 +6,9 @@ from ipywidgets import register, widget_serialization
 from .base import RegulusDOMWidget
 from .tree import HasTree, TreeWidget
 
-def from_json(js, manager):
-    print('from_json', js)
-    with open('debug.txt', 'a') as f:
-        f.write('from json', js)
-    return set(js)
+def from_json(array, manager):
+    print('from json:', array)
+    return array
 
 
 @register
@@ -23,7 +21,7 @@ class TreeView(HasTree, RegulusDOMWidget):
     field = Unicode('').tag(sync=True)
     attrs = Dict({}).tag(sync=True)
     show = Set(None, allow_none=True).tag(sync=True)
-    selected = Set(set()).tag(sync=True, from_json=from_json)
+    selected = List().tag(sync=True, from_json=from_json)
     details = List([]).tag(sync=True)
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
 

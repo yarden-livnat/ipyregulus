@@ -16,6 +16,14 @@ import {
   TreeView
 } from "./tree/treeview";
 
+import {
+  DetailsModel, DetailsView
+} from './details/details';
+
+import {
+  RegulusData
+} from './models/data';
+
 
 import {
   EXTENSION_SPEC_VERSION
@@ -39,8 +47,11 @@ function activateRegulusExtension(app: JupyterLab, registry: IJupyterWidgetRegis
     version: EXTENSION_SPEC_VERSION,
     exports: {
       TreeModel: Tree,
+      RegulusData: RegulusData,
       TreeViewModel: TreeViewModel,
-      TreeView: TreeView
+      TreeView: TreeView,
+      DetailsModel: DetailsModel,
+      DetailsView: DetailsView
     }
   });
 }

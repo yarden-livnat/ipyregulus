@@ -1,13 +1,22 @@
+from traitlets import Instance, List, Unicode
+from ipydatawidgets import DataUnion
+from ipywidgets import register, widget_serialization
+
+import numpy as np
+
 from .base import RegulusDOMWidget
+from .data_widget import DataWidget
 from .tree import HasTree, TreeWidget
 
 @register
-class DetailsView(HasTree, RegulusDOMWidget):
+class DetailsView(RegulusDOMWidget):
     """"""
-    _model_name = Unicode('DetailsViewModel').tag(sync=True)
+    _model_name = Unicode('DetailsModel').tag(sync=True)
     _view_name = Unicode('DetailsView').tag(sync=True)
 
     title = Unicode('title').tag(sync=True)
 
-    selected = Set()
-    
+    data = Instance(klass=DataWidget).tag(sync=True, **widget_serialization)
+    tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
+    measure = Unicode('').tag(sync=True)
+    show = List().tag(sync=True)
