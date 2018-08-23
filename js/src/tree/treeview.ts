@@ -104,6 +104,8 @@ class TreeView extends DOMWidgetView {
     this.d3el.select('.measure').html(field)
     this.panel.field(field)
       .redraw();
+    this.model.set('title', field);
+    this.touch();
   }
 
   on_attrs_changed() {
@@ -134,25 +136,25 @@ class TreeView extends DOMWidgetView {
 
   on_select(node, is_on) {
     console.log('on select', this, node, is_on);
+    let selected = new Set(this.model.get('selected'))
     if (is_on) {
-      this.model.get('selected').add(node.id);
+      selected.add(node.id);
     } else {
-      this.model.get('selected').delete(node.id);
+      selected.delete(node.id);
     }
+    this.model.set('selected', selected)
     this.touch();
   }
 
   on_details(node, is_on) {
     console.log('on details', node, is_on);
+    let details = this.model.get('details').concat();
     if (is_on) {
-      let details = this.model.get('details');
-      // details.push(node.id);
-      let d = new Set(details);
-      d.add(node.id);
-      this.model.set('details', d);
+      details.push(node.id);
     } else {
-      this.model.get('details').delete(node.id);
+      details.splice(details.indexOf(node.id), 1)
     }
+    this.model.set('details', details);
     this.touch();
   }
 

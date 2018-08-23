@@ -1,10 +1,16 @@
 # Copyright (c) University of Utah
 
-from traitlets import Dict, HasTraits, Instance, Unicode, observe, Set
+from traitlets import Dict, HasTraits, Instance, List, Unicode, observe, Set
 from ipywidgets import register, widget_serialization
 
 from .base import RegulusDOMWidget
 from .tree import HasTree, TreeWidget
+
+def from_json(js, manager):
+    print('from_json', js)
+    with open('debug.txt', 'a') as f:
+        f.write('from json', js)
+    return set(js)
 
 
 @register
@@ -17,8 +23,8 @@ class TreeView(HasTree, RegulusDOMWidget):
     field = Unicode('').tag(sync=True)
     attrs = Dict({}).tag(sync=True)
     show = Set(None, allow_none=True).tag(sync=True)
-    selected = Set(set()).tag(sync=True)
-    details = Set(set()).tag(sync=True)
+    selected = Set(set()).tag(sync=True, from_json=from_json)
+    details = List([]).tag(sync=True)
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
 
     @property
@@ -41,7 +47,7 @@ class TreeView(HasTree, RegulusDOMWidget):
         if name not in self.attrs or force:
             if name in self.tree:
                 self._owner.ensure(name)
-                
+
 
     def update(self, change):
         super().update(change)
