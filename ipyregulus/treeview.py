@@ -17,7 +17,7 @@ class TreeView(HasTree, RegulusDOMWidget):
     _model_name = Unicode('TreeViewModel').tag(sync=True)
     _view_name = Unicode('TreeView').tag(sync=True)
 
-    title = Unicode('title').tag(sync=True)
+    title = Unicode('').tag(sync=True)
     field = Unicode('').tag(sync=True)
     attrs = Dict({}).tag(sync=True)
     show = Set(None, allow_none=True).tag(sync=True)
