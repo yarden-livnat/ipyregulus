@@ -25,7 +25,7 @@ class DetailsModel extends RegulusViewModel {
       _model_name: DetailsModel.model_name,
       _view_name: DetailsModel.view_name,
 
-      title: "no title",
+      title: '',
       data: null,
       measure: '',
       show: []
@@ -58,6 +58,8 @@ class DetailsView extends DOMWidgetView {
 
     setTimeout( () => {
       // this.panel.resize();
+      this.title_changed();
+      this.data_changed();
       this.show_changed();
     }, 0);
   }
@@ -79,14 +81,14 @@ class DetailsView extends DOMWidgetView {
   }
 
   data_changed() {
-    this.panel.data(this.model.get('data'));
     console.log('data changed', this.model.get('data'));
+    this.panel.data(this.model.get('data'));
   }
 
   show_changed() {
     console.log('show_changed', this.model.get('show'));
+    this.panel.show(this.model.get('show'));
   }
-
 
   d3el: any;
   panel: any;
