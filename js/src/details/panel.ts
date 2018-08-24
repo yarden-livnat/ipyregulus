@@ -13,8 +13,31 @@ export default function Panel() {
   let svg = null;
 
   let data = null;
+  let pts = [];
+  let values = [];
+  let partitions = {}
+
   let measure = '';
   let show = [];
+
+  let cols = [];
+
+  function update_data_model(_) {
+    data = _;
+    if (data != null) {
+      pts = data.get('pts');
+      values = data.get('values');
+      partitions = data.get('partitions');
+    } else {
+      pts = [];
+      values = [];
+      partitions = {};
+    }
+  }
+
+  function update_cols() {
+
+  }
 
   function render() {
     if (!svg) return;
@@ -46,8 +69,6 @@ export default function Panel() {
       return this;
     },
 
-
-
     resize() {
       // if (!svg) return;
       //
@@ -61,7 +82,7 @@ export default function Panel() {
     },
 
     data(_) {
-      data = _;
+      update_data_model(_);
       return this;
     },
 
