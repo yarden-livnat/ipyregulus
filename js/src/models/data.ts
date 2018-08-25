@@ -1,4 +1,12 @@
+/// <reference types="ndarray" />
+
+
 import { unpack_models } from '@jupyter-widgets/base';
+
+import {
+  array_serialization
+} from 'jupyter-dataserializers';
+
 import { RegulusModel } from './base';
 
 
@@ -8,16 +16,16 @@ class RegulusData extends RegulusModel {
     return {
       ...super.defaults(),
       _model_name: RegulusData.model_name,
-      pts: [],
-      values: [],
+      pts_idx: [],
+      values_idx: [],
       partitions: {}
     }
   }
 
   static serializers = {
     ...RegulusModel.serializers,
-    pts: {deserialize: unpack_models},
-    values: {deserialize: unpack_models}
+    pts: array_serialization,
+    values: array_serialization
   }
 
   static model_name = 'RegulusData';

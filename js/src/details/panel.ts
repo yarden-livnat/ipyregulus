@@ -13,8 +13,10 @@ export default function Panel() {
   let svg = null;
 
   let data = null;
-  let pts = [];
-  let values = [];
+  let pts = null;
+  let pts_idx = [];
+  let values = null;
+  let values_idx = [];
   let partitions = {}
 
   let measure = '';
@@ -25,23 +27,32 @@ export default function Panel() {
   function update_data_model(_) {
     data = _;
     if (data != null) {
-      pts = data.get('pts');
-      values = data.get('values');
+      pts = data.get('pts').getNDArray();
+      pts_idx = data.get('pts_idx');
+      values = data.get('values').getNDArray();
+      values_idx = data.get('values_idx');
       partitions = data.get('partitions');
     } else {
-      pts = [];
-      values = [];
+      pts = null;
+      pts_idx = [];
+      values = null;
+      values_idx = [];
       partitions = {};
     }
   }
 
   function update_cols() {
-
+    cols = pts_idx.map( (c,i) => ({id: i, name: c}));
   }
 
   function render() {
-    if (!svg) return;
-
+    // render columns
+    let d3cols = root.select('.rg_top').selectAll('.rg_col_header').data(cols, d => d.id);
+    d3cols.enter()
+      .append('div')
+      .classed('col_header', true)
+    .merge(d3cols)
+      .html(d => d.name);
   }
 
   function scroll_plots() {
@@ -83,6 +94,8 @@ export default function Panel() {
 
     data(_) {
       update_data_model(_);
+      update_cols();
+      render();
       return this;
     },
 

@@ -33,7 +33,7 @@ const rules = [
 ]
 
 const resolve = {
-  extensions: ['.ts', '.js', '.css', '.scss', '.html'],
+  extensions: ['.ts', '.js', '.css', '.scss', '.html', '.d.ts'],
   modules:['src', 'node_modules']
 }
 
