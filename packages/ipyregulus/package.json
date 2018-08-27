@@ -39,6 +39,7 @@
     "@types/d3": "^5.0.0",
     "@types/ndarray": "^1.0.6",
     "@types/node": "^10.9.2",
+    "rimraf": "^2.6.2",
     "source-map-loader": "^0.2.4",
     "ts-loader": "^4.5.0",
     "typescript": "^3.0.1",

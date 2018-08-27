@@ -28,6 +28,7 @@ export default function Panel() {
 
   let cols = [];
   let rows = [];
+  let plots = [];
 
   function update_data_model(_) {
     data = _;
@@ -51,15 +52,31 @@ export default function Panel() {
     root.select('.rg_bottom_scroll').style('width', `${cols.length*(PLOT_WIDTH+PLOT_GAP) - PLOT_GAP}px`);
   }
 
-  function update_selected() {
-    rows = show.map((r, i) => ({id: r}));
-    console.log('height:',rows.length*(PLOT_HEIGHT+PLOT_GAP) - PLOT_GAP);
+  function update_rows() {
+    rows = show.map((r, i) => ({id: i, idx: r}));
     root.select('.rg_right_scroll').style('height', `${rows.length*(PLOT_HEIGHT+PLOT_GAP) - PLOT_GAP}px`);
+  }
+
+  function update_plots() {
+    plots = [];
+    for (let row of rows) {
+      let partition = partitions.get(row.id);
+      console.log('partition:', partition);
+      for (let col of cols) {
+         let p = {
+           row: row.id,
+           col: col.id,
+           partition: partition
+         }
+         plots.push(p);
+      }
+    }
   }
 
   function render() {
     render_cols();
     render_rows();
+    render_plots();
   }
 
   function render_cols() {
@@ -82,6 +99,24 @@ export default function Panel() {
         .html(d => d.id);
 
       d3rows.exit().remove();
+  }
+
+  function render_plots() {
+      let d3plots = root.select('.rg_plots').selectAll('.rg_plot').data(plots);
+      d3plots.enter()
+        .append('div')
+        .classed('rg_plot', true)
+      .merge(d3plots)
+        .style('left', d => `${d.col*(PLOT_WIDTH + PLOT_GAP)}px`)
+        .style('top', d => `${d.row*(PLOT_HEIGHT + PLOT_GAP)}px`)
+        .call(render_plot)
+  }
+
+  function render_plot(selection) {
+      selection.each( function(d, i) {
+        d3.select(this)
+          .html(d => `[${d.row},${d.col}]`);
+      });
   }
 
   function scroll_plots() {
@@ -136,6 +171,8 @@ export default function Panel() {
     data(_) {
       update_data_model(_);
       update_cols();
+      update_rows();
+      update_plots();
       render();
       return this;
     },
@@ -147,7 +184,8 @@ export default function Panel() {
 
     show(_) {
       show = _;
-      update_selected();
+      update_rows();
+      update_plots();
       render();
       return this;
     },

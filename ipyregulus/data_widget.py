@@ -17,13 +17,11 @@ from .base import RegulusWidget
 class DataWidget(RegulusWidget):
     _model_name = Unicode('RegulusData').tag(sync=True)
 
-    # pts = Instance(NDArrayWidget(np.zeros(0))).tag(sync=True, **array_serialization)
     pts = DataUnion(np.zeros(0)).tag(sync=True)
     pts_idx = List().tag(sync=True)
-    # values = NDArray(np.zeros(0)).tag(sync=True,  **array_serialization)
     values = DataUnion(np.zeros(0)).tag(sync=True)
     values_idx = List().tag(sync=True)
-    partitions = Dict().tag(sync=True)
+    partitions = List().tag(sync=True)
 
     _data = None
 
@@ -45,8 +43,8 @@ class DataWidget(RegulusWidget):
             self.pts_idx = list(pts.x.columns)
             self.values = pts.values.values
             self.values_idx = list(pts.values.columns)
-            self.partitions = {
-                p.id: {
+            self.partitions = [
+                {
                     'id': p.id,
                     'persistence': p.persistence,
                     'pts_span': p.pts_span,
@@ -56,7 +54,7 @@ class DataWidget(RegulusWidget):
                     'y': None
                 }
                 for p in regulus.partitions()
-            }
+            ]
         else:
             self.pts = []
             self.values = []

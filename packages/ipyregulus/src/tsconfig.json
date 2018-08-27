@@ -2,12 +2,12 @@
     "compilerOptions": {
       "declaration": true,
       "noImplicitAny": false,
-      "lib": ["dom", "es6"],
+      "lib": ["dom", "es2016"],
       "noEmitOnError": true,
       "strictNullChecks": true,
       "module": "commonjs",
       "moduleResolution": "node",
-      "target": "ES5",
+      "target": "es2016",
       "outDir": "../lib",
       "skipLibCheck": true,
       "sourceMap": true
