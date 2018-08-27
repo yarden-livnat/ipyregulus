@@ -17,9 +17,11 @@ from .base import RegulusWidget
 class DataWidget(RegulusWidget):
     _model_name = Unicode('RegulusData').tag(sync=True)
 
-    pts = NDArray(np.zeros(0)).tag(sync=True, **array_serialization)
+    # pts = Instance(NDArrayWidget(np.zeros(0))).tag(sync=True, **array_serialization)
+    pts = DataUnion(np.zeros(0)).tag(sync=True)
     pts_idx = List().tag(sync=True)
-    values = NDArray(np.zeros(0)).tag(sync=True,  **array_serialization)
+    # values = NDArray(np.zeros(0)).tag(sync=True,  **array_serialization)
+    values = DataUnion(np.zeros(0)).tag(sync=True)
     values_idx = List().tag(sync=True)
     partitions = Dict().tag(sync=True)
 

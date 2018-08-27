@@ -14,7 +14,9 @@ const plugins = [
       // new CheckerPlugin()
 ]
 const rules = [
-  { test: /\.ts$/, use: 'ts-loader'},
+  { test: /\.ts$/,
+    loader: 'ts-loader'
+  },
   { test: /\.(scss)$/,
     use: ['style-loader', MiniCssExtractPlugin.loader,'css-loader',
           { loader: 'postcss-loader',
@@ -33,7 +35,7 @@ const rules = [
 ]
 
 const resolve = {
-  extensions: ['.ts', '.js', '.css', '.scss', '.html', '.d.ts'],
+  extensions: ['.ts', '.js', '.css', '.scss', '.html'],
   modules:['src', 'node_modules']
 }
 

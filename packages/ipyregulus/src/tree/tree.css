@@ -1,0 +1,19 @@
+.rg_tree {
+  padding: 10px;
+  flex-grow: 1;
+  flex-shrink: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.rg_tree .title {
+  font-size: 10pt;
+}
+
+.rg_tree .controls {
+  font-size: 10pt;
+}
+
+.rg_tree .view {
+  flex-grow: 1;
+}
