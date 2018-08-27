@@ -53,6 +53,7 @@ export default function Panel() {
 
   function update_selected() {
     rows = show.map((r, i) => ({id: r}));
+    console.log('height:',rows.length*(PLOT_HEIGHT+PLOT_GAP) - PLOT_GAP);
     root.select('.rg_right_scroll').style('height', `${rows.length*(PLOT_HEIGHT+PLOT_GAP) - PLOT_GAP}px`);
   }
 
@@ -94,12 +95,12 @@ export default function Panel() {
   }
 
 
-  let resizeObserver = new ResizeObserver(entries => {
-        entries.forEach( e => {
-          console.log('resize:', e);
-        });
-    }
-  );
+  // let resizeObserver = new ResizeObserver(entries => {
+  //       entries.forEach( e => {
+  //         console.log('resize:', e.target, e.contentRect.width, e.contentRect.height);
+  //       });
+  //   }
+  // );
 
   let panel = {
     el(_) {
@@ -108,7 +109,8 @@ export default function Panel() {
       root.select('.rg_bottom').on('scroll', scroll_plots);
       root.select('.rg_right').on('scroll', scroll_plots);
 
-      resizeObserver.observe(root.select('.rg_top').node());
+      // resizeObserver.observe(root.select('.rg_top').node());
+      // resizeObserver.observe(root.select('.rg_left').node());
 
 
        // svg = _;

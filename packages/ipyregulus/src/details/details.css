@@ -1,3 +1,7 @@
+* {
+    box-sizing: border-box;
+}
+
 .rg_details{
   padding: 10px;
   flex-grow: 1;
@@ -17,6 +21,8 @@
 
 .rg_details .rg_view {
   /* height: 350px; */
+  min-height: 0;
+  overflow-y: hidden;
   display: grid;
   grid-template-columns: 100px auto 10px;
   grid-template-rows:  20px auto 10px;
