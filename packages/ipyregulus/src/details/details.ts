@@ -10,9 +10,14 @@ import {
   RegulusViewModel
 } from "../RegulusWidget";
 
+import {
+  Partition
+} from '../models/partition';
+
 import * as d3 from 'd3';
 
 import Panel from './panel';
+
 import './details.css';
 import * as template from './details.html';
 
@@ -91,4 +96,5 @@ class DetailsView extends DOMWidgetView {
 
   d3el: any;
   panel: any;
+  partitions: Map<number, Partition> = new Map();
 }

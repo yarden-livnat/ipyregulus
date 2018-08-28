@@ -1,4 +1,8 @@
 import * as d3 from 'd3';
+import {
+  Partition
+} from '../models/partition';
+import Plot from './plot';
 import './panel.css';
 
 let DEFAULT_WIDTH = 800;
@@ -19,31 +23,34 @@ export default function Panel() {
   let data = null;
   let pts = null;
   let pts_idx = [];
-  let values = null;
-  let values_idx = [];
-  let partitions = {}
+  let attrs = null;
+  let attrs_idx = [];
+  let partitions = new Map();
 
-  let measure = '';
+  let measure_name = '';
+  let measure_idx = 0;
   let show = [];
 
   let cols = [];
   let rows = [];
   let plots = [];
 
+  let plot_renderer =  Plot();
+
   function update_data_model(_) {
     data = _;
     if (data != null) {
       pts = data.get('pts');
       pts_idx = data.get('pts_idx');
-      values = data.get('values');
-      values_idx = data.get('values_idx');
-      partitions = data.get('partitions');
+      attrs = data.get('attrs');
+      attrs_idx = data.get('attrs_idx');
+      partitions = new Map( data.get('partitions').map(p => [p.id, new Partition(p, data)]));
     } else {
       pts = null;
       pts_idx = [];
-      values = null;
-      values_idx = [];
-      partitions = {};
+      attrs = null;
+      attrs_idx = [];
+      partitions = new Map();
     }
   }
 
@@ -61,7 +68,6 @@ export default function Panel() {
     plots = [];
     for (let row of rows) {
       let partition = partitions.get(row.id);
-      console.log('partition:', partition);
       for (let col of cols) {
          let p = {
            row: row.id,
@@ -70,6 +76,12 @@ export default function Panel() {
          }
          plots.push(p);
       }
+    }
+  }
+
+  function update_measure() {
+    for (let p of parttions.values()) {
+      p.reset();
     }
   }
 
@@ -109,15 +121,9 @@ export default function Panel() {
       .merge(d3plots)
         .style('left', d => `${d.col*(PLOT_WIDTH + PLOT_GAP)}px`)
         .style('top', d => `${d.row*(PLOT_HEIGHT + PLOT_GAP)}px`)
-        .call(render_plot)
+        .call(plot_renderer.render)
   }
 
-  function render_plot(selection) {
-      selection.each( function(d, i) {
-        d3.select(this)
-          .html(d => `[${d.row},${d.col}]`);
-      });
-  }
 
   function scroll_plots() {
     let left = root.select('.rg_bottom').node().scrollLeft;
@@ -178,7 +184,13 @@ export default function Panel() {
     },
 
     measure(_) {
-      measure = _;
+      if (measure_name != _) {
+        measure_name = _;
+        if (attrs_idx) {
+          measure_id = attrs_idx.find(measure_name);
+        }
+        update_measure();
+      }
       return this;
     },
 

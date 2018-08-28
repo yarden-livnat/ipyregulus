@@ -19,8 +19,8 @@ class DataWidget(RegulusWidget):
 
     pts = DataUnion(np.zeros(0)).tag(sync=True)
     pts_idx = List().tag(sync=True)
-    values = DataUnion(np.zeros(0)).tag(sync=True)
-    values_idx = List().tag(sync=True)
+    attrs = DataUnion(np.zeros(0)).tag(sync=True)
+    attrs_idx = List().tag(sync=True)
     partitions = List().tag(sync=True)
 
     _data = None
@@ -41,8 +41,8 @@ class DataWidget(RegulusWidget):
             pts = regulus.pts
             self.pts = pts.x.values
             self.pts_idx = list(pts.x.columns)
-            self.values = pts.values.values
-            self.values_idx = list(pts.values.columns)
+            self.attrs = pts.values.values
+            self.attrs_idx = list(pts.values.columns)
             self.partitions = [
                 {
                     'id': p.id,
@@ -57,5 +57,5 @@ class DataWidget(RegulusWidget):
             ]
         else:
             self.pts = []
-            self.values = []
+            self.attrs = []
             self.partitions = []
