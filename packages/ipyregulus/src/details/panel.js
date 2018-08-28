@@ -1,4 +1,6 @@
 import * as d3 from 'd3';
+import * as chromatic from 'd3-scale-chromatic';
+
 import {
   Partition
 } from '../models/partition';
@@ -21,15 +23,23 @@ export default function Panel() {
   let svg = null;
 
   let data = null;
+  let pts_loc = null;
   let pts = null;
   let pts_idx = [];
+  let pts_extent = [];
   let attrs = null;
   let attrs_idx = [];
+  let attrs_extent = [];
   let partitions = new Map();
 
   let measure_name = '';
   let measure_idx = 0;
   let show = [];
+  let filtered = [];
+
+  let initial_cmap = 'RdYlBu';
+  let colorScale = d3.scaleSequential(chromatic['interpolate' + initial_cmap]);
+  let color_idx = measure_idx;
 
   let cols = [];
   let rows = [];
@@ -40,17 +50,30 @@ export default function Panel() {
   function update_data_model(_) {
     data = _;
     if (data != null) {
+      pts_loc = data.get('pts_loc');
       pts = data.get('pts');
       pts_idx = data.get('pts_idx');
+      pts_extent = data.get('pts_extent');
       attrs = data.get('attrs');
       attrs_idx = data.get('attrs_idx');
-      partitions = new Map( data.get('partitions').map(p => [p.id, new Partition(p, data)]));
+      attrs_extent = data.get('attrs_extent');
+      partitions = new Map( data.get('partitions').map(p => [p.id, new Partition(p, pts_loc)]));
+      measure_name = data.get('measure');
+      measure_idx = attrs_idx.indexOf(measure_name);
+
+      color_idx = measure_idx;
+      colorScale.domain(attrs_extent[color_idx]);
+      filtered = Array(pts_idx.length).fill(false);
+      // filtered.fill(true, filtered.length/2);
     } else {
       pts = null;
       pts_idx = [];
+      pts_extent = [];
       attrs = null;
       attrs_idx = [];
+      attrs_extent = [];
       partitions = new Map();
+      measure_name = ''
     }
   }
 
@@ -67,21 +90,28 @@ export default function Panel() {
   function update_plots() {
     plots = [];
     for (let row of rows) {
-      let partition = partitions.get(row.id);
+      let partition = partitions.get(row.idx);
       for (let col of cols) {
          let p = {
            row: row.id,
            col: col.id,
-           partition: partition
+           partition: partition,
+           // data for plot
+           width: PLOT_WIDTH,
+           height: PLOT_HEIGHT,
+           x_extent: pts_extent[col.id],
+           y_extent: attrs_extent[measure_idx],
+           x: pts,
+           y: attrs,
+           pts_idx: partition.index(),
+           x_dim: col.id,
+           y_dim: measure_idx,
+           c_dim: color_idx,
+           filtered: filtered,
+           color: colorScale
          }
          plots.push(p);
       }
-    }
-  }
-
-  function update_measure() {
-    for (let p of parttions.values()) {
-      p.reset();
     }
   }
 
@@ -117,7 +147,8 @@ export default function Panel() {
       let d3plots = root.select('.rg_plots').selectAll('.rg_plot').data(plots);
       d3plots.enter()
         .append('div')
-        .classed('rg_plot', true)
+        .classed('rg_plot_item', true)
+        .call(plot_renderer.create)
       .merge(d3plots)
         .style('left', d => `${d.col*(PLOT_WIDTH + PLOT_GAP)}px`)
         .style('top', d => `${d.row*(PLOT_HEIGHT + PLOT_GAP)}px`)
@@ -153,7 +184,6 @@ export default function Panel() {
       // resizeObserver.observe(root.select('.rg_top').node());
       // resizeObserver.observe(root.select('.rg_left').node());
 
-
        // svg = _;
       //
       // let g = svg.append('g')
@@ -180,17 +210,6 @@ export default function Panel() {
       update_rows();
       update_plots();
       render();
-      return this;
-    },
-
-    measure(_) {
-      if (measure_name != _) {
-        measure_name = _;
-        if (attrs_idx) {
-          measure_id = attrs_idx.find(measure_name);
-        }
-        update_measure();
-      }
       return this;
     },
 

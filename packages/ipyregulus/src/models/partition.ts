@@ -8,31 +8,46 @@ import {
 export
 class Partition {
 
-  constructor(data, regulus:RegulusData) {
+  constructor(data, loc) {
     this.id = data.id;
     this.persistence = data.persistence;
+    this.loc = loc
     this.data = data;
-    this.regulus = regulus;
   }
 
-  pts(measure) {
-    if (!this.regulus) return null;
+  // _get_pt(i, x, y, measure) {
+  //   let pt:number[] = [];
+  //   let index = this.data.pts_idx[i];
+  //   for (let d=0; d<x.shape[1]; d++)
+  //     pt.push(x.get(index, d));
+  //   pt.push(y.get(index, measure));
+  //   return pt;
+  // }
+  //
+  // pts(measure) {
+  //   if (!this.regulus) return null;
+  //
+  //   if (!this._pts) {
+  //     this._pts = [];
+  //     let x:ndarray = this.regulus.pts;
+  //     let y = this.regulus.attrs;
+  //     let [from, to] = this.data.pts_span;
+  //     for (let i=from; i<to; i++) {
+  //       this._pts.push(this._get_pt(i, x, y, measure));
+  //     }
+  //     this._pts.push(this._get_pt(this.data.minmax_idx[0], x, y, measure))
+  //     this._pts.push(this._get_pt(this.data.minmax_idx[1], x, y, measure))
+  //   }
+  //   return this._pts;
+  // }
 
-    if (!this._pts) {
-      this._pts = [];
-      let x:ndarray = this.regulus.pts;
-      let y = this.regulus.attrs;
+  index() {
       let [from, to] = this.data.pts_span;
-      for (let i=from; i<to; i++) {
-        let pt:number[] = [];
-        let index = this.data.pts_idx[i];
-        for (let d=0; d<x.shape[1]; d++)
-          pt.push(x.get(index, d));
-        pt.push(y.get(index, measure));
-        this._pts.push(pt);
-      }
-    }
-    return this._pts;
+      let idx:number[] = [];
+      for (let i=from; i<to; i++) idx.push(this.loc[i]);
+      idx.push(this.data.minmax_idx[0]);
+      idx.push(this.data.minmax_idx[1]);
+      return idx;
   }
 
   reset() {
@@ -43,6 +58,6 @@ class Partition {
 
   id: number;
   persistence: number;
-  regulus: RegulusData;
+  loc: number[];
   data: any;
 }

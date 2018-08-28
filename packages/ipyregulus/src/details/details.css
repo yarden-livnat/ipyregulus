@@ -2,6 +2,16 @@
     box-sizing: border-box;
 }
 
+:root {
+  --plot-internal-width: 100px;
+  --plot-internal-height: 100px;
+  --plot-border-size: 1px;
+  --plot-width: calc(var(--plot-border-size)*2 + var(--plot-internal-width));
+  --plot-height: calc(var(--plot-border-size)*2 + var(--plot-internal-height));
+  --col-width: var(--plot-width);
+  --row-height: var(--plot-height);
+}
+
 .rg_details{
   padding: 10px;
   flex-grow: 1;
@@ -20,7 +30,6 @@
 }
 
 .rg_details .rg_view {
-  /* height: 350px; */
   min-height: 0;
   overflow-y: hidden;
   display: grid;
@@ -33,12 +42,8 @@
    ".     bottom  ."
 }
 
-.item {
-  background-color: #fff;
-  border-radius: 3px;
-  padding: 20px;
-  font-size: 14px;
-}
+
+/* TOP */
 
 .rg_details .rg_top {
   grid-area: top;
@@ -48,17 +53,28 @@
 }
 
 .rg_details .rg_top .rg_col_header {
-  width: 100px;
+  width: var(--col-width);
   margin: 0 5px 0 0;
   background-color: lightgreen;
   display: inline-block;
 }
 
+/* LEFT */
+
 .rg_details .rg_left {
   grid-area: left;
-  /* max-height: 250px; */
   overflow-y: hidden;
 }
+
+.rg_row_header {
+  height: var(--row-height);
+  width: 90px;
+  margin: 0 0 5px 0;
+  background-color: lightgreen;
+  border: 1px solid gray;
+}
+
+/* RIGHT */
 
 .rg_details .rg_right {
   grid-area: right;
@@ -66,9 +82,10 @@
 }
 
 .rg_details .rg_right_scroll {
-  /* height: 350px; */
   width: 1px;
 }
+
+/* BOTTOM */
 
 .rg_details .rg_bottom {
   grid-area: bottom;
@@ -78,10 +95,10 @@
 }
 
 .rg_bottom_scroll {
-  /* width: 440px; */
   height: 1px;
-  /* background-color: lightblue; */
 }
+
+/* PLOTS */
 
 .rg_details .rg_plots {
   grid-area: main;
@@ -89,46 +106,25 @@
   position: relative;
 }
 
-.rg_row_header {
-  height: 100px;
-  width: 90px%;
-  margin: 0 0 5px 0;
-  background-color: lightgreen;
-  border: 1px solid gray;
-}
-
-.rg_plot {
-  width: 100px;
-  height: 100px;
-  border: 1px solid gray;
-  background: lightblue;
+.rg_plot_item {
+  width: var(--plot-width);
+  height: var(--plot-height);
+  border: var(--plot-border-size) solid gray;
+  /* background: lightblue; */
   position: absolute;
 }
 
-.c1 {
-  left: 0;
+.rg_plot {
 }
 
-.c2 {
-  left: 105px;
+.rg_plot_canvas-bg {
+  position: absolute;
 }
 
-.c3 {
-  left: 210px;
+.rg_plot_canvas-fg {
+  position: absolute;
 }
 
-.c4 {
-  left: 315px;
-}
-
-.r1 {
-  top: 0;
-}
-
-.r2 {
-  top: 105px;
-}
-
-.r3 {
-  top: 210px;
+.rg_plot_svg {
+  position: absolute;
 }

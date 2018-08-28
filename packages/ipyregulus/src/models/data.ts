@@ -15,19 +15,27 @@ class RegulusData extends RegulusModel {
     return {
       ...super.defaults(),
       _model_name: RegulusData.model_name,
-      pts_idx: [],
-      values_idx: [],
-      partitions: [],
+      pts_loc: [],
       pts: ndarray([]),
-      attrs: ndarray([])
+      pts_idx: [],
+      pts_extent: [],
+      attrs: ndarray([]),
+      attrs_idx: [],
+      attrs_extent: [],
+      partitions: [],
+      measure: ''
     }
   }
 
-  pts_idx: string[];
-  values_idx: string[];
+  pts_loc: number[];
   pts: ndarray;
+  pts_idx: string[];
+  pts_extent: number[];
   attrs: ndarray;
+  attrs_idx: string[];
+  attrs_extent: number[];
   partitions: [];
+  measure:string;
 
   static serializers = {
     ...RegulusModel.serializers,
