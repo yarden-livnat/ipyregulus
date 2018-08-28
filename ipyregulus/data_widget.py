@@ -22,6 +22,7 @@ class DataWidget(RegulusWidget):
     attrs = DataUnion(np.zeros(0)).tag(sync=True)
     attrs_idx = List().tag(sync=True)
     partitions = List().tag(sync=True)
+    scaler = Dict().tag(sync=True)
 
     _data = None
 
@@ -39,7 +40,7 @@ class DataWidget(RegulusWidget):
         self._data = regulus
         if regulus is not None:
             pts = regulus.pts
-            self.pts = pts.x.values
+            self.pts = pts.original_x,
             self.pts_idx = list(pts.x.columns)
             self.attrs = pts.values.values
             self.attrs_idx = list(pts.values.columns)
@@ -55,6 +56,12 @@ class DataWidget(RegulusWidget):
                 }
                 for p in regulus.partitions()
             ]
+            self.scaler = {
+                "scale": regulus.scaler.scale_.tolist(),
+                "mean": regulus.scaler.mean_.tolist(),
+                "var": regulus.scaler.var_.tolist(),
+                "n": regulus.scaler.n_samples_seen_
+            }
         else:
             self.pts = []
             self.attrs = []

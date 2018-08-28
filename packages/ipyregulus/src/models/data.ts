@@ -8,24 +8,8 @@ import {
 
 import ndarray = require('ndarray');
 
-// import {
-//   Partition
-// } from './partition';
-
-
-// function partition_from_json(array: any[],  _: any) {
-//   let partitions = new Map()
-//   for (let item of array) {
-//     partitions.set(item.id, new Partition(item));
-//   }
-//   return partitions;
-// }
-
 export
 class RegulusData extends RegulusModel {
-  // initialize(attributes, options: {model_id: string, comm?: any, widget_manager: any}) {
-  //   super.initialize(attributes, options);
-  // }
 
   defaults() {
     return {
@@ -49,7 +33,6 @@ class RegulusData extends RegulusModel {
     ...RegulusModel.serializers,
     pts: data_union_array_serialization,
     attrs: data_union_array_serialization,
-    // partitions: {deserialize: partition_from_json}
   }
 
   static model_name = 'RegulusData';
