@@ -2,7 +2,7 @@ import * as d3 from 'd3';
 
 
 export default function Plot() {
-  let margin = {top: 0, right: 0, bottom: 0, left: 0}
+  let margin = {top: 2, right: 2, bottom: 2, left: 2}
   let pt_size = 2;
   let canvas_draw_circles = false;
 
@@ -12,8 +12,8 @@ export default function Plot() {
 
   function render_canvas(selection) {
     selection.each(function(d, i) {
-      sx.domain(d.x_extent).range([0, d.width]);
-      sy.domain(d.y_extent).range([d.height, 0]);
+      sx.domain(d.x_extent).range([margin.left, d.width-margin.right]);
+      sy.domain(d.y_extent).range([d.height-margin.top, margin.bottom]);
 
       let bg_ctx = d3.select(this).select('.rg_plot_canvas-bg').node().getContext('2d');
       let fg_ctx = d3.select(this).select('.rg_plot_canvas-fg').node().getContext('2d');

@@ -7,17 +7,19 @@ import {
 import Plot from './plot';
 import './panel.css';
 
-let DEFAULT_WIDTH = 800;
-let DEFAULT_HEIGHT = 500;
+// let DEFAULT_WIDTH = 800;
+// let DEFAULT_HEIGHT = 500;
 
 let PLOT_WIDTH = 100;
 let PLOT_HEIGHT = 100;
+let PLOT_BORDER = 1;
 let PLOT_GAP = 5;
 
+
 export default function Panel() {
-  let margin = {top: 10, right: 30, bottom: 50, left:60},
-  width = DEFAULT_WIDTH - margin.left - margin.right,
-  height = DEFAULT_HEIGHT - margin.top - margin.bottom;
+  // let margin = {top: 10, right: 30, bottom: 50, left:60},
+  // width = DEFAULT_WIDTH - margin.left - margin.right,
+  // height = DEFAULT_HEIGHT - margin.top - margin.bottom;
 
   let root = null;
   let svg = null;
@@ -79,12 +81,12 @@ export default function Panel() {
 
   function update_cols() {
     cols = pts_idx.map( (c,i) => ({id: i, name: c}));
-    root.select('.rg_bottom_scroll').style('width', `${cols.length*(PLOT_WIDTH+PLOT_GAP) - PLOT_GAP}px`);
+    root.select('.rg_bottom_scroll').style('width', `${cols.length*(PLOT_WIDTH + 2*PLOT_BORDER + PLOT_GAP) - PLOT_GAP}px`);
   }
 
   function update_rows() {
     rows = show.map((r, i) => ({id: i, idx: r}));
-    root.select('.rg_right_scroll').style('height', `${rows.length*(PLOT_HEIGHT+PLOT_GAP) - PLOT_GAP}px`);
+    root.select('.rg_right_scroll').style('height', `${rows.length*(PLOT_HEIGHT + 2*PLOT_BORDER + PLOT_GAP) - PLOT_GAP}px`);
   }
 
   function update_plots() {
@@ -150,8 +152,8 @@ export default function Panel() {
         .classed('rg_plot_item', true)
         .call(plot_renderer.create)
       .merge(d3plots)
-        .style('left', d => `${d.col*(PLOT_WIDTH + PLOT_GAP)}px`)
-        .style('top', d => `${d.row*(PLOT_HEIGHT + PLOT_GAP)}px`)
+        .style('left', d => `${d.col*(PLOT_WIDTH + 2*PLOT_BORDER + PLOT_GAP)}px`)
+        .style('top', d => `${d.row*(PLOT_HEIGHT + 2*PLOT_BORDER + PLOT_GAP)}px`)
         .call(plot_renderer.render)
   }
 

@@ -49,7 +49,7 @@
   grid-area: top;
   overflow-x: hidden;
   white-space: nowrap;
-  padding: 0 0 0 5px;
+  /* padding: 0 0 0 5px; */
 }
 
 .rg_details .rg_top .rg_col_header {
