@@ -83,7 +83,7 @@ setup_args = dict(
         'traitlets>4.3.0',
         'traittypes',
         'pandas',
-        'regulus>0.3.0'
+        'regulus>=0.4.0'
     ],
     extras_require={
         'test': [
