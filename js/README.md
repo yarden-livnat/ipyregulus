@@ -1,4 +1,0 @@
-Jupyter Regulus Widgets
-======================
-
-

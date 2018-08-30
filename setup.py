@@ -25,7 +25,7 @@ ensure_python('>=3.6')
 # Get our version
 version = get_version(pjoin(name, '_version.py'))
 
-js_path = pjoin(HERE, 'js')
+js_path = pjoin(HERE)
 
 lab_path = pjoin(HERE, name, 'labextension')
 
@@ -47,8 +47,8 @@ data_files_spec = [
 cmdclass = create_cmdclass('jsdeps', package_data_spec=package_data_spec,
                            data_files_spec=data_files_spec)
 cmdclass['jsdeps'] = combine_commands(
-    install_npm(js_path, build_cmd='build:all'),
-    ensure_targets(jstargets),
+    install_npm(js_path, build_cmd='build'),
+    # ensure_targets(jstargets),
 )
 
 setup_args = dict(
@@ -82,7 +82,7 @@ setup_args = dict(
         'traitlets>4.3.0',
         'traittypes',
         'pandas',
-        'regulus'
+        'regulus>0.3.0'
     ],
     extras_require={
         'test': [
