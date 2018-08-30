@@ -13,7 +13,7 @@ You may want install sidepanel too
 
 `pip install sidepanel`
 
-`jupyter labextension install@regulus/sidepanel`
+`jupyter labextension install @regulus/sidepanel`
 
 
 ## Development
