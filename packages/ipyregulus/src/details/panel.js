@@ -118,6 +118,7 @@ export default function Panel() {
   }
 
   function render() {
+    console.log('render');
     render_cols();
     render_rows();
     render_plots();

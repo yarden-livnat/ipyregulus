@@ -35,9 +35,13 @@ class TreeView(HasTree, RegulusDOMWidget):
         self.field = name
 
     def __init__(self, *args, **kwargs):
-        self.attr = kwargs.pop('attr', 'start')
+        self.attr = kwargs.pop('attr', 'span')
         super().__init__(*args, **kwargs)
 
+
+    def tree_changed(self, change):
+        super().tree_changed(change)
+        self.update(change)
 
     def ensure(self, name, force=False):
         if self.tree is None:
@@ -48,6 +52,7 @@ class TreeView(HasTree, RegulusDOMWidget):
 
 
     def update(self, change):
+        c = change['name'] if change is not None else ''
         super().update(change)
         with self.hold_sync():
             self.attrs = dict()

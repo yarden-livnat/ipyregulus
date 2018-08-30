@@ -16,6 +16,8 @@ class HasTree(HasTraits):
 
     @ref.setter
     def ref(self, tree):
+        if self._owner is not None:
+            self._owner.unobserve(self.tree_changed, names='tree')
         if isinstance(tree, RegulusTree):
             self._ref = tree
             self._owner = None
@@ -31,7 +33,7 @@ class HasTree(HasTraits):
         self.update(None)
 
     def tree_changed(self, change):
-        print('HasTree: tree_changed', change)
+        pass
 
     def update(self, change):
         self.tree = self._ref
