@@ -18,10 +18,4 @@ class DetailsView(RegulusDOMWidget):
 
     data = Instance(klass=DataWidget).tag(sync=True, **widget_serialization)
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
-    measure = Unicode('').tag(sync=True)
     show = List().tag(sync=True)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if 'data' in kwargs:
-            self.measure = kwargs['data'].data.pts.measure
