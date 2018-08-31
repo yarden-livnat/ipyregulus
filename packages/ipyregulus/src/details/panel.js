@@ -155,7 +155,9 @@ export default function Panel() {
       .merge(d3plots)
         .style('left', d => `${d.col*(PLOT_WIDTH + 2*PLOT_BORDER + PLOT_GAP)}px`)
         .style('top', d => `${d.row*(PLOT_HEIGHT + 2*PLOT_BORDER + PLOT_GAP)}px`)
-        .call(plot_renderer.render)
+        .call(plot_renderer.render);
+
+      d3plots.exit().remove();
   }
 
 
