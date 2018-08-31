@@ -24,4 +24,4 @@ class DetailsView(RegulusDOMWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         if 'data' in kwargs:
-            self.measure = kwargs['data'].data.pts.measure
+            self.measure = kwargs['data'].data.measure
