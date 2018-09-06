@@ -9,6 +9,7 @@ build/
 node_modules/
 .vscode
 .idea
+*.log
 
 # Compiled javascript
 pythreejs/static/
