@@ -38,6 +38,8 @@ docs/source/examples/img
 js/lab-dist
 
 data/
+*.sqlite
+*.hdf5
 
 
 __pycache__

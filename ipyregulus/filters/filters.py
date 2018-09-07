@@ -53,7 +53,6 @@ class UIFilter(BaseUIFilter):
 
 
 
-
 class AttrFilter(UIFilter):
     attr = Unicode()
 
