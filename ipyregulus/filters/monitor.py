@@ -8,10 +8,9 @@ class Monitor(Filter):
         self.monitor = monitor
 
     def __call__(self, *args):
-        return self._disabled or self._func(self._monitored[0], *args)
+        return self.disabled or self.func(self._monitored[0], *args)
 
     def _exec(self, change):
-        print('exec', change)
         self()
 
     @property

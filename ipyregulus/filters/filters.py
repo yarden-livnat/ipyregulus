@@ -1,5 +1,5 @@
 from ipywidgets import FloatSlider, Widget
-from traitlets import Bool, HasTraits, Instance, Int, TraitType, Unicode
+from traitlets import Bool, HasTraits, Instance, Int, TraitType, Unicode, Undefined
 
 class Function(TraitType):
     default_value = lambda x: x
@@ -22,7 +22,7 @@ class Filter(HasTraits):
 
 
 class BaseUIFilter(Filter):
-    ui = Instance(klass=Widget)
+    ui = Instance(klass=Widget, allow_none=True)
 
     @property
     def value(self):
@@ -37,16 +37,16 @@ class BaseUIFilter(Filter):
 
 class UIFilter(BaseUIFilter):
     def __init__(self, **kwargs):
-        if 'ui' not in kwargs:
-            kwargs['ui'] = FloatSlider(min=0, max=1, step=0.01, value=0.5)
+        ui = kwargs.pop('ui', FloatSlider(min=0, max=1, step=0.01, value=0.5))
         super().__init__(**kwargs)
         self.observe(self._on_ui, names='ui')
+        self.ui = ui
 
     def _on_ui(self, change):
         if change['new'] is not None:
             self.ui.observe(self._on_changed, names='value')
-        if change['prev'] is not None:
-            change['prev'].unobserve(self._on_changed)
+        if change['old'] not in (None, Undefined):
+            change['old'].unobserve(self._on_changed)
 
     def __call__(self, *args, **kwargs):
         return self.disabled or self.func(self.value, *args, **kwargs)
