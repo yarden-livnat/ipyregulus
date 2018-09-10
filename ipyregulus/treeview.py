@@ -36,12 +36,14 @@ class TreeView(HasTree, RegulusDOMWidget):
 
     def __init__(self, *args, **kwargs):
         self.attr = kwargs.pop('attr', 'span')
+        tree = kwargs.pop('tree', None)
         super().__init__(*args, **kwargs)
+        self.tree = tree
 
 
-    def tree_changed(self, change):
-        super().tree_changed(change)
-        self.update(change)
+    # def tree_changed(self, change):
+    #     super().tree_changed(change)
+    #     self.update(change)
 
     def ensure(self, name, force=False):
         if self.tree is None:
@@ -50,16 +52,23 @@ class TreeView(HasTree, RegulusDOMWidget):
             if name in self.tree:
                 self._owner.ensure(name)
 
+    @property
+    def tree(self):
+        return super().tree
 
-    def update(self, change):
-        c = change['name'] if change is not None else ''
-        super().update(change)
+
+    @tree.setter
+    def tree(self, tree):
+        if tree is not None and not isinstance(tree, HasTree):
+            tree = TreeWidget(tree)
+        # super().tree = tree
+
+
+    def update(self, tree):
+        super().update(tree)
         with self.hold_sync():
             self.attrs = dict()
             self.show = None
             if self.tree is not None:
-                if self._owner is not None:
-                    self.tree_model = self._owner
-                    self.ensure(self.attr, force=True)
-                else:
-                    self.ref = TreeWidget(self.tree)
+                self.tree_model = self._owner
+                self.ensure(self.attr, force=True)

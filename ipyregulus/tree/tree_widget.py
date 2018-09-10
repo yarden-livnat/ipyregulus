@@ -36,15 +36,11 @@ class TreeWidget(HasTree, RegulusWidget):
         super().__init__(tree)
 
 
-    def update(self, change):
+    def update(self, tree):
         with self.hold_sync():
-            new_tree = self._ref
-            self.root = new_tree.root if new_tree is not None else None
+            self.root = tree.root if tree is not None else None
             self.attrs = dict()
-        super().update(change)
-
-    def tree_changed(self, change):
-        super().tree_changed(change)
+        super().update(tree)
 
     def ensure(self, attr):
         if attr not in self.attrs:
