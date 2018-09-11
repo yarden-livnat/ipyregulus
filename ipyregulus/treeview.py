@@ -1,13 +1,13 @@
 # Copyright (c) University of Utah
 
-from traitlets import Dict, HasTraits, Instance, List, Unicode, observe, Set
+from traitlets import Bool, Dict, HasTraits, Instance, Int, List, Unicode, observe, Set
 from ipywidgets import register, widget_serialization
 
 from .base import RegulusDOMWidget
 from .tree import HasTree, TreeWidget
 
 def from_json(array, manager):
-    print('from json:', array)
+    # print('from json:', array)
     return array
 
 
@@ -17,12 +17,14 @@ class TreeView(HasTree, RegulusDOMWidget):
     _model_name = Unicode('TreeViewModel').tag(sync=True)
     _view_name = Unicode('TreeView').tag(sync=True)
 
+    changed = Int(0)
     title = Unicode('').tag(sync=True)
     field = Unicode('').tag(sync=True)
     attrs = Dict({}).tag(sync=True)
     show = Set(None, allow_none=True).tag(sync=True)
     selected = List().tag(sync=True, from_json=from_json)
     details = List([]).tag(sync=True)
+    # hold = Bool(False).tag(sync=True)
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
 
     @property
@@ -35,15 +37,13 @@ class TreeView(HasTree, RegulusDOMWidget):
         self.field = name
 
     def __init__(self, *args, **kwargs):
-        self.attr = kwargs.pop('attr', 'span')
+        attr = kwargs.pop('attr', 'span')
         tree = kwargs.pop('tree', None)
-        super().__init__(*args, **kwargs)
-        self.tree = tree
+        if tree is not None and not isinstance(tree, HasTree):
+            tree = TreeWidget(tree)
+        super().__init__(tree)
+        self.attr = attr
 
-
-    # def tree_changed(self, change):
-    #     super().tree_changed(change)
-    #     self.update(change)
 
     def ensure(self, name, force=False):
         if self.tree is None:
@@ -52,23 +52,20 @@ class TreeView(HasTree, RegulusDOMWidget):
             if name in self.tree:
                 self._owner.ensure(name)
 
-    @property
-    def tree(self):
-        return super().tree
-
-
-    @tree.setter
-    def tree(self, tree):
-        if tree is not None and not isinstance(tree, HasTree):
-            tree = TreeWidget(tree)
-        # super().tree = tree
-
 
     def update(self, tree):
-        super().update(tree)
+        if tree is not None:
+            if isinstance(tree, HasTree):
+                if tree == self._owner:
+                    super().update(tree)
+                    return
+            else:
+                print('TreeView: create TreeView')
+                tree = TreeWidget(tree=tree)
+                tree.ensure(self.attr)
         with self.hold_sync():
             self.attrs = dict()
             self.show = None
-            if self.tree is not None:
-                self.tree_model = self._owner
-                self.ensure(self.attr, force=True)
+            self.tree_model = tree
+        super().update(tree)
+        self.changed += 1

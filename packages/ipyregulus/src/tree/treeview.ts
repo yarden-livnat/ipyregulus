@@ -95,7 +95,8 @@ class TreeView extends DOMWidgetView {
   }
 
   on_tree_updated() {
-    this.panel.data(this.model.get('tree_model').get('root'))
+    let tree = this.model.get('tree_model');
+    this.panel.data( tree && tree.get('root') || null)
       .redraw();
   }
 
@@ -108,8 +109,10 @@ class TreeView extends DOMWidgetView {
   }
 
   on_attrs_changed() {
+    let tree = this.model.get('tree_model');
+    let tree_attr = tree && tree.get('attrs') || null;
     let attr = {
-      ...this.model.get('tree_model').get('attrs'),
+      ...tree_attr,
       ...this.model.get('attrs'),
     }
     this.panel.attrs(attr).redraw();
