@@ -20,9 +20,7 @@ class Monitor(Filter):
     @monitor.setter
     def monitor(self, obj):
         for m in self._monitored:
-            # m.unregister(self._exec)
             m.unobserve(self._exec, names='changed')
         self._monitored = [obj] if not isinstance(obj, list) else obj
         for m in self._monitored:
-            # m.register(self._exec)
             m.observe(self._exec, names='changed')

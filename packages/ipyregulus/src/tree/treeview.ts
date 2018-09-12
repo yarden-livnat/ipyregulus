@@ -33,6 +33,7 @@ class TreeView extends DOMWidgetView {
     this.model.on('change:tree_model',  this.on_tree_changed, this);
     this.model.on('change:attrs', this.on_attrs_changed, this);
     this.model.on('change:show', this.on_show_changed, this);
+    this.model.on('change:highlight', this.on_highlight_changed, this);
     this.model.on('change:selected', this.on_selected_changed, this);
     this.model.on('change:details', this.on_details_changed, this);
 
@@ -123,12 +124,18 @@ class TreeView extends DOMWidgetView {
       .redraw();
   }
 
+  on_highlight_changed() {
+    this.panel.highlight(this.model.get('highlight'));
+  }
+
   on_selected_changed() {
     console.log('seleted changed', this.model.get('selected'));
+    this.panel.select(new Set(this.model.get('selected')));
   }
 
   on_details_changed() {
     console.log('details changed', this.model.get('details'));
+    this.panel.details(new Set(this.model.get('details')));
   }
 
 
@@ -136,25 +143,30 @@ class TreeView extends DOMWidgetView {
    * events from Panel
    */
 
-  on_select(node, is_on) {
-    console.log('on select', this, node, is_on);
+  on_highlight(id) {
+    this.model.set('highlight', id);
+    this.touch();
+  }
+
+  on_select(id, is_on) {
+    console.log('on select', this, id, is_on);
     let selected = new Set(this.model.get('selected'))
     if (is_on) {
-      selected.add(node.id);
+      selected.add(id);
     } else {
-      selected.delete(node.id);
+      selected.delete(id);
     }
     this.model.set('selected', selected)
     this.touch();
   }
 
-  on_details(node, is_on) {
-    console.log('on details', node, is_on);
+  on_details(id, is_on) {
+    console.log('on details', id, is_on);
     let details = this.model.get('details').concat();
     if (is_on) {
-      details.push(node.id);
+      details.push(id);
     } else {
-      details.splice(details.indexOf(node.id), 1)
+      details.splice(details.indexOf(id), 1)
     }
     this.model.set('details', details);
     this.touch();

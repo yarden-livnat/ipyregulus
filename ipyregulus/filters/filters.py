@@ -1,4 +1,4 @@
-from ipywidgets import FloatSlider, Widget
+from ipywidgets import FloatSlider, HBox, Label, Widget
 from traitlets import Bool, HasTraits, Instance, Int, TraitType, Unicode, Undefined
 
 class Function(TraitType):
@@ -36,9 +36,9 @@ class BaseUIFilter(Filter):
         display(self.ui)
 
 class UIFilter(BaseUIFilter):
-    def __init__(self, **kwargs):
-        ui = kwargs.pop('ui', FloatSlider(min=0, max=1, step=0.01, value=0.5))
-        super().__init__(**kwargs)
+    def __init__(self, func=lambda x,v: v<=x, **kwargs):
+        ui = kwargs.pop('ui', FloatSlider(min=0, max=1, step=0.01, value=0.0))
+        super().__init__(func=func, **kwargs)
         self.observe(self._on_ui, names='ui')
         self.ui = ui
 
@@ -56,6 +56,14 @@ class UIFilter(BaseUIFilter):
 class AttrFilter(UIFilter):
     attr = Unicode()
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.label = Label(value=self.attr)
+        self.box = HBox([self.label, self.ui])
+
     def __call__(self, tree, node, *args, **kwargs):
         nv = tree.attr[self.attr][node]
         return self.disabled or self.func(nv, self.value, *args, **kwargs)
+
+    def _ipython_display_(self, **kwargs):
+        display(self.box)

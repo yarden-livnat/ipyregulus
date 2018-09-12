@@ -10,6 +10,21 @@
   stroke-width: 0.5px;
 }
 
+.rg_tree .view .node.highlight {
+  stroke: green;
+  stroke-width: 1px;
+}
+
+.rg_tree .view .node.selected {
+  stroke: green;
+  stroke-width: 1px;
+}
+
+.rg_tree .view .node.details {
+  stroke: black;
+  stroke-width: 1px;
+}
+
 .rg_tree .view .axis .axis-label {
   fill: black;
   font-size: 10pt;
