@@ -22,7 +22,9 @@ export default function Panel() {
   let node_tip;
   let format = d3.format('.3f');
 
-  let selected = null;
+  let selected = new Set();
+  let detailed = new Set();
+  let highlighted = -2;
 
   // let colorScale = d3.scaleSequential(d3.interpolateGreens).domain([0, 1]).clamp(true);
   let colorScale = d3.scaleQuantize().range(d3.schemeRdYlBu[11].concat().reverse());
@@ -47,7 +49,7 @@ export default function Panel() {
   }
 
   function preprocess() {
-    selected = null
+    // selected = null
     if (!root) return;
     nodes = flatten(root, []);
     sx.domain([0, root.size]);
@@ -100,10 +102,12 @@ export default function Panel() {
     d3nodes.enter()
     .append('rect')
       .attr('class', 'node')
-      .on('mouseenter', show_tip)
-      .on('mouseleave', hide_tip)
-      .on('click', ensure_single(details))
-      .on('dblclick', select)
+      .on('mouseenter.tip', show_tip)
+      .on('mouseleave.tip', hide_tip)
+      .on('mouseenter.hover', d => on_hover(d, true))
+      .on('mouseleave.hover', d => on_hover(d, false))
+      .on('click', ensure_single(on_details))
+      .on('dblclick', on_select)
     .merge(d3nodes)
       .style('visibility', d => !show || show.has(d.id) ? 'visible' : 'hidden')
       .attr('x', d => sx(d.pos.x))
@@ -111,9 +115,9 @@ export default function Panel() {
       .attr('width', d => Math.max(1, sx(d.pos.x + d.pos.w) - sx(d.pos.x)-1))
       .attr('height', d => Math.max(0, sy(d.pos.y) - sy(d.pos.yp)-1))
       .style('fill', color)
-      // .classed('highlight', d => d.highlight)
-      // .classed('selected', d => d.selected)
-      // .classed('details', d => d.details);
+      .classed('highlight', d => d.id == highlighted)
+      .classed('selected', d => selected.has(d.id))
+      .classed('details', d => detailed.has(d.id));
       ;
 
     d3nodes.exit().remove();
@@ -133,25 +137,26 @@ export default function Panel() {
     node_tip.show.apply(this, arguments);
   }
 
-  function hover(d, on) {
-    if (on) {
-      node_tip.show();
-    } else {
-      node_tip().hide()
-    }
-    dispatch.call('highlight',this, d, on);
+  function on_hover(d, on) {
+    // if (on) {
+    //   node_tip.show();
+    // } else {
+    //   node_tip().hide()
+    // }
+    dispatch.call('highlight',this, on ? d.id : -2);
   }
 
-  function select(d) {
-      d.selected = !d.selected;
+  function on_select(d) {
+      // d.selected = !d.selected;
+
       // render_names();
-      dispatch.call('select', this, d, d.selected);
+      dispatch.call('select', this, d.id, !selected.has(d.id));
     }
 
-  function details(d) {
-    d.details = !d.details;
-    dispatch.call('details', this, d, d.details);
-    if (d.details) select(d);
+  function on_details(d) {
+    // d.details = !d.details;
+    dispatch.call('details', this, d.id, !detailed.has(d.id));
+    // if (d.details) on_select(d);
   }
 
 
@@ -246,6 +251,24 @@ export default function Panel() {
       preprocess();
       layout();
       update();
+      return this;
+    },
+
+    highlight(node) {
+      highlighted = node;
+      render();
+      return this;
+    },
+
+    details(_) {
+      detailed = _;
+      render();
+      return this;
+    },
+
+    select(_) {
+      selected = _;
+      render();
       return this;
     },
 
