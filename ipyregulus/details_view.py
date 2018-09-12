@@ -1,4 +1,4 @@
-from traitlets import Instance, List, Unicode
+from traitlets import Instance, Int, List, Unicode
 from ipydatawidgets import DataUnion
 from ipywidgets import register, widget_serialization
 
@@ -20,6 +20,7 @@ class DetailsView(RegulusDOMWidget):
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
     measure = Unicode('').tag(sync=True)
     show = List().tag(sync=True)
+    highlight = Int(-2).tag(sync=True)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

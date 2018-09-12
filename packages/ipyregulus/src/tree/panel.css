@@ -22,7 +22,12 @@
 
 .rg_tree .view .node.details {
   stroke: black;
-  stroke-width: 1px;
+  stroke-width: 2px;
+}
+
+.rg_tree .view .node.details.highlight {
+  stroke: green;
+  stroke-width: 4px;
 }
 
 .rg_tree .view .axis .axis-label {

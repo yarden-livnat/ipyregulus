@@ -24,7 +24,7 @@ export default function Panel() {
 
   let selected = new Set();
   let detailed = new Set();
-  let highlighted = null;
+  let highlighted = -2;
 
   // let colorScale = d3.scaleSequential(d3.interpolateGreens).domain([0, 1]).clamp(true);
   let colorScale = d3.scaleQuantize().range(d3.schemeRdYlBu[11].concat().reverse());

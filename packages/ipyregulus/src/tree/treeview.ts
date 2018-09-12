@@ -25,6 +25,7 @@ class TreeView extends DOMWidgetView {
 
     this.d3el.html(template);
     this.panel = Panel().el(d3.select(this.el).select('.view'))
+      .on('highlight', d => this.on_highlight(d))
       .on('details', (d, is_on) => this.on_details(d, is_on))
       .on('select', (d, is_on) => this.on_select(d, is_on));
 
@@ -129,12 +130,10 @@ class TreeView extends DOMWidgetView {
   }
 
   on_selected_changed() {
-    console.log('seleted changed', this.model.get('selected'));
     this.panel.select(new Set(this.model.get('selected')));
   }
 
   on_details_changed() {
-    console.log('details changed', this.model.get('details'));
     this.panel.details(new Set(this.model.get('details')));
   }
 
@@ -149,7 +148,6 @@ class TreeView extends DOMWidgetView {
   }
 
   on_select(id, is_on) {
-    console.log('on select', this, id, is_on);
     let selected = new Set(this.model.get('selected'))
     if (is_on) {
       selected.add(id);
@@ -161,7 +159,6 @@ class TreeView extends DOMWidgetView {
   }
 
   on_details(id, is_on) {
-    console.log('on details', id, is_on);
     let details = this.model.get('details').concat();
     if (is_on) {
       details.push(id);

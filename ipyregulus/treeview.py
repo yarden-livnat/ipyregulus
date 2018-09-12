@@ -22,7 +22,7 @@ class TreeView(HasTree, RegulusDOMWidget):
     field = Unicode('').tag(sync=True)
     attrs = Dict({}).tag(sync=True)
     show = Set(None, allow_none=True).tag(sync=True)
-    highlight = Int(-2)
+    highlight = Int(-2).tag(sync=True)
     selected = List().tag(sync=True, from_json=from_json)
     details = List([]).tag(sync=True)
     # hold = Bool(False).tag(sync=True)
