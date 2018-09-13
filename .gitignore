@@ -41,5 +41,8 @@ js/lab-dist
 data/
 notebooks/data
 *.lnk
+*.sqlite
+*.hdf5
+
 
 __pycache__

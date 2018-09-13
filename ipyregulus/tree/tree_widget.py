@@ -31,20 +31,20 @@ class TreeWidget(HasTree, RegulusWidget):
     root = Instance(klass=Node, allow_none=True).tag(sync=True, to_json=_tree_to_json)
     attrs = Dict(allow_null=True).tag(sync=True)
 
-    def __init__(self, tree, select=lambda x:{}, **kwargs):
+    def __init__(self, tree=None, select=lambda x:{}, **kwargs):
         self.user_select = select
         super().__init__(tree)
 
 
-    def update(self, change):
+    def update(self, src):
+        tree = src if isinstance(src, RegulusTree) else src.tree
         with self.hold_sync():
-            new_tree = self._ref
-            self.root = new_tree.root if new_tree is not None else None
+            self.root = tree.root if tree is not None else None
+            attrs = list(self.attrs.keys())
             self.attrs = dict()
-        super().update(change)
-
-    def tree_changed(self, change):
-        super().tree_changed(change)
+            for attr in attrs:
+                self.attrs[attr] = tree.retrieve(attr)
+        super().update(src)
 
     def ensure(self, attr):
         if attr not in self.attrs:
@@ -79,4 +79,5 @@ class TreeWidget(HasTree, RegulusWidget):
 
     def touch(self):
         """inform the widget the tree was mutated"""
+        print('TreeWidget touch')
         self._notify_trait('root', self.root, self.root)

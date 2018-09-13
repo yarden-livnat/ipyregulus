@@ -15,8 +15,9 @@ let PLOT_HEIGHT = 100;
 let PLOT_BORDER = 1;
 let PLOT_GAP = 5;
 
+let DURATION = 1000;
 
-export default function Panel() {
+export default function Panel(ctrl) {
   // let margin = {top: 10, right: 30, bottom: 50, left:60},
   // width = DEFAULT_WIDTH - margin.left - margin.right,
   // height = DEFAULT_HEIGHT - margin.top - margin.bottom;
@@ -24,6 +25,8 @@ export default function Panel() {
   let root = null;
   let svg = null;
 
+  let controller = ctrl;
+  let model = null;
   let data = null;
   let pts_loc = null;
   let pts = null;
@@ -38,6 +41,7 @@ export default function Panel() {
   let measure_idx = 0;
   let show = [];
   let filtered = [];
+  let highlighted = -2;
 
   let initial_cmap = 'RdYlBu';
   let colorScale = d3.scaleSequential(chromatic['interpolate' + initial_cmap]);
@@ -48,6 +52,39 @@ export default function Panel() {
   let plots = [];
 
   let plot_renderer =  Plot();
+
+  function sync() {
+    controller.touch();
+  }
+
+  function set_model(_) {
+    model = _;
+    model.on('change:data', model_changed);
+    model.on('change:show', show_changed);
+    model.on('change:highlight', highlight_changed);
+    model_changed();
+    show_changed();
+  }
+
+  function model_changed() {
+    update_data_model(model.get('data'));
+    update_cols();
+    update_rows();
+    update_plots();
+    render();
+  }
+
+  function show_changed() {
+    show = model.get('show');
+    update_rows();
+    update_plots();
+    render();
+  }
+
+  function highlight_changed() {
+    highlighted = model.get('highlight');
+    render();
+  }
 
   function update_data_model(_) {
     data = _;
@@ -66,7 +103,6 @@ export default function Panel() {
       color_idx = measure_idx;
       colorScale.domain(attrs_extent[color_idx]);
       filtered = Array(pts_idx.length).fill(false);
-      // filtered.fill(true, filtered.length/2);
     } else {
       pts = null;
       pts_idx = [];
@@ -80,33 +116,33 @@ export default function Panel() {
   }
 
   function update_cols() {
-    cols = pts_idx.map( (c,i) => ({id: i, name: c}));
+    cols = pts_idx.map( (c,i) => ({idx: i, name: c}));
     root.select('.rg_bottom_scroll').style('width', `${cols.length*(PLOT_WIDTH + 2*PLOT_BORDER + PLOT_GAP) - PLOT_GAP}px`);
   }
 
   function update_rows() {
-    rows = show.map((r, i) => ({id: i, idx: r}));
+    rows = show.sort((a,b) => a -b).map((r, i) => ({idx: i, id: r}));
     root.select('.rg_right_scroll').style('height', `${rows.length*(PLOT_HEIGHT + 2*PLOT_BORDER + PLOT_GAP) - PLOT_GAP}px`);
   }
 
   function update_plots() {
     plots = [];
     for (let row of rows) {
-      let partition = partitions.get(row.idx);
+      let partition = partitions.get(row.id);
       for (let col of cols) {
          let p = {
-           row: row.id,
-           col: col.id,
+           row: row.idx,
+           col: col.idx,
            partition: partition,
            // data for plot
            width: PLOT_WIDTH,
            height: PLOT_HEIGHT,
-           x_extent: pts_extent[col.id],
+           x_extent: pts_extent[col.idx],
            y_extent: attrs_extent[measure_idx],
            x: pts,
            y: attrs,
            pts_idx: partition.index(),
-           x_dim: col.id,
+           x_dim: col.idx,
            y_dim: measure_idx,
            c_dim: color_idx,
            filtered: filtered,
@@ -118,21 +154,23 @@ export default function Panel() {
   }
 
   function render() {
-    console.log('render');
     render_cols();
     render_rows();
     render_plots();
   }
 
   function render_cols() {
-    let d3cols = root.select('.rg_top').selectAll('.rg_col_header').data(cols, d => d.id);
+    let d3cols = root.select('.rg_top').selectAll('.rg_col_header').data(cols, d => d.idx);
     d3cols.enter()
       .append('div')
       .classed('rg_col_header', true)
     .merge(d3cols)
       .html(d => d.name);
 
-    d3cols.exit().remove();
+    d3cols.exit()
+      // .transition().duration(DURATION)
+      // .style('opacity', 0)
+      .remove();
   }
 
   function render_rows() {
@@ -140,24 +178,41 @@ export default function Panel() {
       d3rows.enter()
         .append('div')
         .classed('rg_row_header', true)
+        .on('click', on_select)
+        .on('mouseenter', on_enter)
+        .on('mouseleave', on_leave)
+        .style('opacity', 0)
       .merge(d3rows)
-        .html(d => d.id);
+        .html(d => d.id)
+        .classed('highlight', d => d.id == highlighted)
+        .transition().duration(DURATION).style('opacity', 1);
 
-      d3rows.exit().remove();
+      d3rows.exit()
+        // .transition().duration(DURATION)
+        // .style('opacity', 0)
+        .remove();
   }
 
   function render_plots() {
-      let d3plots = root.select('.rg_plots').selectAll('.rg_plot').data(plots);
-      d3plots.enter()
+      let d3plots = root.select('.rg_plots').selectAll('.rg_plot').data(plots, d => [d.partition.id, d.col]);
+      let list = d3plots.enter()
         .append('div')
         .classed('rg_plot_item', true)
+        .style('opacity', 0)
         .call(plot_renderer.create)
       .merge(d3plots)
         .style('left', d => `${d.col*(PLOT_WIDTH + 2*PLOT_BORDER + PLOT_GAP)}px`)
         .style('top', d => `${d.row*(PLOT_HEIGHT + 2*PLOT_BORDER + PLOT_GAP)}px`)
         .call(plot_renderer.render);
 
-      d3plots.exit().remove();
+      list.transition().duration(DURATION)
+        // .style('top', d => `${d.row*(PLOT_HEIGHT + 2*PLOT_BORDER + PLOT_GAP)}px`)
+        .style('opacity', 1)
+
+      d3plots.exit()
+        // .transition().duration(DURATION)
+        // .style('opacity', 0)
+        .remove();
   }
 
 
@@ -171,6 +226,24 @@ export default function Panel() {
     root.select('.rg_plots').node().scrollTop = top;
   }
 
+  function on_select(d) {
+    let selected = show.concat();
+    let idx = selected.indexOf(d.id);
+    if (idx == -1) selected.push(d.id);
+    else selected.splice(idx, 1);
+    model.set('show', selected);
+    sync();
+  }
+
+  function on_enter(d) {
+    model.set('highlight', d.id);
+    sync();
+  }
+
+  function on_leave(d) {
+    model.set('highlight', -2);
+    sync();
+  }
 
   // let resizeObserver = new ResizeObserver(entries => {
   //       entries.forEach( e => {
@@ -209,20 +282,8 @@ export default function Panel() {
       return this;
     },
 
-    data(_) {
-      update_data_model(_);
-      update_cols();
-      update_rows();
-      update_plots();
-      render();
-      return this;
-    },
-
-    show(_) {
-      show = _;
-      update_rows();
-      update_plots();
-      render();
+    model(_) {
+      set_model(_);
       return this;
     },
 

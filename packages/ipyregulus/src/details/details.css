@@ -74,6 +74,10 @@
   border: 1px solid gray;
 }
 
+.rg_row_header.highlight {
+  border: 2px solid red;
+}
+
 /* RIGHT */
 
 .rg_details .rg_right {

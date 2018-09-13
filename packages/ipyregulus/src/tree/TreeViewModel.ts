@@ -20,6 +20,7 @@ class TreeViewModel extends RegulusViewModel {
       field: null,
       attrs: {},
       show: null,
+      hightlight: null,
       selected: new Set(),
       details: []
     };
