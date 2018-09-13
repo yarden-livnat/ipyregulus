@@ -39,6 +39,7 @@ docs/source/examples/img
 js/lab-dist
 
 data/
-
+notebooks/data
+*.lnk
 
 __pycache__
