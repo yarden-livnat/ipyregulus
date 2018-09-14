@@ -1,6 +1,8 @@
 
 
 import * as d3 from 'd3';
+import * as chromatic from 'd3-scale-chromatic';
+
 import '../utils/d3-tip';
 import {ensure_single} from '../utils/events';
 import './panel.css';
@@ -27,7 +29,10 @@ export default function Panel() {
   let highlighted = -2;
 
   // let colorScale = d3.scaleSequential(d3.interpolateGreens).domain([0, 1]).clamp(true);
-  let colorScale = d3.scaleQuantize().range(d3.schemeRdYlBu[11].concat().reverse());
+  // let colorScale = d3.scaleQuantize().range(d3.schemeRdYlBu[11].concat().reverse());
+  let initial_cmap = 'RdYlBu';
+  let cscale = d3.scaleSequential(chromatic['interpolate' + initial_cmap]);
+  let colorScale = v => cscale(1-v);
 
   let x_type = 'linear';
   let y_type = 'linear';
