@@ -24,3 +24,13 @@ class Monitor(Filter):
         self._monitored = [obj] if not isinstance(obj, list) else obj
         for m in self._monitored:
             m.observe(self._exec, names='changed')
+
+    def add(self, item):
+        if item not in self._monitored:
+            self._monitored.append(item)
+            item.observe(self._exec, names='changed')
+
+    def remove(self, item):
+        if item in self._monitored:
+            self._monitored.remove(item)
+            item.unobserve(self._exec, names='changed')

@@ -9,8 +9,20 @@ class View(object):
     def __init__(self, view, monitor, filter, panel):
         self.view = view
         self.monitor = monitor
-        self.filter = filter
+        self._filter = filter
         self.panel = panel
+
+    @property
+    def filter(self):
+        return self._filter
+
+    @filter.setter
+    def filter(self, f):
+        self.monitor.remove(self.filter)
+        self.monitor.add(f)
+        self._filter = f
+        view = self.view
+        self.monitor.func = lambda: view.set_show(view.tree.filter(f))
 
 def reduce_tree(src, f, dest=None):
     monitored = [f]
