@@ -18,7 +18,7 @@ export default function Panel() {
   let svg = null;
   let root = null;
   let nodes = [];
-  let field = null;
+  let attr = null;
   let attrs = {};
   let show = null;
   let node_tip;
@@ -84,9 +84,9 @@ export default function Panel() {
   }
 
   function value(d) {
-    if (!field) return null;
-    if (field in d) return d[field]
-    if (field in attrs) return attrs[field][d.id];
+    if (!attr) return null;
+    if (attr in d) return d[attr]
+    if (attr in attrs) return attrs[attr][d.id];
     return null;
   }
 
@@ -203,7 +203,7 @@ export default function Panel() {
           let bb = this.getBBox();
           return [m[1]-bb.y-10, m[0]-bb.x-bb.width/2];
         })
-        .html(d => `id: ${d.id}<br>lvl: ${format(d.lvl)}<br>${field}: ${format(value(d))}<br>size: ${d.size}`);
+        .html(d => `id: ${d.id}<br>lvl: ${format(d.lvl)}<br>${attr}: ${format(value(d))}<br>size: ${d.size}`);
 
       svg.call(node_tip);
 
@@ -234,8 +234,8 @@ export default function Panel() {
        return this;
     },
 
-    field(_) {
-      field = _;
+    attr(_) {
+      attr = _;
       update()
       return this;
     },

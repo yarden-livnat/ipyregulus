@@ -105,7 +105,7 @@ class TreeView extends DOMWidgetView {
   on_field_changed() {
     let field = this.model.get('field');
     this.d3el.select('.measure').html(field)
-    this.panel.field(field)
+    this.panel.attr(field)
       .redraw();
     this.touch();
   }

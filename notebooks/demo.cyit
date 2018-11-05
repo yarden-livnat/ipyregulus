@@ -1,0 +1,6 @@
+{
+    'name': 'demo',
+    'data': 'data/gauss4',
+    'notebook': 'demo.ipynb',
+    'kernel': 'python3'
+}

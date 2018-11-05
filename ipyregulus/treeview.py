@@ -21,6 +21,7 @@ class TreeView(HasTree, RegulusDOMWidget):
     title = Unicode('').tag(sync=True)
     field = Unicode('').tag(sync=True)
     attrs = Dict({}).tag(sync=True)
+    attr = Unicode('').tag(sync=True)
     show = Set(None, allow_none=True).tag(sync=True)
     highlight = Int(-2).tag(sync=True)
     selected = List().tag(sync=True, from_json=from_json)
@@ -35,18 +36,25 @@ class TreeView(HasTree, RegulusDOMWidget):
         self.attr = attr
 
 
-    @property
-    def attr(self):
-        return self.field
+    @observe('attr')
+    def _attr(self, change):
+        self.ensure(change['new'])
+        self.field = change['new']
 
+    # @property
+    # def attr(self):
+    #     return self.field
+    #
+    #
+    # @attr.setter
+    # def attr(self, name):
+    #     self.ensure(name)
+    #     self.field = name
 
-    @attr.setter
-    def attr(self, name):
-        self.ensure(name)
-        self.field = name
 
     def set_show(self, node_ids):
         self.show = node_ids
+
 
     def ensure(self, name, force=False):
         if self.tree is None:
