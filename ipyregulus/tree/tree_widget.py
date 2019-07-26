@@ -54,7 +54,6 @@ class TreeWidget(HasTree, RegulusWidget):
                 return True
         return False
 
-
     @validate('model')
     def _validate_tree(self, proposal):
         """validate the tree"""

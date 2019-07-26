@@ -8,7 +8,7 @@ class RegulusModel extends WidgetModel {
   defaults() {
     return {...super.defaults(), ...{
       _model_module: RegulusModel.model_module,
-      _model_moduel_version: RegulusModel.model_module_version,
+      _model_module_version: RegulusModel.model_module_version,
     }}
   }
 

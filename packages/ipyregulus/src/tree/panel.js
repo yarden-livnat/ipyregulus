@@ -28,6 +28,9 @@ export default function Panel() {
   let detailed = new Set();
   let highlighted = -2;
 
+  let range_def = [0, 1];
+  let range_values = [0, 1];
+
   // let colorScale = d3.scaleSequential(d3.interpolateGreens).domain([0, 1]).clamp(true);
   // let colorScale = d3.scaleQuantize().range(d3.schemeRdYlBu[11].concat().reverse());
   let initial_cmap = 'RdYlBu';
@@ -81,6 +84,20 @@ export default function Panel() {
   }
 
   function update() {
+    update_range();
+  }
+
+  function update_range() {
+    let minmax;
+    if (range_def[0] == 'auto' || range_def[1] == 'auto') {
+      minmax = d3.extent(nodes, value);
+    }
+    range_values = [
+      range_def[0] == 'auto' ? minmax[0] : range_def[0],
+      range_def[1] == 'auto' ? minmax[1] : range_def[1]
+    ]
+    cscale.domain(range_values);
+    console.log('update_range:', range_def, range_values);
   }
 
   function value(d) {
@@ -236,6 +253,7 @@ export default function Panel() {
 
     attr(_) {
       attr = _;
+      // if (attr) return null;
       update()
       return this;
     },
@@ -267,6 +285,13 @@ export default function Panel() {
 
     details(_) {
       detailed = _;
+      render();
+      return this;
+    },
+
+    range(_) {
+      range_def = _;
+      update_range();
       render();
       return this;
     },

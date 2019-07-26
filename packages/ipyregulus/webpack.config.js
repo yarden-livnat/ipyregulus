@@ -18,7 +18,7 @@ const plugins = [];
 const resolve = {
   extensions: ['.ts', '.js', '.css', '.scss', '.html']
   // modules:['src', 'node_modules']
-}
+};
 
 externals = [
   '@jupyter-widgets/base',

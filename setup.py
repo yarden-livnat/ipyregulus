@@ -23,7 +23,7 @@ name = 'ipyregulus'
 ensure_python('>=3.6')
 
 # Get our version
-version = get_version(pjoin(name, '_version.py'))
+version =  sion(pjoin(name, '_version.py'))
 
 js_path = pjoin(HERE)
 

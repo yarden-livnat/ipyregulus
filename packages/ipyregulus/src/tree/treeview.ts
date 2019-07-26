@@ -37,6 +37,7 @@ class TreeView extends DOMWidgetView {
     this.model.on('change:highlight', this.on_highlight_changed, this);
     this.model.on('change:selected', this.on_selected_changed, this);
     this.model.on('change:details', this.on_details_changed, this);
+    this.model.on('change:range', this.on_range_changed, this);
 
 
     this.on_title_changed();
@@ -137,7 +138,10 @@ class TreeView extends DOMWidgetView {
     this.panel.details(new Set(this.model.get('details')));
   }
 
-
+  on_range_changed() {
+    this.panel.range(this.model.get('range'));
+  }
+  
   /*
    * events from Panel
    */

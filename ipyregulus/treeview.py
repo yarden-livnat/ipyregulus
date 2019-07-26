@@ -1,6 +1,6 @@
 # Copyright (c) University of Utah
 
-from traitlets import Bool, Dict, HasTraits, Instance, Int, List, Unicode, observe, Set
+from traitlets import Bool, Dict, HasTraits, Instance, Int, List, Tuple, Unicode, observe, Set
 from ipywidgets import register, widget_serialization
 
 from .base import RegulusDOMWidget
@@ -26,6 +26,8 @@ class TreeView(HasTree, RegulusDOMWidget):
     highlight = Int(-2).tag(sync=True)
     selected = List().tag(sync=True, from_json=from_json)
     details = List([]).tag(sync=True)
+    range = Tuple((0,1)).tag(sync=True)
+
     # hold = Bool(False).tag(sync=True)
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
 
@@ -40,16 +42,6 @@ class TreeView(HasTree, RegulusDOMWidget):
     def _attr(self, change):
         self.ensure(change['new'])
         self.field = change['new']
-
-    # @property
-    # def attr(self):
-    #     return self.field
-    #
-    #
-    # @attr.setter
-    # def attr(self, name):
-    #     self.ensure(name)
-    #     self.field = name
 
 
     def set_show(self, node_ids):

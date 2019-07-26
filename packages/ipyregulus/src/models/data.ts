@@ -41,7 +41,7 @@ class RegulusData extends RegulusModel {
     ...RegulusModel.serializers,
     pts: data_union_array_serialization,
     attrs: data_union_array_serialization,
-  }
+  };
 
   static model_name = 'RegulusData';
 }
