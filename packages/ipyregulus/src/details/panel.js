@@ -4,6 +4,7 @@ import * as chromatic from 'd3-scale-chromatic';
 import {
   Partition
 } from '../models/partition';
+
 import Plot from './plot';
 import './panel.css';
 
@@ -252,7 +253,7 @@ export default function Panel(ctrl) {
   //   }
   // );
 
-  let panel = {
+  return {
     el(_) {
       root = _;
 
@@ -291,7 +292,5 @@ export default function Panel(ctrl) {
       render();
       return this;
     }
-  }
-
-  return panel;
+  };
 }

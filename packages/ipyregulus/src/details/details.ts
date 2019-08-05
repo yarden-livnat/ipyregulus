@@ -19,7 +19,7 @@ import * as d3 from 'd3';
 import Panel from './panel';
 
 import './details.css';
-import * as template from './details.html';
+import template from './details.html';
 
 export
 class DetailsModel extends RegulusViewModel {
@@ -41,7 +41,7 @@ class DetailsModel extends RegulusViewModel {
     ...RegulusViewModel.serializers,
     data: {deserialize: unpack_models},
     tree_model: {deserialize: unpack_models},
-  }
+  };
 
   static model_name = 'DetailsModel';
   static view_name = 'DetailsView';
