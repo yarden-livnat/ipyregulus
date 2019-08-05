@@ -1,6 +1,7 @@
 from ipywidgets import FloatSlider, HBox, Label, Widget
 from traitlets import Bool, HasTraits, Instance, Int, TraitType, Unicode, Undefined
 
+
 class Function(TraitType):
     default_value = lambda x: x
 
@@ -35,6 +36,7 @@ class BaseUIFilter(Filter):
     def _ipython_display_(self, **kwargs):
         display(self.ui)
 
+
 class UIFilter(BaseUIFilter):
     def __init__(self, func=lambda x,v: v<=x, **kwargs):
         ui = kwargs.pop('ui', FloatSlider(min=0, max=1, step=0.01, value=0.0))
@@ -50,7 +52,6 @@ class UIFilter(BaseUIFilter):
 
     def __call__(self, *args, **kwargs):
         return self.disabled or self.func(self.value, *args, **kwargs)
-
 
 
 class AttrFilter(UIFilter):

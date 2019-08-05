@@ -6,6 +6,7 @@ from ipywidgets import register, widget_serialization
 from .base import RegulusDOMWidget
 from .tree import HasTree, TreeWidget
 
+
 def from_json(array, manager):
     # print('from json:', array)
     return array
@@ -37,16 +38,13 @@ class TreeView(HasTree, RegulusDOMWidget):
         super().__init__(tree)
         self.attr = attr
 
-
     @observe('attr')
     def _attr(self, change):
         self.ensure(change['new'])
         self.field = change['new']
 
-
     def set_show(self, node_ids):
         self.show = node_ids
-
 
     def ensure(self, name, force=False):
         if self.tree is None:
@@ -54,7 +52,6 @@ class TreeView(HasTree, RegulusDOMWidget):
         if name not in self.attrs or force:
             if name in self.tree:
                 self._owner.ensure(name)
-
 
     def update(self, tree):
         if tree is not None:

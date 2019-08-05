@@ -8,6 +8,7 @@ from ._version import EXTENSION_SPEC_VERSION
 
 MODULE_NAME = '@regulus/ipyregulus'
 
+
 class RegulusWidget(Widget):
     """An abstract widget class representing regulus data widgets"""
     _model_module = Unicode(MODULE_NAME).tag(sync=True)

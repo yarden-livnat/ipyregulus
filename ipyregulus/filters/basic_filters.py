@@ -4,8 +4,10 @@ from types import FunctionType, LambdaType
 def noop():
     return lambda item: True
 
+
 def Const(value):
     return lambda item: item == value
+
 
 def functor(obj):
     return obj if callable(obj) else Const(obj)
@@ -14,6 +16,7 @@ def functor(obj):
 def Not(f):
     f = functor(f)
     return lambda item: not f(item)
+
 
 class And(object):
     def __init__(self, *args):
@@ -32,6 +35,7 @@ class And(object):
             if not f(item):
                 return False
         return True
+
 
 class Or(object):
     def __init__(self, *args):

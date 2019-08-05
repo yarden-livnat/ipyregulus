@@ -23,7 +23,7 @@ name = 'ipyregulus'
 ensure_python('>=3.6')
 
 # Get our version
-version =  sion(pjoin(name, '_version.py'))
+version =  get_version(pjoin(name, '_version.py'))
 
 js_path = pjoin(HERE)
 
@@ -78,12 +78,12 @@ setup_args = dict(
     ],
     include_package_data=True,
     install_requires=[
-        'ipywidgets>=7.0.0',
+        'ipywidgets>=7.5.0',
         'ipydatawidgets',
         'traitlets>4.3.0',
         'traittypes',
         'pandas',
-        'regulus>=0.4.0'
+        'regulus>=0.5.0a'
     ],
     extras_require={
         'test': [

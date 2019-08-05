@@ -1,7 +1,7 @@
 const path = require('path');
 const nodeExternals = require('webpack-node-externals');
 
-const dist_path = path.resolve(__dirname, 'lib')
+const dist_path = path.resolve(__dirname, 'lib');
 
 
 var rules = [
@@ -63,7 +63,7 @@ const lab = {
   // externals: [nodeExternals(
   //   whitelist=['/^d3/']
   // )]
-}
+};
 
 module.exports = [
   lab

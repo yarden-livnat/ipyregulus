@@ -9,6 +9,7 @@ from regulus.tree import Node
 from .has_tree import HasTree
 from ..base import RegulusWidget
 
+
 def _tree_to_json(value, widget):
     def marshal(node, l):
         l.append(widget._select(node))
@@ -31,10 +32,9 @@ class TreeWidget(HasTree, RegulusWidget):
     root = Instance(klass=Node, allow_none=True).tag(sync=True, to_json=_tree_to_json)
     attrs = Dict(allow_null=True).tag(sync=True)
 
-    def __init__(self, tree=None, select=lambda x:{}, **kwargs):
+    def __init__(self, tree=None, select=lambda x: {}, **kwargs):
         self.user_select = select
         super().__init__(tree)
-
 
     def update(self, src):
         tree = src if isinstance(src, RegulusTree) else src.tree
@@ -74,7 +74,6 @@ class TreeWidget(HasTree, RegulusWidget):
         if node.data is not None:
             d.update(self.user_select(node))
         return d
-
 
     def touch(self):
         """inform the widget the tree was mutated"""

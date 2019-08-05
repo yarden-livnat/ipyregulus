@@ -10,6 +10,7 @@
       "target": "es2016",
       "outDir": "../lib",
       "skipLibCheck": true,
-      "sourceMap": true
+      "sourceMap": true,
+      "esModuleInterop": true
     }
   }

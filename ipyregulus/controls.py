@@ -1,7 +1,10 @@
-from ipywidgets import Label, HBox, FloatSlider,
+from ipywidgets import Label, HBox, FloatSlider
+from traitlets import Set
+from IPython.display import display
 
-from regulus.tree.alg import filter as filter_tree, reduce as reduce_tree
+# from regulus.tree.alg import filter as filter_tree, reduce as reduce_tree
 from .tree import HasTree
+
 
 class TreeControler(HasTree):
     def __init__(self, ref, attr, func, widget=None):
@@ -31,7 +34,7 @@ class TreeControler(HasTree):
         self.update(None)
 
     def ref_changed(self, change):
-        super().ref_changed(change)
+        super().ref_tree_changed(change)
         if self.ref is not None and self._attr is not None:
             self.monitored = self.ref.attr[self._attr]
         else:
@@ -50,7 +53,7 @@ class TreeControler(HasTree):
 
 
 class TreeFilter(TreeControler):
-    visible = Set(None, allow_none=True)
+    visible = Set(allow_none=True)
 
     def __init__(self, ref, attr, func, **kwargs):
         self._cbs = []
@@ -65,12 +68,11 @@ class TreeFilter(TreeControler):
     def update(self, change):
         super().update(change)
         if self.ref is not None and self.monitored is not None:
-            self.visible = filter_tree(self.ref, self.apply)
+            self.visible = self.ref.reduce(self.apply)
         else:
             self.visible = None
         for func in self._cbs:
             func(self.visible)
-
 
     def on(self, func):
         self._cbs.append(func)
@@ -84,8 +86,8 @@ class TreeFilter(TreeControler):
 
 class TreeReducer(TreeControler):
     def update(self, change):
-        super().updaet(change)
+        super().update(change)
         if self.ref is not None and self.monitored is not None:
-            self.tree = reduce_tree(self.ref, self.appy)
+            self.tree = self.ref.prune(self.apply)
         else:
             self.tree = self.ref

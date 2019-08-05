@@ -18,16 +18,13 @@ class HasTree(HasTraits):
     def ref(self, src):
         self.set(src)
 
-
     def set(self, src):
         if self._owner is not None:
             self._owner.unobserve(self.ref_tree_changed, names='tree')
         self.update(src)
 
-
     def ref_tree_changed(self, change):
         self.update(self._owner)
-
 
     def update(self, src):
         if isinstance(src, RegulusTree):

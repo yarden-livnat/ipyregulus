@@ -13,6 +13,7 @@ from regulus.topo import Regulus
 
 from .base import RegulusWidget
 
+
 @register
 class DataWidget(RegulusWidget):
     _model_name = Unicode('RegulusData').tag(sync=True)

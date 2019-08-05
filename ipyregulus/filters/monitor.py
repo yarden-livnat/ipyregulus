@@ -1,5 +1,5 @@
-
 from .filters import Filter
+
 
 class Monitor(Filter):
     def __init__(self, monitor=None, **kwargs):

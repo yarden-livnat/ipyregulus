@@ -1,9 +1,8 @@
-
-
 import * as d3 from 'd3';
 import * as chromatic from 'd3-scale-chromatic';
+import tip from 'd3-tip'
 
-import '../utils/d3-tip';
+
 import {ensure_single} from '../utils/events';
 import './panel.css';
 
@@ -47,6 +46,13 @@ export default function Panel() {
   let x_axis = d3.axisBottom(sx).ticks(8, 'd');
 
   let dispatch = d3.dispatch('highlight', 'select', 'details');
+
+  let tip_spec = [
+    d => ['id', d3.format('d')(d.id)],
+    d => ['lvl', d3.format('.3f')(d.lvl)],
+    d => [attr, d3.format('.3f')(value(d))],
+    d => ['size', d.size]
+  ];
 
   function flatten(node, arr){
     arr.push(node);
@@ -95,14 +101,14 @@ export default function Panel() {
     range_values = [
       range_def[0] == 'auto' ? minmax[0] : range_def[0],
       range_def[1] == 'auto' ? minmax[1] : range_def[1]
-    ]
+    ];
     cscale.domain(range_values);
-    console.log('update_range:', range_def, range_values);
+    // console.log('update_range:', range_def, range_values);
   }
 
   function value(d) {
     if (!attr) return null;
-    if (attr in d) return d[attr]
+    if (attr in d) return d[attr];
     if (attr in attrs) return attrs[attr][d.id];
     return null;
   }
@@ -126,8 +132,8 @@ export default function Panel() {
       .attr('class', 'node')
       .on('mouseenter.tip', show_tip)
       .on('mouseleave.tip', hide_tip)
-      .on('mouseenter.hover', d => on_hover(d, true))
-      .on('mouseleave.hover', d => on_hover(d, false))
+      // .on('mouseenter.hover', d => on_hover(d, true))
+      // .on('mouseleave.hover', d => on_hover(d, false))
       .on('click', ensure_single(on_details))
       .on('dblclick', on_select)
     .merge(d3nodes)
@@ -137,10 +143,9 @@ export default function Panel() {
       .attr('width', d => Math.max(1, sx(d.pos.x + d.pos.w) - sx(d.pos.x)-1))
       .attr('height', d => Math.max(0, sy(d.pos.y) - sy(d.pos.yp)-1))
       .style('fill', color)
-      .classed('highlight', d => d.id == highlighted)
+      .classed('highlight', d => d.id === highlighted)
       .classed('selected', d => selected.has(d.id))
       .classed('details', d => detailed.has(d.id));
-      ;
 
     d3nodes.exit().remove();
   }
@@ -159,14 +164,14 @@ export default function Panel() {
     node_tip.show.apply(this, arguments);
   }
 
-  function on_hover(d, on) {
-    // if (on) {
-    //   node_tip.show();
-    // } else {
-    //   node_tip().hide()
-    // }
-    dispatch.call('highlight',this, on ? d.id : -2);
-  }
+  // function on_hover(d, on) {
+  //   if (on) {
+  //     node_tip.show();
+  //   } else {
+  //     node_tip().hide()
+  //   }
+  //   dispatch.call('highlight',this, on ? d.id : -2);
+  // }
 
   function on_select(d) {
       // d.selected = !d.selected;
@@ -181,10 +186,12 @@ export default function Panel() {
     // if (d.details) on_select(d);
   }
 
+  function render_tip(d) {
 
-  let panel = {
+  }
+
+  return {
     el(_) {
-      // svg = d3.select(_);
       svg = _;
 
       let g = svg.append('g')
@@ -213,14 +220,20 @@ export default function Panel() {
           .style('text-anchor', 'middle')
           .text('Persistence');
 
-      node_tip = d3.tip()
+      node_tip = tip()
         .attr('class', 'd3-tip')
         .offset( function() {
           let m = d3.mouse(this);
           let bb = this.getBBox();
           return [m[1]-bb.y-10, m[0]-bb.x-bb.width/2];
         })
-        .html(d => `id: ${d.id}<br>lvl: ${format(d.lvl)}<br>${attr}: ${format(value(d))}<br>size: ${d.size}`);
+          .html(d => {
+            let content = tip_spec.map(spec => {
+              let rec = spec(d);
+              return `<tr><td>${rec[0]}:</td><td style="text-align: right">${rec[1]}</td></tr>`;
+            }).join('');
+            return `<table>${content}</table>`;
+          });
 
       svg.call(node_tip);
 
@@ -254,13 +267,13 @@ export default function Panel() {
     attr(_) {
       attr = _;
       // if (attr) return null;
-      update()
+      update();
       return this;
     },
 
     attrs(_) {
       attrs = _;
-      update()
+      update();
       return this;
     },
 
@@ -311,7 +324,5 @@ export default function Panel() {
       dispatch.on(event, cb);
       return this;
     }
-  }
-
-  return panel;
+  };
 }

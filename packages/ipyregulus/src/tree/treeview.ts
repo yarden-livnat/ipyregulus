@@ -7,11 +7,10 @@ import {
 } from '@phosphor/messaging';
 
 import * as d3 from 'd3';
-
 import Panel from './panel';
 
 import './tree.css';
-import * as template from './tree.html';
+import template from './tree.html';
 
 export
 class TreeView extends DOMWidgetView {
@@ -105,7 +104,7 @@ class TreeView extends DOMWidgetView {
 
   on_field_changed() {
     let field = this.model.get('field');
-    this.d3el.select('.measure').html(field)
+    this.d3el.select('.measure').html(field);
     this.panel.attr(field)
       .redraw();
     this.touch();
