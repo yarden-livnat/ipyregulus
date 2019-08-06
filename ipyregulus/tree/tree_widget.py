@@ -77,5 +77,4 @@ class TreeWidget(HasTree, RegulusWidget):
 
     def touch(self):
         """inform the widget the tree was mutated"""
-        print('TreeWidget touch')
         self._notify_trait('root', self.root, self.root)

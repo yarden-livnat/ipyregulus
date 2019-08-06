@@ -14,7 +14,7 @@ import template from './tree.html';
 
 export
 class TreeView extends DOMWidgetView {
-  
+
   render() {
     this.d3el = d3.select(this.el)
       .classed('rg_tree', true);

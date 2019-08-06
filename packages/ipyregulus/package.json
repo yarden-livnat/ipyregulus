@@ -10,7 +10,7 @@
     "widgets"
   ],
   "jupyterlab": {
-    "extensiodddn": "lib/labext"
+    "extension": "lib/labext"
   },
   "files": [
     "lib/**/*.d.ts",
