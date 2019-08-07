@@ -2,7 +2,7 @@ from ipyregulus.tree import HasTree, TreeWidget
 from ipyregulus.filters.filters import AttrFilter
 from ipyregulus.filters.monitor import Monitor
 from ipyregulus import TreeView
-from sidepanel import SidePanel
+from sidepanel import sidepanel, SidePanel
 
 
 class View(object):
@@ -23,6 +23,7 @@ class View(object):
         self._filter = f
         view = self.view
         self.monitor.func = lambda: view.set_show(view.tree.filter(f))
+
 
 def reduce_tree(src, f, dest=None):
     monitored = [f]
@@ -69,7 +70,7 @@ def show_panel(views, panel):
         if panel == False:
             display(*views)
         elif isinstance(panel, str):
-            panel = SidePanel(title=panel)
+            panel = sidepanel(panel)
             with panel:
                 display(*views)
         elif isinstance(panel, SidePanel):
