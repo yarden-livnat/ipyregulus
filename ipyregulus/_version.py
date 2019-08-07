@@ -1,7 +1,7 @@
 # Copyright (c)
 # Distributed under the terms of the Modified BSD License.
 
-version_info = (0, 5, 0, 'alpha', 0)
+version_info = (0, 5, 1, 'final', 0)
 
 _specifier_ = {'alpha': 'a', 'beta': 'b', 'candidate': 'rc', 'final': ''}
 

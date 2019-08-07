@@ -8,7 +8,7 @@ export {
 
 export {
   DetailsModel, DetailsView
-} from './details/index';
+} from './details';
 
 export {
   version, EXTENSION_SPEC_VERSION

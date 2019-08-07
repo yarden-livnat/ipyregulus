@@ -1,113 +1,78 @@
-# !/usr/bin/env python
+#!/usr/bin/env python
 # coding: utf-8
-
-# Copyright (c) Jupyter Development Team.
-# Distributed under the terms of the Modified BSD License.
-
 from __future__ import print_function
-from glob import glob
+import sys
+import os
+from distutils.core import setup
+from distutils.command.build_py import build_py
+from distutils.command.sdist import sdist
 from os.path import join as pjoin
+v = sys.version_info
 
-from setupbase import (
-    create_cmdclass, install_npm, ensure_targets,
-    find_packages, combine_commands, ensure_python,
-    get_version, HERE
-)
-
-from setuptools import setup
-
-# The name of the project
 name = 'ipyregulus'
 
-# Ensure a valid python version
-ensure_python('>=3.6')
+LONG_DESCRIPTION = """
+Regulus widgets for Jupyter Lab.
+"""
 
-# Get our version
-version =  get_version(pjoin(name, '_version.py'))
 
-js_path = pjoin(HERE)
+if v[0] < 3 or (v[0] == 3 and v[:2] < (3, 7)):
+    error = "ERROR: %s requires Python version 3.7 or above." % name
+    print(error, file=sys.stderr)
+    sys.exit(1)
 
-lab_path = pjoin(HERE, name, 'labextension')
 
-# Representative files that should exist after a successful build
-jstargets = [
-    pjoin(js_path, 'lib', 'labext.js'),
-]
+here = os.path.abspath(os.path.dirname(__file__))
 
-package_data_spec = {
-    name: [
-        'labextension/*.tgz'
-    ]
-}
+packages = []
+for d, _, _ in os.walk(pjoin(here, name)):
+    if os.path.exists(pjoin(d, '__init__.py')):
+        packages.append(d[len(here)+1:].replace(os.path.sep, '.'))
 
-data_files_spec = [
-    ('share/jupyter/lab/extensions', lab_path, '*.tgz'),
-]
-
-cmdclass = create_cmdclass('jsdeps', package_data_spec=package_data_spec,
-                           data_files_spec=data_files_spec)
-cmdclass['jsdeps'] = combine_commands(
-    install_npm(js_path, build_cmd='build'),
-    # ensure_targets(jstargets),
-)
+version_ns = {}
+with open(pjoin(here, name, '_version.py')) as f:
+    exec(f.read(), {}, version_ns)
 
 setup_args = dict(
     name=name,
-    description='A sidecar output widget for JupyterLab',
-    version=version,
-    scripts=glob(pjoin('scripts', '*')),
-    cmdclass=cmdclass,
-    packages=find_packages(),
+    version=version_ns['__version__'],
+    scripts=[],
+    packages=packages,
+    description="Regulus extension for Jupyter",
+    long_description=LONG_DESCRIPTION,
     author='Yarden Livnat',
     author_email='yarden@sci.utah.edu',
     url='https://github.com/yarden-livnat/ipyregulus',
     license='BSD',
     platforms="Linux, Mac OS X, Windows",
-    keywords=['Jupyter', 'Widgets', 'IPython'],
+    keywords=['Interactive', 'JupyterLab'],
     classifiers=[
-        'Development Status :: 1 - Pre Alpha',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: BSD License',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Framework :: Jupyter',
-    ],
-    include_package_data=True,
-    install_requires=[
-        'ipywidgets>=7.5.0',
-        'ipydatawidgets',
-        'traitlets>4.3.0',
-        'traittypes',
-        'pandas',
-        'regulus>=0.5.0a'
-    ],
-    extras_require={
-        'test': [
-            'pytest',
-            'pytest-cov',
-            'nbval',
-        ],
-        'examples': [
-            # Any requirements for the examples to run
-        ],
-        'docs': [
-            'sphinx>=1.5',
-            'recommonmark',
-            'sphinx_rtd_theme',
-            'nbsphinx>=0.2.13',
-            'jupyter_sphinx',
-            'nbsphinx-link',
-            'pytest_check_links',
-            'pypandoc',
-        ],
-    },
-    entry_points={
-    },
+        'Programming Language :: Python :: 3.7',
+        'Framework :: Jupyter'
+    ]
 )
+
+if 'develop' in sys.argv or any(a.startswith('bdist') for a in sys.argv):
+    import setuptools
+
+setuptools_args = {}
+install_requires = setuptools_args['install_requires'] = [
+    'ipywidgets>=7.5.0',
+    'ipydatawidgets',
+    'traitlets>4.3.0',
+    'traittypes',
+    'pandas',
+    'regulus>=0.5.0'
+]
+
+extras_require = setuptools_args['extras_require'] = {
+}
+
+if 'setuptools' in sys.modules:
+    setup_args.update(setuptools_args)
 
 if __name__ == '__main__':
     setup(**setup_args)

@@ -68,5 +68,3 @@ class AttrFilter(UIFilter):
 
     def _ipython_display_(self, **kwargs):
         display(self.box)
-
-    @ob
