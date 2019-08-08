@@ -6,8 +6,8 @@ class HasTree(HasTraits):
     tree = Instance(klass=RegulusTree, allow_none=True)
     _owner = This(allow_none=True)
 
-    def __init__(self, tree=None):
-        super().__init__()
+    def __init__(self, tree=None, **kwargs):
+        super().__init__(**kwargs)
         self.ref = tree
 
     @property
@@ -17,6 +17,10 @@ class HasTree(HasTraits):
     @ref.setter
     def ref(self, src):
         self.set(src)
+
+    @property
+    def owner(self):
+        return self._owner
 
     def set(self, src):
         if self._owner is not None:

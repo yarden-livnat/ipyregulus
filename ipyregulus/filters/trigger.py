@@ -1,7 +1,7 @@
 from .filters import Filter
 
 
-class Monitor(Filter):
+class Trigger(Filter):
     def __init__(self, monitor=None, **kwargs):
         super().__init__(**kwargs)
         self._monitored = []

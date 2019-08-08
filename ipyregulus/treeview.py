@@ -32,10 +32,10 @@ class TreeView(HasTree, RegulusDOMWidget):
     # hold = Bool(False).tag(sync=True)
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
 
-    def __init__(self, tree=None, attr='span'):
+    def __init__(self, tree=None, attr='span', **kwargs):
         if tree is not None and not isinstance(tree, HasTree):
             tree = TreeWidget(tree)
-        super().__init__(tree)
+        super().__init__(tree, **kwargs)
         self.attr = attr
 
     @observe('attr')
