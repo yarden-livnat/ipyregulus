@@ -4,8 +4,6 @@
 ## Installation
 
 ### requirements
-`conda install jupyterlab`
-
 `jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyterlab-datawidgets`
  
 You may want install sidepanel too
@@ -15,6 +13,7 @@ You may want install sidepanel too
 
 
 ## Development
-`pip install -e .`
+```bash
+./dev-install.sh
+```
 
-`cd packages/ipyregulus; jupyter labextension install`
