@@ -48,9 +48,9 @@ export default function Panel() {
   let dispatch = d3.dispatch('highlight', 'select', 'details');
 
   let tip_spec = [
+    d => [attr, d3.format('.3f')(value(d))],
     d => ['id', d3.format('d')(d.id)],
     d => ['lvl', d3.format('.3f')(d.lvl)],
-    d => [attr, d3.format('.3f')(value(d))],
     d => ['size', d.size]
   ];
 
