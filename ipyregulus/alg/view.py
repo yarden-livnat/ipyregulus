@@ -89,12 +89,12 @@ def show_reduce(src, f=None, func=lambda x, v: v <= x, dest=None, view=None, att
     return View(view, trigger, f, panel)
 
 
-def show_tree(src, f=None, func=lambda x, v: v <= x, view=None, attr='span', title=None, panel=False):
+def show_tree(src, f=None, func=lambda x, v: v <= x, view=None, attr='span', panel=False, **kwargs):
     show_f = f is None
     if f is None:
         f = AttrFilter(attr=attr, func=func)
     if view is None:
-        view = TreeView(src, attr=attr, title=title)
+        view = TreeView(src, attr=attr, **kwargs)
     monitored = [f, src] if isinstance(src, HasTree) else [f]
     m = Trigger(monitored, func=lambda: view.set_show(view.tree.filter(f)))
     views = view if not show_f else [view, f]
