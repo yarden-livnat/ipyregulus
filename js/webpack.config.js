@@ -12,7 +12,7 @@ module.exports =  {
     path: dist_path,
     libraryTarget: 'amd'
   },
-  mode: 'developmet',
+  mode: 'development',
   devtool: 'source-map',
   // node: {
   //    fs: 'empty',
