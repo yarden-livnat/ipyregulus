@@ -74,7 +74,7 @@ export default function Panel() {
     visit(root);
 
     function visit(node) {
-      node.pos = {x: node.offset, y: node.lvl, w: node.size, yp: node.parent && node.parent.lvl || 1};
+      node.pos = {x: node.offset, y: node.lvl, w: node.size, yp: node.parent ? node.parent.lvl : 1};
       for (let child of node.children) {
         visit(child);
       }
