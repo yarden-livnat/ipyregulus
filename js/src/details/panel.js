@@ -38,7 +38,8 @@ export default function Panel(ctrl) {
   let attrs_extent = [];
   let partitions = new Map();
 
-  let measure_name = '';
+  let measure_name = null;
+  let current_measure = null;
   let measure_idx = 0;
   let show = [];
   let filtered = [];
@@ -61,16 +62,26 @@ export default function Panel(ctrl) {
   function set_model(_) {
     model = _;
     model.on('change:data', model_changed);
+    model.on('change:measure', measure_changed);
     model.on('change:show', show_changed);
     model.on('change:highlight', highlight_changed);
+    measure_changed();
     model_changed();
     show_changed();
   }
 
   function model_changed() {
     update_data_model(model.get('data'));
+    update_measure();
     update_cols();
     update_rows();
+    update_plots();
+    render();
+  }
+
+  function measure_changed() {
+    measure_name = model.get('measure');
+    update_measure();
     update_plots();
     render();
   }
@@ -87,6 +98,25 @@ export default function Panel(ctrl) {
     render();
   }
 
+  function update_measure() {
+    let name = measure_name;
+    if (name == null && data != null)
+        name = data.get('measure');
+    // if (name === current_measure) return;
+
+    current_measure = name || '';
+    if (current_measure !== '' && data) {
+      measure_idx = attrs_idx.indexOf(current_measure);
+
+      color_idx = measure_idx;
+      colorScale.domain(attrs_extent[color_idx]);
+    } else {
+      measure_idx = null;
+      color_idx = null;
+    }
+    root.select('.rg_measure').text(current_measure);
+  }
+
   function update_data_model(_) {
     data = _;
     if (data != null) {
@@ -98,11 +128,6 @@ export default function Panel(ctrl) {
       attrs_idx = data.get('attrs_idx');
       attrs_extent = data.get('attrs_extent');
       partitions = new Map( data.get('partitions').map(p => [p.id, new Partition(p, pts_loc)]));
-      measure_name = data.get('measure');
-      measure_idx = attrs_idx.indexOf(measure_name);
-
-      color_idx = measure_idx;
-      colorScale.domain(attrs_extent[color_idx]);
       filtered = Array(pts_idx.length).fill(false);
     } else {
       pts = null;
@@ -112,7 +137,6 @@ export default function Panel(ctrl) {
       attrs_idx = [];
       attrs_extent = [];
       partitions = new Map();
-      measure_name = ''
     }
   }
 
@@ -148,7 +172,7 @@ export default function Panel(ctrl) {
            c_dim: color_idx,
            filtered: filtered,
            color: colorScale
-         }
+         };
          plots.push(p);
       }
     }

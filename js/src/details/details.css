@@ -37,11 +37,17 @@
   grid-template-rows:  20px auto 10px;
   grid-gap: 5px 5px;
   grid-template-areas:
-   ".     top    ."
-   "left  main   right"
-   ".     bottom  ."
+   "measure top     ."
+   "left    main    right"
+   ".       bottom  ."
 }
 
+/* Measure name */
+.rg_details .rg_measure {
+  grid-area: measure;
+  overflow: hidden;
+  white-space: nowrap;
+}
 
 /* TOP */
 

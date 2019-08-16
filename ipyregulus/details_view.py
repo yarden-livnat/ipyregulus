@@ -1,12 +1,11 @@
 from traitlets import Instance, Int, List, Unicode
-from ipydatawidgets import DataUnion
 from ipywidgets import register, widget_serialization
 
-import numpy as np
 
 from .base import RegulusDOMWidget
 from .data_widget import DataWidget
 from .tree import HasTree, TreeWidget
+
 
 @register
 class DetailsView(RegulusDOMWidget):
@@ -17,11 +16,17 @@ class DetailsView(RegulusDOMWidget):
     title = Unicode('title').tag(sync=True)
 
     data = Instance(klass=DataWidget).tag(sync=True, **widget_serialization)
+    measure = Unicode(None, allow_none=True).tag(sync=True)
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
     show = List().tag(sync=True)
     highlight = Int(-2).tag(sync=True)
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
         if 'data' in kwargs:
-            self.measure = kwargs['data'].data.measure
+            data = kwargs['data']
+            if not isinstance(data, DataWidget):
+                data = DataWidget(data=data)
+                kwargs['data'] = data
+            if 'measure' not in kwargs:
+                kwargs['measure'] = data.data.measure
+        super().__init__(**kwargs)

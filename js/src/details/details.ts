@@ -31,7 +31,7 @@ class DetailsModel extends RegulusViewModel {
 
       title: '',
       data: null,
-      measure: '',
+      measure: null,
       show: [],
       highlight: -2
     };
