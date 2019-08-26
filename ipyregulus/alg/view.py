@@ -1,3 +1,5 @@
+from ipywidgets import VBox
+
 from ipyregulus.tree import HasTree, TreeWidget
 from ipyregulus.filters.filters import AttrFilter
 from ipyregulus.filters.trigger import Trigger
@@ -13,6 +15,64 @@ class View(object):
         self.panel = panel
         self.filter = filter
         self._auto = False
+
+    @property
+    def filter(self):
+        return self._filter
+
+    @filter.setter
+    def filter(self, f):
+        if self._filter is not None:
+            self.monitor.remove(self.filter)
+        self.monitor.add(f)
+        self._filter = f
+        view = self.view
+        self.monitor.func = lambda: view.set_show(view.tree.filter(f))
+
+    @property
+    def attr(self):
+        attrs = [self.view.attr, self.filter.attr]
+        if attrs[0] == attrs[1]:
+            return attrs[0]
+        return attrs
+
+    @attr.setter
+    def attr(self, v):
+        if isinstance(v, str):
+            v = [v, v]
+        self.view.attr = v[0]
+        if self.filter.attr != v[1]:
+            self.filter.attr = v[1]
+            self.update_filter()
+
+    @property
+    def tree(self):
+        return self.view.owner
+
+    @property
+    def auto(self):
+        return self._auto
+
+    @auto.setter
+    def auto(self, value):
+        if value != self._auto:
+            self._auto = value
+            if self._auto:
+                self.update_filter()
+
+    def update_filter(self):
+        pass
+
+
+class View2(VBox):
+    def __init__(self, view, monitor, filter):
+        super().__init__()
+        self.view = view
+        self.monitor = monitor
+        self._filter = None
+        self.filter = filter
+        self._auto = False
+        self.children=[view, filter]
 
     @property
     def filter(self):
@@ -100,6 +160,17 @@ def show_tree(src, f=None, func=lambda x, v: v <= x, view=None, attr='span', pan
     views = view if not show_f else [view, f]
     panel = show_panel(views, panel)
     return View(view, m, f, panel)
+
+
+def show_tree2(src, f=None, func=lambda x, v: v <= x, view=None, attr='span', **kwargs):
+    show_f = f is None
+    if f is None:
+        f = AttrFilter(attr=attr, func=func)
+    if view is None:
+        view = TreeView(src, attr=attr, **kwargs)
+    monitored = [f, src] if isinstance(src, HasTree) else [f]
+    m = Trigger(monitored, func=lambda: view.set_show(view.tree.filter(f)))
+    return View2(view, m, f)
 
 
 def show_panel(views, panel):

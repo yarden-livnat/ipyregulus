@@ -24,7 +24,13 @@ class And(object):
         self.add(*args)
 
     def add(self, *args):
-        self.filters.extend(map(functor, args))
+        #self.filters.extend(map(functor, args))
+        self.insert(len(self.filters), *args)
+
+    def insert(self, idx, *args):
+        for f in args:
+            self.filters.insert(idx, functor(f))
+            idx += 1
 
     def remove(self, *args):
         for f in args:

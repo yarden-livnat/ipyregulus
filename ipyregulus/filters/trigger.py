@@ -34,3 +34,8 @@ class Trigger(Filter):
         if item in self._monitored:
             self._monitored.remove(item)
             item.unobserve(self._exec, names='changed')
+
+    def clear(self):
+        for item in self._monitored:
+            item.unobserve(self._exec, names='changed')
+        self._monitored = []

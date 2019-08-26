@@ -1,6 +1,7 @@
 from ipywidgets import FloatSlider, HBox, Label, Widget
-from traitlets import Bool, HasTraits, Instance, Int, TraitType, Unicode, Undefined
+from traitlets import Bool, HasTraits, Instance, Int, List, TraitType, Unicode, Undefined
 from traitlets import observe
+from .basic_filters import *
 
 class Function(TraitType):
     default_value = lambda x: x
@@ -20,6 +21,27 @@ class Filter(HasTraits):
 
     def __call__(self, *args, **kwargs):
         return self.disabled or self.func(*args, **kwargs)
+
+
+class AndFilter(Filter):
+    def __init__(self, **kwargs):
+        super().__init__(func=And(), **kwargs)
+
+    def add(self, f):
+        self.func.add(f)
+        f.observe(self._on_changed, names=['changed'])
+
+    def insert(self, idx, f):
+        self.func.insert(idx, f)
+        f.observe(self._on_changed, names=['changed'])
+
+    def remove(self, key):
+        f = self.func.remove(key)
+        f.unobserve(self._on_changed, names=['changed'])
+
+
+# class UIAndFilter(AndFilter):
+
 
 
 class BaseUIFilter(Filter):
@@ -69,14 +91,15 @@ class UIFilter(BaseUIFilter):
         return self.disabled or self.func(self.value, *args, **kwargs)
 
 
-class AttrFilter(UIFilter):
+class AttrFilter(UIFilter, HBox):
     attr = Unicode()
 
     def __init__(self, *args, **kwargs):
         self.label = Label()
         super().__init__(*args, **kwargs)
         # self.label = Label(value=self.attr)
-        self.box = HBox([self.label, self.ui])
+        # self.box = HBox([self.label, self.ui])
+        self.children = [self.label, self.ui]
 
     @observe('attr')
     def _observe_attr(self, change):
@@ -86,5 +109,5 @@ class AttrFilter(UIFilter):
         nv = tree.attr[self.attr][node]
         return self.disabled or self.func(nv, self.value, *args, **kwargs)
 
-    def _ipython_display_(self, **kwargs):
-        display(self.box)
+    # def _ipython_display_(self, **kwargs):
+    #     display(self.box)
