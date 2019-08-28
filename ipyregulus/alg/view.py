@@ -3,7 +3,7 @@ from ipywidgets import VBox
 from ipyregulus.tree import HasTree, TreeWidget
 from ipyregulus.filters.filters import AttrFilter
 from ipyregulus.filters.trigger import Trigger
-from ipyregulus import TreeView
+from ipyregulus import BaseTreeView
 from sidepanel import sidepanel, SidePanel
 
 
@@ -139,7 +139,7 @@ def show_reduce(src, f=None, func=lambda x, v: v <= x, dest=None, view=None, att
         f = AttrFilter(attr=attr, func=func)
     _, dest = reduce_tree(src, f, dest)
     if view is None:
-        view = TreeView(dest, attr=attr)
+        view = BaseTreeView(dest, attr=attr)
     monitored = [f]
     if isinstance(src, HasTree):
         monitored.append(src)
@@ -154,7 +154,7 @@ def show_tree(src, f=None, func=lambda x, v: v <= x, view=None, attr='span', pan
     if f is None:
         f = AttrFilter(attr=attr, func=func)
     if view is None:
-        view = TreeView(src, attr=attr, **kwargs)
+        view = BaseTreeView(src, attr=attr, **kwargs)
     monitored = [f, src] if isinstance(src, HasTree) else [f]
     m = Trigger(monitored, func=lambda: view.set_show(view.tree.filter(f)))
     views = view if not show_f else [view, f]
@@ -167,7 +167,7 @@ def show_tree2(src, f=None, func=lambda x, v: v <= x, view=None, attr='span', **
     if f is None:
         f = AttrFilter(attr=attr, func=func)
     if view is None:
-        view = TreeView(src, attr=attr, **kwargs)
+        view = BaseTreeView(src, attr=attr, **kwargs)
     monitored = [f, src] if isinstance(src, HasTree) else [f]
     m = Trigger(monitored, func=lambda: view.set_show(view.tree.filter(f)))
     return View2(view, m, f)

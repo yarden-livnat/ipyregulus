@@ -2,7 +2,7 @@ from ipywidgets import FloatSlider, GridBox, HBox, Label, VBox, Widget
 from traitlets import Bool, HasTraits, Instance, Int, List, TraitType, Unicode, Undefined
 from traitlets import observe
 
-from regulus.alg import AttrRange
+from regulus.topo import AttrRange
 
 from .basic_filters import *
 
@@ -16,6 +16,7 @@ def minmax(obj):
         elif item > max:
             max = item
     return min, max
+
 
 class Function(TraitType):
     default_value = lambda x: x
