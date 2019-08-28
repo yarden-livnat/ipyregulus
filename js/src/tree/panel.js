@@ -33,8 +33,7 @@ export default function Panel() {
   // let colorScale = d3.scaleSequential(d3.interpolateGreens).domain([0, 1]).clamp(true);
   // let colorScale = d3.scaleQuantize().range(d3.schemeRdYlBu[11].concat().reverse());
   let initial_cmap = 'RdYlBu';
-  let cscale = d3.scaleSequential(chromatic['interpolate' + initial_cmap]);
-  let colorScale = v => cscale(1-v);
+  let colorScale = d3.scaleSequential(chromatic['interpolate' + initial_cmap]);
 
   let x_type = 'linear';
   let y_type = 'linear';
@@ -101,7 +100,7 @@ export default function Panel() {
       range_def[0] == 'auto' ? minmax[0] : range_def[0],
       range_def[1] == 'auto' ? minmax[1] : range_def[1]
     ];
-    cscale.domain([range_values[1], range_values[0]]);
+    colorScale.domain([range_values[1], range_values[0]]);
     console.log('update_range:', range_def, range_values);
   }
 
@@ -114,7 +113,7 @@ export default function Panel() {
 
   function color(d) {
     let v = value(d);
-    return v != null && /*colorScale(v)*/ cscale(v) || 'lightgray';
+    return v != null && colorScale(v) || 'lightgray';
   }
 
   function render() {
