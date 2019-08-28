@@ -1,7 +1,21 @@
-from ipywidgets import FloatSlider, HBox, Label, Widget
+from ipywidgets import FloatSlider, GridBox, HBox, Label, VBox, Widget
 from traitlets import Bool, HasTraits, Instance, Int, List, TraitType, Unicode, Undefined
 from traitlets import observe
+
+from regulus.alg import AttrRange
+
 from .basic_filters import *
+
+
+def minmax(obj):
+    items = iter(obj)
+    min = max = next(items)
+    for item in items:
+        if item < min:
+            min = item
+        elif item > max:
+            max = item
+    return min, max
 
 class Function(TraitType):
     default_value = lambda x: x
@@ -17,31 +31,13 @@ class Filter(HasTraits):
         self.observe(self._on_changed, names=['disabled', 'func'])
 
     def _on_changed(self, change=None):
+        self.invalidate()
+
+    def invalidate(self):
         self.changed += 1
 
     def __call__(self, *args, **kwargs):
         return self.disabled or self.func(*args, **kwargs)
-
-
-class AndFilter(Filter):
-    def __init__(self, **kwargs):
-        super().__init__(func=And(), **kwargs)
-
-    def add(self, f):
-        self.func.add(f)
-        f.observe(self._on_changed, names=['changed'])
-
-    def insert(self, idx, f):
-        self.func.insert(idx, f)
-        f.observe(self._on_changed, names=['changed'])
-
-    def remove(self, key):
-        f = self.func.remove(key)
-        f.unobserve(self._on_changed, names=['changed'])
-
-
-# class UIAndFilter(AndFilter):
-
 
 
 class BaseUIFilter(Filter):
@@ -93,9 +89,12 @@ class UIFilter(BaseUIFilter):
 
 class AttrFilter(UIFilter, HBox):
     attr = Unicode()
+    # range = Instance(AttrRange, allow_none=True)
 
     def __init__(self, *args, **kwargs):
         self.label = Label()
+        if 'func' not in kwargs:
+            kwargs['func'] = lambda x,v: v < x
         super().__init__(*args, **kwargs)
         # self.label = Label(value=self.attr)
         # self.box = HBox([self.label, self.ui])
@@ -109,5 +108,76 @@ class AttrFilter(UIFilter, HBox):
         nv = tree.attr[self.attr][node]
         return self.disabled or self.func(nv, self.value, *args, **kwargs)
 
-    # def _ipython_display_(self, **kwargs):
-    #     display(self.box)
+    def update_range(self, tree):
+        a = tree.attr[self.attr]
+        if 'range' in a.properties:
+            r = a.properties['range']
+        else:
+            r = AttrRange(type='auto')
+        self.range = r.update(tree, self.attr)
+
+
+class GroupFilter(Filter, VBox):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._op = And()
+        self._names = {}
+
+    def add(self, f, name=None):
+        return self.insert(len(self._names), f, name)
+
+    def insert(self, idx, f, name=None):
+        if isinstance(f, str):
+            if name is None:
+                name = f
+            f = AttrFilter(attr=f)
+        if isinstance(f, Filter):
+            pass
+        elif callable(f):
+            if name is None:
+                name = f.__name__
+            f = Filter(func=f)
+        if name is None or name == '<lambda>':
+            raise ValueError('name must be provided becuase f does not have intrinsic name')
+
+        self._names[name] = f
+        self._op.add(f)
+        children = list(self.children)
+        children.insert(idx, f)
+        self.children = children
+        f.observe(self._on_changed, names=['changed'])
+        self.invalidate()
+        return f
+
+    def remove(self, item):
+        if type(item) == str:
+            item = self._names[item]
+        self._op.remove(item)
+        children = list(self.children)
+        children.remove(item)
+        self.children = children
+        self.invalidate()
+
+    def update_range(self, tree):
+        valid = True
+        for f in self.op.filters:
+            if hasattr(f, 'update_range'):
+                f.update_range(tree)
+                valid = False
+        if not valid:
+            self.invalidate()
+
+    @property
+    def op(self):
+        return self._op
+
+    @op.setter
+    def op(self, v):
+        v.add(*self._op.filters)
+        self._op.reset()
+        self._op = v
+        self.invalidate()
+
+    def __call__(self, tree, node, *args, **kwargs):
+        return self.disabled or self._op( tree, node, *args, **kwargs)

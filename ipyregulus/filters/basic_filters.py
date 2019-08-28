@@ -24,21 +24,18 @@ class And(object):
         self.add(*args)
 
     def add(self, *args):
-        #self.filters.extend(map(functor, args))
-        self.insert(len(self.filters), *args)
-
-    def insert(self, idx, *args):
-        for f in args:
-            self.filters.insert(idx, functor(f))
-            idx += 1
+        self.filters.extend(map(functor, args))
 
     def remove(self, *args):
         for f in args:
             self.filters.remove(f)
 
-    def __call__(self, item):
+    def reset(self):
+        self.filters = []
+
+    def __call__(self, *args, **kwargs):
         for f in self.filters:
-            if not f(item):
+            if not f(*args, **kwargs):
                 return False
         return True
 
@@ -55,8 +52,11 @@ class Or(object):
         for f in args:
             self.filters.remove(f)
 
-    def __call__(self, item):
+    def reset(self):
+        self.filters = []
+
+    def __call__(self, *args, **kwargs):
         for f in self.filters:
-            if f(item):
+            if f(*args, **kwargs):
                 return True
         return False
