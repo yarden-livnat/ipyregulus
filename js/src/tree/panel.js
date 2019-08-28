@@ -63,7 +63,6 @@ export default function Panel() {
   }
 
   function preprocess() {
-    // selected = null
     if (!root) return;
     nodes = flatten(root, []);
     sx.domain([0, root.size]);
@@ -102,8 +101,8 @@ export default function Panel() {
       range_def[0] == 'auto' ? minmax[0] : range_def[0],
       range_def[1] == 'auto' ? minmax[1] : range_def[1]
     ];
-    cscale.domain(range_values);
-    // console.log('update_range:', range_def, range_values);
+    cscale.domain([range_values[1], range_values[0]]);
+    console.log('update_range:', range_def, range_values);
   }
 
   function value(d) {
@@ -115,7 +114,7 @@ export default function Panel() {
 
   function color(d) {
     let v = value(d);
-    return v != null && colorScale(v) || 'lightgray';
+    return v != null && /*colorScale(v)*/ cscale(v) || 'lightgray';
   }
 
   function render() {
