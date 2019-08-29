@@ -101,7 +101,7 @@ export default function Panel() {
       range_def[1] == 'auto' ? minmax[1] : range_def[1]
     ];
     colorScale.domain([range_values[1], range_values[0]]);
-    console.log('update_range:', range_def, range_values);
+    // console.log('update_range:', range_def, range_values);
   }
 
   function value(d) {

@@ -1,7 +1,3 @@
 export {
-  TreeViewModel
-} from './TreeViewModel';
-
-export {
-  TreeView
+  TreeViewModel, TreeView
 } from './treeview';

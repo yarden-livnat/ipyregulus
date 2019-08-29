@@ -3,9 +3,9 @@
 from traitlets import Bool, Dict, HasTraits, Instance, Int, List, Tuple, Unicode, observe, Set
 from ipywidgets import register, widget_serialization
 
-from regulus.topo import AttrRange
+from regulus.core import HasTree
 from .base import RegulusDOMWidget
-from .tree import HasTree, TreeWidget
+from .tree import TreeWidget
 
 
 def from_json(array, manager):
@@ -21,9 +21,9 @@ class BaseTreeView(HasTree, RegulusDOMWidget):
 
     changed = Int(0)
     title = Unicode('').tag(sync=True)
-    field = Unicode('').tag(sync=True)
+    # field = Unicode('').tag(sync=True)
     attrs = Dict({}).tag(sync=True)
-    attr = Unicode('').tag(sync=True)
+    _attr = Unicode('').tag(sync=True)
     show = Set(None, allow_none=True).tag(sync=True)
     highlight = Int(-2).tag(sync=True)
     selected = List().tag(sync=True, from_json=from_json)
@@ -31,20 +31,22 @@ class BaseTreeView(HasTree, RegulusDOMWidget):
     range = Tuple((0,1)).tag(sync=True)
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
 
-    def __init__(self, tree=None, attr='span', **kwargs):
-        if tree is not None and not isinstance(tree, HasTree):
+    def __init__(self, tree=None, attr='fitness', **kwargs):
+        if tree is not None and not isinstance(tree, TreeWidget):
             tree = TreeWidget(tree)
         super().__init__(tree, **kwargs)
         self.attr = attr
 
-    @observe('attr')
-    def _attr(self, change):
-        attr = change['new']
+    @property
+    def attr(self):
+        return self._attr
+
+    @attr.setter
+    def attr(self, attr):
         if self.tree is not None and attr in self.tree:
             self.ensure(attr)
-            range = self.tree.attr[attr].properties['range']
-            self.range = range.value
-            self.field = attr
+            self.range = self.tree.attr[attr].properties['range'].value
+            self._attr = attr
 
     def set_show(self, node_ids):
         self.show = node_ids

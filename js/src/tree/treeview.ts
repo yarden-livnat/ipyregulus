@@ -1,5 +1,5 @@
 import {
-  DOMWidgetView
+  DOMWidgetView, unpack_models
 } from "@jupyter-widgets/base";
 
 import {
@@ -11,6 +11,38 @@ import Panel from './panel';
 
 import './tree.css';
 import template from './tree.html';
+import { RegulusViewModel } from "../RegulusWidget";
+
+
+export
+class TreeViewModel extends RegulusViewModel {
+
+  defaults() {
+    return {
+      ...super.defaults(),
+      _model_name: 'TreeViewModel',
+      _view_name: 'TreeView',
+
+      title: "",
+      field: null,
+      attrs: {},
+      show: null,
+      hightlight: null,
+      selected: new Set(),
+      details: [],
+      range: []
+    };
+  }
+
+  static serializers = {
+    ...RegulusViewModel.serializers,
+      tree_model: {deserialize: unpack_models},
+      selected: {
+        serialize:   function(s:any)     { return Array.from(s); },
+        deserialize: function(array:any) { return new Set(array); }
+      }
+  };
+}
 
 export
 class TreeView extends DOMWidgetView {
@@ -26,7 +58,7 @@ class TreeView extends DOMWidgetView {
       .on('select', (d, is_on) => this.on_select(d, is_on));
 
     this.model.on('change:title', this.on_title_changed, this);
-    this.model.on('change:field', this.on_field_changed, this);
+    this.model.on('change:_attr', this.on_attr_changed, this);
     this.model.on('change:tree_model',  this.on_tree_changed, this);
     this.model.on('change:attrs', this.on_attrs_changed, this);
     this.model.on('change:show', this.on_show_changed, this);
@@ -42,7 +74,7 @@ class TreeView extends DOMWidgetView {
     setTimeout( function() {
         self.panel.resize();
         self.on_attrs_changed();
-        self.on_field_changed();
+        self.on_attr_changed();
         self.on_tree_changed();
       },
     0);
@@ -99,10 +131,10 @@ class TreeView extends DOMWidgetView {
       .redraw();
   }
 
-  on_field_changed() {
-    let field = this.model.get('field');
-    this.d3el.select('.measure').html(field);
-    this.panel.attr(field)
+  on_attr_changed() {
+    let attr = this.model.get('_attr');
+    this.d3el.select('.measure').html(attr);
+    this.panel.attr(attr)
       .redraw();
     this.touch();
   }
@@ -113,7 +145,7 @@ class TreeView extends DOMWidgetView {
     let attr = {
       ...tree_attr,
       ...this.model.get('attrs'),
-    }
+    };
     this.panel.attrs(attr).redraw();
   }
 
