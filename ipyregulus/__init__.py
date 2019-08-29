@@ -6,4 +6,4 @@ from .filters import *
 from .basetreeview import BaseTreeView
 from .details_view import DetailsView
 from .treeview import TreeView
-# from .controls import *
+from .projection_view import ProjectionView

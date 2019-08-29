@@ -1,6 +1,7 @@
-from traitlets import Instance, Int, List, Unicode
-from ipywidgets import register, widget_serialization
+# Copyright (c) University of Utah
 
+from traitlets import Bool, Dict, HasTraits, Instance, Int, List, Tuple, Unicode, observe, Set
+from ipywidgets import register, widget_serialization
 
 from .base import RegulusDOMWidget
 from .data_widget import DataWidget
@@ -8,18 +9,15 @@ from .tree import TreeWidget
 
 
 @register
-class DetailsView(RegulusDOMWidget):
-    """"""
-    _model_name = Unicode('DetailsModel').tag(sync=True)
-    _view_name = Unicode('DetailsView').tag(sync=True)
+class ProjectionView(RegulusDOMWidget):
+    _model_name = Unicode('ProjectionModel').tag(sync=True)
+    _view_name = Unicode('ProjectionView').tag(sync=True)
 
     title = Unicode('title').tag(sync=True)
 
     data = Instance(klass=DataWidget).tag(sync=True, **widget_serialization)
-    measure = Unicode(None, allow_none=True).tag(sync=True)
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
     show = List().tag(sync=True)
-    highlight = Int(-2).tag(sync=True)
 
     def __init__(self, **kwargs):
         if 'data' in kwargs:

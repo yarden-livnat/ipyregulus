@@ -11,5 +11,9 @@ export {
 } from './details';
 
 export {
+  ProjectionModel, ProjectionView
+} from './projection';
+
+export {
   version, EXTENSION_SPEC_VERSION
 } from './version';
