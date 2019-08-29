@@ -1,137 +1,116 @@
 import * as d3 from 'd3';
-
-import {
-  Partition
-} from '../models/partition';
+const {cos, sin, PI} = Math;
 
 import './panel.css';
 import * as chromatic from "d3-scale-chromatic";
 
-export default function Panel(ctrl) {
+export default function Panel() {
   let root = null;
   let svg = null;
 
-  let model = null;
-  let data = null;
-  let show = [];
-
-  let measure_name = null;
-  let current_measure = null;
-  let measure_idx = 0;
-
-  let pts_loc = null;
-  let pts = null;
-  let pts_idx = [];
-  let pts_extent = [];
-  let attrs = null;
-  let attrs_idx = [];
-  let attrs_extent = [];
-
-  let color_idx = 0;
+  let initial_cmap = 'RdYlBu';
   let colorScale = d3.scaleSequential(chromatic['interpolate' + initial_cmap]);
 
   let axes = [];
   let origin = [100, 100];
 
-  let partitions = new Map();
-
-  function set_model(_){
-    model = _;
-    model.on('change:data', model_changed);
-    model.on('change:measure', measure_changed);
-    model.on('change:show', show_changed);
-    measure_changed();
-    model_changed();
-    show_changed();
-  }
-
-  function model_changed() {
-    update_data_model(model.get('data'));
-    update_measure();
-    render();
-  }
-
-  function measure_changed() {
-    measure_name = model.get('measure');
-    update_measure();
-    render();
-  }
-
-  function show_changed() {
-    show = model.get('show');
-    render();
-  }
-
-  function update_data_model(_) {
-    data = _;
-    if (data != null) {
-      pts_loc = data.get('pts_loc');
-      pts = data.get('pts');
-      pts_idx = data.get('pts_idx');
-      pts_extent = data.get('pts_extent');
-      attrs = data.get('attrs');
-      attrs_idx = data.get('attrs_idx');
-      attrs_extent = data.get('attrs_extent');
-    } else {
-      pts = null;
-      pts_idx = [];
-      pts_extent = [];
-      attrs = null;
-      attrs_idx = [];
-      attrs_extent = [];
-    }
-  }
-
-  function update_measure() {
-    let name = measure_name;
-    if (name == null && data != null)
-      name = data.get('measure');
-    current_measure = name || '';
-    if (current_measure !== '' && data) {
-      measure_idx = attrs_idx.indexOf(current_measure);
-
-      color_idx = measure_idx;
-      colorScale.domain(attrs_extent[color_idx]);
-    } else {
-      measure_idx = null;
-      color_idx = null;
-    }
-    root.select('.rg_measure').text(current_measure);
-  }
-
+  let defs = [
+  {id: 'arrowhead-start', path: "M10,-5L0,0L10,5", box: "0 -5 10 10", color: '#aaa', refx: 0, refy: 0 },
+  {id: 'arrowhead-end', path: "M0,-5L10,0L0,5", box: "0 -5 10 10", color: '#ccc', refx: 0, refy: 0}
+];
 
   function render() {
     render_axes();
   }
 
   function render_axes() {
-    let o = root.select('.origin').data([origin]);
+    let o = svg.select('.pts').selectAll('.origin').data([origin]);
     o.enter()
         .append('circle')
         .attr('class', 'origin')
         .attr('r', 3)
       .merge(o)
-      .attr('x', d => d[0])
-      .attr('y', d => d[1])
+      .attr('cx', d => d[0])
+      .attr('cy', d => d[1]);
+
+    let a = svg.select('.axes').selectAll('.axis').data(axes, d => d.name);
+    a.enter()
+      .append('line')
+        .attr('class', 'axis')
+        .attr("marker-end", "url(#arrowhead-end)")
+      .merge(a)
+        .attr('x1', origin[0])
+        .attr('y1', origin[1])
+        .attr('x2', d => origin[0] + d.len * cos(d.theta))
+        .attr('y2', d => origin[1] + d.len * sin(d.theta));
+
+    let names = svg.select('.axes').selectAll('.name').data(axes, d => d.name);
+    names.enter()
+      .append('text')
+        .attr('class', 'label')
+        .text(d => d.name)
+      .merge(names)
+        .attr('x', d => origin[0] + (d.len+10) * cos(d.theta))
+        .attr('y', d => origin[1] + (d.len+10) * sin(d.theta));
   }
 
   return {
     el(_) {
       root = _;
+      svg = root.select('svg');
+      // let g = svg.append('g');
+
+      svg.append('g')
+        .attr('class', 'axes');
+
+      svg.append('g')
+        .attr('class', 'pts');
+
+      svg.append('g')
+        .attr('class', 'labels');
+
+      let svgDefs = svg.select('defs');
+      if (svgDefs.empty())
+        svgDefs = svg.append('defs');
+
+      svgDefs.selectAll('marker')
+        .data(defs, d => d.id)
+        .enter()
+        .append('marker')
+          .attr('id', d => d.id)
+          .attr("viewBox", d => d.box)
+          .attr("refX", d => d.refx)
+          .attr("refY", d => d.refy)
+          .attr("markerWidth", 6)
+          .attr("markerHeight", 6)
+          .attr("orient", "auto")
+          .attr('markerUnits', 'userSpaceOnUse')
+          .attr('stroke-width', '1px')
+          .append("path")
+          .attr("d", d => d.path);
       return this;
+    },
+
+    axes(_) {
+      axes = _;
+      let n = _.length;
+      axes = _.map( (a, i) => ({
+        name: a.name,
+        min: a.min,
+        max: a.max,
+        theta: 2 * PI * i/ n,
+        len: 30
+      }));
+
+      render();
     },
 
     resize() {
-      let w = parseInt(svg.style('width')) || DEFAULT_WIDTH;
-      let h = parseInt(svg.style('height')) || DEFAULT_HEIGHT;
+      let w = parseInt(svg.style('width')) ;
+      let h = parseInt(svg.style('height'));
       console.log(`projection resize ${w}x${h}`);
       origin = [w/2, h/2];
       render();
-      return this;
-    },
-
-    model(_) {
-      set_model(_);
       return this;
     },
 

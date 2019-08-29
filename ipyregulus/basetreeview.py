@@ -29,8 +29,6 @@ class BaseTreeView(HasTree, RegulusDOMWidget):
     selected = List().tag(sync=True, from_json=from_json)
     details = List([]).tag(sync=True)
     range = Tuple((0,1)).tag(sync=True)
-
-    # hold = Bool(False).tag(sync=True)
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
 
     def __init__(self, tree=None, attr='span', **kwargs):
