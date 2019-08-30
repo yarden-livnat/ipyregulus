@@ -4,6 +4,13 @@ const {cos, sin, PI} = Math;
 import './panel.css';
 import * as chromatic from "d3-scale-chromatic";
 
+const DEFAULT_POINT_SIZE = 1;
+const DEFAULT_AXIS_SIZE = 200;
+
+function functor(v) {
+  return typeof v === "function" ? v : function() { return v; };
+}
+
 export default function Panel() {
   let root = null;
   let svg = null;
@@ -13,6 +20,7 @@ export default function Panel() {
 
   let axes = [];
   let pts = [];
+  let colors = [];
 
 
   let defs = [
@@ -39,8 +47,8 @@ export default function Panel() {
   function axisDragStart(d){
     drag_x = d3.event.x;
     drag_y = d3.event.y;
-    start_x = d.sx(1);
-    start_y = d.sy(1);
+    start_x = d.sx(d.max);
+    start_y = d.sy(d.max);
   }
 
   function axisDrag(d) {
@@ -72,7 +80,7 @@ export default function Panel() {
     o.enter()
         .append('circle')
         .attr('class', 'origin')
-        .attr('r', 3)
+        .attr('r', DEFAULT_POINT_SIZE)
       .merge(o)
         .attr('cx', 0)
         .attr('cy', 0);
@@ -85,8 +93,8 @@ export default function Panel() {
       .merge(a)
         .attr('x1', 0)
         .attr('y1', 0)
-        .attr('x2', d => d.sx(1))
-        .attr('y2', d => d.sy(1));
+        .attr('x2', d => d.sx(d.max))
+        .attr('y2', d => d.sy(d.max));
     a.exit().remove();
 
     let names = svg.select('.labels').selectAll('.label').data(axes, d => d.name);
@@ -96,8 +104,8 @@ export default function Panel() {
         .text(d => d.name)
         .call(drag)
       .merge(names)
-        .attr('x', d => d.sx(1)+10)
-        .attr('y', d => d.sy(1));
+        .attr('x', d => d.sx(d.max)+10)
+        .attr('y', d => d.sy(d.max));
 
     names.exit().remove();
   }
@@ -124,7 +132,9 @@ export default function Panel() {
       .attr('r', 3)
       .merge(p)
         .attr('cx', d => d.x)
-        .attr('cy', d => d.y);
+        .attr('cy', d => d.y)
+        .style('fill', (d, i) => i < colors.length ? colorScale(colors[i]) : 'lightblue')
+    ;
 
     p.exit().remove();
   }
@@ -173,11 +183,11 @@ export default function Panel() {
     axes(_) {
       axes = _;
       let n = _.length;
-      let r = 30;
-      let angle = n === 2 ? PI/2 : 2*PI/n;
+      let r = DEFAULT_AXIS_SIZE;
+      let angle = n === 2 ? PI/2 : 2*PI/(n+1);
       axes = _.map( (a, i) => {
         let theta = angle * i;
-        console.log(`axis ${a.name}: ${a.min}..${a.max}`);
+        console.log(`axis ${a.name}: ${a.min}..${a.max} ${theta}`);
         return {
           name: a.name,
           min: a.min,
@@ -195,6 +205,14 @@ export default function Panel() {
     pts(_) {
       pts = _;
       project();
+      render();
+      return this;
+    },
+
+    colors(_) {
+      colors = _;
+      let ext = d3.extent(colors);
+      colorScale.domain([ext[1], ext[0]]);
       render();
       return this;
     },

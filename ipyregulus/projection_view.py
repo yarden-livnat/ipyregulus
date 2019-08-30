@@ -20,6 +20,7 @@ class ProjectionView(HasTree, RegulusDOMWidget):
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
     measure = Unicode().tag(sync=True)
     show = List().tag(sync=True)
+    color = Unicode('').tag(sync=True)
 
     def __init__(self, tree=None, **kwargs):
         if tree is not None and not isinstance(tree, HasTree):

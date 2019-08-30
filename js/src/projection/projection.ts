@@ -34,6 +34,7 @@ class ProjectionModel extends RegulusViewModel {
       data: null,
       tree_model: null,
       measure: null,
+      color: null,
       show: [],
     };
   }
@@ -53,6 +54,7 @@ class ProjectionView extends DOMWidgetView {
     this.model.on('change:data', this.on_data_changed, this);
     this.model.on('change:tree_model', this.on_tree_changed, this);
     this.model.on('change:show', this.on_show_changed, this);
+    this.model.on('change:color', this.on_color_changed, this);
   }
 
   render() {
@@ -64,7 +66,6 @@ class ProjectionView extends DOMWidgetView {
 
     setTimeout( () => {
       console.log('projection setup');
-      // this.panel = Panel().el(d3.select(this.el));
       this.panel.resize();
       this.on_title_changed();
       this.on_data_changed();
@@ -73,7 +74,7 @@ class ProjectionView extends DOMWidgetView {
   }
 
   processPhosphorMessage(msg:Message) {
-    console.log('Tree phosphor message', msg);
+    // console.log('Tree phosphor message', msg);
     switch (msg.type) {
       case 'after-attach':
         d3.select(this.el.parentNode).classed('rg_projection', true);
@@ -94,11 +95,13 @@ class ProjectionView extends DOMWidgetView {
       // axes info
       let pts = data.get('pts');
       let pts_idx = data.get('pts_idx');
-      let axes = this.collect(pts, pts_idx);
+      let axes = this.collect(pts, pts_idx, 0, pts.shape[1]);
 
       let attrs = data.get('attrs');
       let attrs_idx = data.get('attrs_idx');
-      axes = axes.concat( this.collect(attrs, attrs_idx));
+      let measure = data.get('measure');
+      let m = attrs_idx.indexOf(measure);
+      axes = axes.concat( this.collect(attrs, attrs_idx, m, m+1));
       this.panel.axes(axes);
 
       // partitions
@@ -107,18 +110,17 @@ class ProjectionView extends DOMWidgetView {
     }
   }
 
-  collect(pts, idx) {
+  collect(pts, idx, from, to) {
     let n = pts.shape[0];
-    let d = pts.shape[1];
-    let axes = idx.map((col, i) => ({name:col, min:0, max:0}));
+    let axes = idx.slice(from, to).map((col, i) => ({name:col, min:0, max:0}));
     let v = 0;
-    for (let axis=0; axis<d; axis++) {
-      axes[axis].min= axes[axis].max = pts.get(0, axis);
+    for (let axis=0, d=from; d<to; axis++, d++) {
+      axes[axis].min= axes[axis].max = pts.get(0, d);
     }
     for (let i=1; i<n; i++) {
-      for (let axis=0; axis<d; axis++) {
+      for (let axis=0, d=from; d<to; axis++, d++) {
         let a = axes[axis];
-        v = pts.get(i, axis);
+        v = pts.get(i, d);
         if (v < a.min) a.min = v;
         else if (a.max < v) a.max = v;
       }
@@ -134,14 +136,44 @@ class ProjectionView extends DOMWidgetView {
     }
   }
 
+  on_color_changed() {
+    let name = this.model.get('color');
+    let data = this.model.get('data');
+    let attrs = data.get('attrs');
+    let attrs_idx = data.get('attrs_idx');
+    let color_idx = attrs_idx.indexOf(name);
+    let show = this.model.get('show');
+
+    let colors: Array<number> = [];
+    if (color_idx > -1) {
+      let colors_array = attrs.pick(null, color_idx);
+
+      if (this.partitions) {
+        for (let p of show) {
+          let partition = this.partitions.get(p);
+          if (!partition) continue;
+          let pts_idx = partition.index();
+          for (let idx of pts_idx) {
+            colors.push(colors_array.get(idx, 0));
+          }
+        }
+      }
+    }
+    this.panel.colors(colors);
+  }
+
   on_show_changed() {
     let show = this.model.get('show');
     let data = this.model.get('data');
     let data_pts = data.get('pts');
-    let data_attrs = data.get('attrs');
+    let attrs = data.get('attrs');
+    let attrs_idx = data.get('attrs_idx');
+    let measure_name = data.get('measure');
+    let measure_idx = attrs_idx.indexOf(measure_name);
+    let measure = attrs.pick(null,measure_idx);
 
+    let pts: Array<any> = [];
     if (this.partitions) {
-      let pts: Array<any> = [];
       for (let p of show) {
         let partition = this.partitions.get(p);
         if (!partition) continue;
@@ -153,15 +185,17 @@ class ProjectionView extends DOMWidgetView {
           for (i=0; i< data_pts.shape[1]; i++)
             pt[i] = (data_pts.get(idx, i));
 
-          for (let j=0; j< data_attrs.shape[1]; j++)
-            pt[i+j] = (data_attrs.get(idx, j));
+          pt[i] = measure.get(idx);
+          // for (let j=0; j< data_attrs.shape[1]; j++)
+          //   pt[i+j] = (data_attrs.get(idx, j));
           pts.push({ value: pt});
         }
       }
-      this.panel.pts(pts);
     }
-
+    this.panel.pts(pts);
+    this.on_color_changed();
   }
+
   d3el: any;
   panel: any;
   partitions: Map<number, Partition> = new Map();
