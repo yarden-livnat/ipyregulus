@@ -3,9 +3,10 @@
 from traitlets import Bool, Dict, HasTraits, Instance, Int, List, Tuple, Unicode, observe, Set
 from ipywidgets import register, widget_serialization
 
+from regulus.core import HasTree
 from .base import RegulusDOMWidget
 from .data_widget import DataWidget
-from .tree import HasTree, TreeWidget
+from .tree import TreeWidget
 
 
 @register
@@ -48,15 +49,4 @@ class ProjectionView(HasTree, RegulusDOMWidget):
             self.show = []
             self.tree_model = tree
         super().update(tree)
-        # self.changed += 1
-
-
-    # def __init__(self, **kwargs):
-    #     if 'data' in kwargs:
-    #         data = kwargs['data']
-    #         if not isinstance(data, DataWidget):
-    #             data = DataWidget(data=data)
-    #             kwargs['data'] = data
-    #         if 'measure' not in kwargs:
-    #             kwargs['measure'] = data.data.measure
-    #     super().__init__(**kwargs)
+        # self.changed += 1)
