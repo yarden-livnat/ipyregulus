@@ -6,7 +6,7 @@ import ipywidgets as widgets
 
 from regulus import Regulus
 from . import BaseTreeView
-from .filters import AttrFilter, Trigger, GroupFilter
+from .filters import AttrFilter, Trigger, GroupUIFilter
 
 
 class TreeView(VBox):
@@ -15,11 +15,11 @@ class TreeView(VBox):
     attr = Unicode('fitness')
 
     def __init__(self, tree=None, auto=True, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         self._filters = {}
         self._treeview = None
         self._attr_link = None
-        self._group_filter = GroupFilter()
+        self._group_filter = GroupUIFilter()
         self._trigger = Trigger(self._group_filter, func=self._apply_filter)
         self._filters = {}
         self._auto = auto
@@ -37,15 +37,15 @@ class TreeView(VBox):
             self._group_filter.add(self._auto_filter, name='auto')
 
         widgets.link((self._menu, 'value'), (self, 'attr'))
-        self.observe(self._attr_changed, names=['attr'])
+        self.observe(self._auto_update, names=['attr'])
         if tree is not None:
             self.tree = tree
 
     def _apply_filter(self):
-        if self.treeview is not None:
-            self.treeview.set_show(self.treeview.tree.filter(self._group_filter))
+        if self.view is not None:
+            self.view.set_show(self.view.tree.filter(self._group_filter))
 
-    def _attr_changed(self, change):
+    def _auto_update(self, change):
         self._auto_filter.attr = self.attr
         if self.tree is not None:
             self._auto_filter.update_range(self.tree.tree)
@@ -61,11 +61,11 @@ class TreeView(VBox):
         #     self._auto.disabled = False
 
     @property
-    def treeview(self):
+    def view(self):
         return self._treeview
 
-    @treeview.setter
-    def treeview(self, tv):
+    @view.setter
+    def view(self, tv):
         if self._attr_link is not None:
             self._attr_link.unlink()
 
@@ -75,8 +75,8 @@ class TreeView(VBox):
 
     @property
     def tree(self):
-        if self.treeview is not None:
-            return self.treeview.owner
+        if self.view is not None:
+            return self.view.owner
         return None
 
     @tree.setter
@@ -85,14 +85,14 @@ class TreeView(VBox):
             if isinstance(tree, Regulus):
                 tree = tree.tree
 
-        self.treeview = BaseTreeView(tree, attr=self.attr)
+        self.view = BaseTreeView(tree, attr=self.attr)
 
     @property
-    def filter(self):
+    def filters(self):
         return self._group_filter
 
-    @filter.setter
-    def filter(self, f):
+    @filters.setter
+    def filters(self, f):
         if f == self._group_filter:
             return
 
@@ -128,9 +128,12 @@ class TreeView(VBox):
     def _update_children(self):
         children = [self._menu, self._group_filter]
 
-        if self.treeview is not None:
+        if self.view is not None:
             children.insert(1, self._treeview)
         self.children = children
+
+    def find_filter(self, name):
+        return self._group_filter.find(name)
 
     def add_filter(self, *args, **kwargs):
         f = self._group_filter.add(*args, **kwargs)
