@@ -14,7 +14,7 @@ class ProjectionView(HasTree, RegulusDOMWidget):
     _model_name = Unicode('ProjectionModel').tag(sync=True)
     _view_name = Unicode('ProjectionView').tag(sync=True)
 
-    title = Unicode('title').tag(sync=True)
+    title = Unicode('').tag(sync=True)
 
     data = Instance(klass=DataWidget).tag(sync=True, **widget_serialization)
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)

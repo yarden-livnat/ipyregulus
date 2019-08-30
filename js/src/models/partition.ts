@@ -11,7 +11,7 @@ class Partition {
   constructor(data, loc) {
     this.id = data.id;
     this.persistence = data.persistence;
-    this.loc = loc
+    this.loc = loc;
     this.data = data;
   }
 

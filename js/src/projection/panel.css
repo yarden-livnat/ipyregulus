@@ -1,7 +1,10 @@
-.rg_projection .view {
-    background-color: lightyellow;
+.rg_projection .title {
+    display: none;
 }
 
+.rg_projection .view {
+    /*background-color: lightyellow;*/
+}
 
 .rg_projection .view .origin {
     fill: black;
@@ -19,4 +22,10 @@
 .rg_projection .view .axis.highlight {
     stroke: steelblue;
     stroke-width: 3px;
+}
+
+.rg_projection .view .pts .pt {
+    fill: steelblue;
+    stroke: none;
+    stroke-width: 1px;
 }
