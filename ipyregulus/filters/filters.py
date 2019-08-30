@@ -2,7 +2,7 @@ from ipywidgets import FloatSlider, GridBox, HBox, Label, VBox, Widget
 from traitlets import Bool, HasTraits, Instance, Int, List, TraitType, Unicode, Undefined
 from traitlets import observe
 
-from regulus.topo import AttrRange
+from regulus.core import AttrRange
 
 from .basic_filters import *
 
@@ -52,8 +52,8 @@ class BaseUIFilter(Filter):
     def value(self, value):
         self.ui.value = value
 
-    def _ipython_display_(self, **kwargs):
-        display(self.ui)
+    # def _ipython_display_(self, **kwargs):
+    #     display(self.ui)
 
 
 class UIFilter(BaseUIFilter):
@@ -92,11 +92,12 @@ class AttrFilter(UIFilter, HBox):
     attr = Unicode()
     # range = Instance(AttrRange, allow_none=True)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, attr, *args, **kwargs):
         self.label = Label()
         if 'func' not in kwargs:
             kwargs['func'] = lambda x,v: v < x
-        super().__init__(*args, **kwargs)
+        super().__init__(attr=attr, *args, **kwargs)
+        self.__name__ = attr
         # self.label = Label(value=self.attr)
         # self.box = HBox([self.label, self.ui])
         self.children = [self.label, self.ui]
@@ -118,12 +119,35 @@ class AttrFilter(UIFilter, HBox):
         self.range = r.update(tree, self.attr)
 
 
-class GroupFilter(Filter, VBox):
+class GroupUIFilter(Filter, VBox):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._op = And()
+        self._op = None
         self._names = {}
+        self._filters = VBox()
+        self._header = Label(value='')
+        self.children = [self._filters]
+        self.op = And()
+
+
+    @property
+    def filters(self):
+        return list(self._filters.children)
+
+    @filters.setter
+    def filters(self, filters):
+        header_visible = len(self._filters.children) > 1
+        self._filters.children = filters
+        show_header = len(self._filters.children) > 1
+        if header_visible != show_header:
+            if show_header:
+                self.children = [self._header, self._filters]
+            else:
+                self.children = [self._filters]
+
+    def find(self, name):
+        return self._names[name]
 
     def add(self, f, name=None):
         return self.insert(len(self._names), f, name)
@@ -136,17 +160,17 @@ class GroupFilter(Filter, VBox):
         if isinstance(f, Filter):
             pass
         elif callable(f):
-            if name is None:
-                name = f.__name__
             f = Filter(func=f)
+        if name is None:
+            name = f.__name__
         if name is None or name == '<lambda>':
             raise ValueError('name must be provided becuase f does not have intrinsic name')
 
         self._names[name] = f
         self._op.add(f)
-        children = list(self.children)
-        children.insert(idx, f)
-        self.children = children
+        filters = self.filters
+        filters.insert(idx, f)
+        self.filters = filters
         f.observe(self._on_changed, names=['changed'])
         self.invalidate()
         return f
@@ -154,11 +178,14 @@ class GroupFilter(Filter, VBox):
     def remove(self, item):
         if type(item) == str:
             item = self._names[item]
+        elif isinstance(item, int):
+            item = self._names[item]
         self._op.remove(item)
-        children = list(self.children)
-        children.remove(item)
-        self.children = children
+        filters = self.filters
+        filters.remove(item)
+        self.filters = filters
         self.invalidate()
+        return item
 
     def update_range(self, tree):
         valid = True
@@ -175,9 +202,11 @@ class GroupFilter(Filter, VBox):
 
     @op.setter
     def op(self, v):
-        v.add(*self._op.filters)
-        self._op.reset()
+        if self._op:
+            v.add(*self._op.filters)
+            self._op.reset()
         self._op = v
+        self._header.value = self._op.__name__
         self.invalidate()
 
     def __call__(self, tree, node, *args, **kwargs):
