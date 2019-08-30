@@ -69,6 +69,7 @@ class TreeView(VBox):
         if self._attr_link is not None:
             self._attr_link.unlink()
 
+        tv.show_attr = False
         self._treeview = tv
         self._attr_link = widgets.link((self, 'attr'), (self._treeview, 'attr'))
         self._update_children()

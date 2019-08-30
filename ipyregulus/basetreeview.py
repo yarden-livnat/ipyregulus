@@ -1,6 +1,6 @@
 # Copyright (c) University of Utah
 
-from traitlets import Dict, Instance, Int, List, Tuple, Unicode, Set, validate, TraitError
+from traitlets import Bool, Dict, Instance, Int, List, Tuple, Unicode, Set, validate, TraitError
 from ipywidgets import register, widget_serialization
 
 from regulus.core import HasTree
@@ -22,6 +22,7 @@ class BaseTreeView(HasTree, RegulusDOMWidget):
     title = Unicode('').tag(sync=True)
     attrs = Dict({}).tag(sync=True)
     attr = Unicode('').tag(sync=True)
+    show_attr = Bool(True).tag(sync=True)
     show = Set(None, allow_none=True).tag(sync=True)
     highlight = Int(-2).tag(sync=True)
     selected = List().tag(sync=True, from_json=from_json)

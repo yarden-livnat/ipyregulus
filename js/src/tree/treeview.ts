@@ -25,6 +25,7 @@ class TreeViewModel extends RegulusViewModel {
 
       title: "",
       attr: null,
+      show_attr: true,
       attrs: {},
       show: null,
       hightlight: null,
@@ -59,6 +60,7 @@ class TreeView extends DOMWidgetView {
 
     this.model.on('change:title', this.on_title_changed, this);
     this.model.on('change:attr', this.on_attr_changed, this);
+    this.model.on('change:show_attr', this.on_show_attr_changed, this);
     this.model.on('change:tree_model',  this.on_tree_changed, this);
     this.model.on('change:attrs', this.on_attrs_changed, this);
     this.model.on('change:show', this.on_show_changed, this);
@@ -75,6 +77,7 @@ class TreeView extends DOMWidgetView {
         self.panel.resize();
         self.on_attrs_changed();
         self.on_attr_changed();
+        self.on_show_attr_changed();
         self.on_tree_changed();
       },
     0);
@@ -104,6 +107,9 @@ class TreeView extends DOMWidgetView {
   // }
 
 
+  on_show_attr_changed() {
+    this.d3el.select('.controls').style('display', this.model.get('show_attr')  ? 'inherent' : 'none');
+  }
 
   on_tree_changed() {
     let prev = this.model.previous('tree_model');
