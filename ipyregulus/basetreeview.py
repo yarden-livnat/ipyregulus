@@ -1,6 +1,6 @@
 # Copyright (c) University of Utah
 
-from traitlets import Bool, Dict, HasTraits, Instance, Int, List, Tuple, Unicode, observe, Set
+from traitlets import Dict, Instance, Int, List, Tuple, Unicode, Set, validate, TraitError
 from ipywidgets import register, widget_serialization
 
 from regulus.core import HasTree
@@ -9,7 +9,6 @@ from .tree import TreeWidget
 
 
 def from_json(array, manager):
-    # print('from json:', array)
     return array
 
 
@@ -21,9 +20,8 @@ class BaseTreeView(HasTree, RegulusDOMWidget):
 
     changed = Int(0)
     title = Unicode('').tag(sync=True)
-    # field = Unicode('').tag(sync=True)
     attrs = Dict({}).tag(sync=True)
-    _attr = Unicode('').tag(sync=True)
+    attr = Unicode('').tag(sync=True)
     show = Set(None, allow_none=True).tag(sync=True)
     highlight = Int(-2).tag(sync=True)
     selected = List().tag(sync=True, from_json=from_json)
@@ -37,16 +35,16 @@ class BaseTreeView(HasTree, RegulusDOMWidget):
         super().__init__(tree, **kwargs)
         self.attr = attr
 
-    @property
-    def attr(self):
-        return self._attr
-
-    @attr.setter
-    def attr(self, attr):
-        if self.tree is not None and attr in self.tree:
-            self.ensure(attr)
-            self.range = self.tree.attr[attr].properties['range'].value
-            self._attr = attr
+    @validate('attr')
+    def _valid_attr(self, proposal):
+        attr = proposal['value']
+        if self.tree is None:
+            return attr
+        # if attr in self.tree:
+        self.ensure(attr)
+        self.range = self.tree.attr[attr].properties['range'].value
+        return attr
+        # raise TraitError('attr not in current tree')
 
     def set_show(self, node_ids):
         self.show = node_ids
