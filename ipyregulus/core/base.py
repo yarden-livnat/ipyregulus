@@ -4,7 +4,7 @@ Common base widgets for ipyregulus widgets.
 
 from ipywidgets import Widget, DOMWidget
 from traitlets import Unicode
-from ._version import EXTENSION_SPEC_VERSION
+from ipyregulus._version import EXTENSION_SPEC_VERSION
 
 MODULE_NAME = '@regulus/ipyregulus'
 

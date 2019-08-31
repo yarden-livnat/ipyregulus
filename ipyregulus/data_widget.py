@@ -2,16 +2,13 @@
     Regulus Data widget
 """
 
-from traitlets import Dict, Instance, List, Unicode, Undefined, validate
-from ipywidgets import register, widget_serialization
-from ipydatawidgets import DataUnion, NDArray, array_serialization,  data_union_serialization
+from traitlets import List, Unicode
+from ipywidgets import register
+from ipydatawidgets import DataUnion
 
 import numpy as np
 
-from regulus.data import Data
-from regulus.topo import Regulus
-
-from .base import RegulusWidget
+from ipyregulus.core.base import RegulusWidget
 
 
 @register

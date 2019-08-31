@@ -1,6 +1,7 @@
-export {
-  RegulusModel, RegulusData, TreeModel
-} from './models/index';
+export * from './models/index';
+
+//   RegulusModel, RegulusData, TreeModel
+// } from './models/index';
 
 export {
   TreeView, TreeViewModel
@@ -13,6 +14,10 @@ export {
 export {
   ProjectionModel, ProjectionView
 } from './projection';
+
+export {
+  ProjModel, ProjView
+} from './proj';
 
 export {
   version, EXTENSION_SPEC_VERSION

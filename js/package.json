@@ -1,6 +1,6 @@
 {
   "name": "@regulus/ipyregulus",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Regulus widgets for JupyterLab",
   "author": "Yarden Livnat",
   "main": "src/plugin.ts",
@@ -18,7 +18,8 @@
   "scripts": {
     "clean": "rimraf lib",
     "build:lib": "webpack -d",
-    "build:labextension": "rimraf dist && mkdirp dist && cd dist && npm pack ..",
+    "build:labextension": "cd ../ipyregulus && rimraf labextension && mkdir labextension&& cd labextension && npm pack ../../js",
+    "foo" : "rimraf dist && mkdirp dist && cd dist && npm pack ..",
     "build": "npm run build:lib && npm run build:labextension",
     "watch": "webpack -d --watch"
   },

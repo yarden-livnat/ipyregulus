@@ -1,0 +1,27 @@
+.rg_proj .view {
+    /*background-color: lightyellow;*/
+}
+
+.rg_proj .view .origin {
+    fill: black;
+    stroke: steelblue;
+    stroke-width: 1px;
+}
+
+.rg_proj .view .axis {
+    fill: none;
+    stroke: #ddd;
+    stroke-width: 1.5px;
+    opacity: 1;
+}
+
+.rg_proj .view .axis.highlight {
+    stroke: steelblue;
+    stroke-width: 3px;
+}
+
+.rg_proj .view .pts .pt {
+    fill: steelblue;
+    stroke: none;
+    stroke-width: 1px;
+}

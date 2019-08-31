@@ -2,7 +2,7 @@ from traitlets import Instance, Int, List, Unicode
 from ipywidgets import register, widget_serialization
 
 
-from .base import RegulusDOMWidget
+from ipyregulus.core.base import RegulusDOMWidget
 from .data_widget import DataWidget
 from .tree import TreeWidget
 

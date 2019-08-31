@@ -17,7 +17,6 @@ const EXTENSION_ID = '@regulus/ipyregulus';
 
 
 function activate(app: JupyterFrontEnd, registry: IJupyterWidgetRegistry): void {
-  console.log('export map', ipyregulus);
   registry.registerWidget({
     name: EXTENSION_ID,
     version: EXTENSION_SPEC_VERSION,

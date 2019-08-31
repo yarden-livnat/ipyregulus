@@ -2,14 +2,14 @@
     Regulus Tree widget
 """
 
-from ipywidgets import register, widget_serialization
+from ipywidgets import register
 from traitlets import Dict, Instance, Unicode, Undefined, validate
 
 from regulus.core import HasTree
 from regulus.topo import RegulusTree
 from regulus.tree import Node
 
-from ..base import RegulusWidget
+from ipyregulus.core.base import RegulusWidget
 
 
 def _tree_to_json(value, widget):

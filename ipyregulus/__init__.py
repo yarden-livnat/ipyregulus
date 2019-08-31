@@ -7,3 +7,4 @@ from .basetreeview import BaseTreeView
 from .details_view import DetailsView
 from .treeview import TreeView
 from .projection_view import ProjectionView
+from .proj import ProjView

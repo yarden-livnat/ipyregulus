@@ -1,10 +1,10 @@
 # Copyright (c) University of Utah
 
-from traitlets import Bool, Dict, Instance, Int, List, Tuple, Unicode, Set, validate, TraitError
+from traitlets import Bool, Dict, Instance, Int, List, Tuple, Unicode, Set, validate
 from ipywidgets import register, widget_serialization
 
 from regulus.core import HasTree
-from .base import RegulusDOMWidget
+from ipyregulus.core.base import RegulusDOMWidget
 from .tree import TreeWidget
 
 
