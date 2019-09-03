@@ -10,7 +10,7 @@ from .tree import TreeWidget
 
 
 @register
-class ProjectionView(HasTree, RegulusDOMWidget):
+class Projection1View(HasTree, RegulusDOMWidget):
     _model_name = Unicode('ProjectionModel').tag(sync=True)
     _view_name = Unicode('ProjectionView').tag(sync=True)
 
@@ -51,3 +51,4 @@ class ProjectionView(HasTree, RegulusDOMWidget):
             self.tree_model = tree
         super().update(tree)
         # self.changed += 1)
+

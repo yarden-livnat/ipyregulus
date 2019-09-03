@@ -72,7 +72,7 @@ export default function Panel() {
   }
 
   function project() {
-    let d = axes.length;
+    let d = axes.length-1;
     for (let pt of pts) {
       let x = 0, y = 0;
       for (let i=0; i<d; i++) {
@@ -98,8 +98,8 @@ export default function Panel() {
   }
 
   function render() {
-    render_axes();
     render_pts();
+    render_axes();
   }
 
   function render_axes() {
@@ -115,13 +115,14 @@ export default function Panel() {
    let a = svg.select('.axes').selectAll('.axis').data(axes, d => d.label);
    a.enter()
      .append('line')
-     .attr('class', 'axis')
-     .attr("marker-end", "url(#arrowhead-end)")
+      .attr('class', 'axis')
+      .attr("marker-end", "url(#arrowhead-end)")
+      .call(drag)
      .merge(a)
-     .attr('x1', 0)
-     .attr('y1', 0)
-     .attr('x2', d => d.sx(d.max))
-     .attr('y2', d => d.sy(d.max));
+      .attr('x1', 0)
+      .attr('y1', 0)
+      .attr('x2', d => d.sx(d.max))
+      .attr('y2', d => d.sy(d.max));
    a.exit().remove();
 
    let names = svg.select('.labels').selectAll('.label').data(axes);
@@ -192,7 +193,6 @@ export default function Panel() {
     el(_) {
       root = _;
       setup();
-      this.resize();
       return this;
     },
 
@@ -200,15 +200,28 @@ export default function Panel() {
       let n = _.length;
       let angle = 2*Math.PI/n;
       axes = _.map((axis, i) => {
+        let updated = false;
         let theta = axis.get('theta');
         if (theta == null) {
           theta = angle * i;
+          updated = true;
         }
         let len = axis.get('len');
         if (len == null) {
           len = DEFAULT_AXIS_SIZE;
+          updated = true;
         }
         let max = axis.get('max');
+
+        if (updated) {
+          setTimeout(function () {
+            axis.set({
+              theta: theta,
+              len: len
+            });
+            axis.save_changes();
+          }, 0);
+        }
 
         return {
           label: axis.get('label'),

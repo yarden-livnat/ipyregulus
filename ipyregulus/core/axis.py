@@ -11,7 +11,7 @@ class Axis(RegulusWidget):
     label = Unicode('').tag(sync=True)
     max = Float().tag(sync=True)
     theta = Float(None, allow_none=True).tag(sync=True)
-    len = Float(None, allow_none=True).tag(sync=True)
+    len = Float(200, allow_none=True).tag(sync=True)
 
 
 class AxisTraitType(Instance):

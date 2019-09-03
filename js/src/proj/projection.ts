@@ -41,7 +41,6 @@ export
 class ProjView extends DOMWidgetView {
   initialize(parameters: any): void {
     super.initialize(parameters);
-    // this.listenTo(this.model, 'change', this.model_changed);
     this.listenTo(this.model, 'change:pts', this.pts_changed);
     this.listenTo(this.model, 'change:axes', this.axes_changed);
     this.listenTo(this.model, 'change:colors', this.colors_changed);
@@ -51,16 +50,22 @@ class ProjView extends DOMWidgetView {
      d3.select(this.el)
       .classed('rg_projection', true)
       .html(template);
+
+     this.panel = Panel().el(d3.select(this.el));
+     this.axes_changed(this.model, this.model.get('axes'), {});
+     this.pts_changed(this.model, this.model.get('pts'), {});
+     this.colors_changed(this.model, this.model.get('colors'), {});
   }
 
   processPhosphorMessage(msg:Message) {
     switch (msg.type) {
       case 'after-attach':
         d3.select(this.el.parentNode).classed('rg_proj', true);
-        this.panel = Panel().el(d3.select(this.el));
+        this.panel.resize();
         break;
       case 'resize':
-        this.panel.resize();
+        if (this.panel)
+          this.panel.resize();
         break;
     }
   }
@@ -70,7 +75,7 @@ class ProjView extends DOMWidgetView {
   }
 
   axes_changed(model, value, options) {
-    for (let p of model.previous('axes')) {
+    for (let p of model.previous('axes') || []) {
       this.stopListening(p);
     }
     for (let a of value) {

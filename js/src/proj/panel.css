@@ -12,12 +12,16 @@
     fill: none;
     stroke: #ddd;
     stroke-width: 1.5px;
-    opacity: 1;
 }
 
-.rg_proj .view .axis.highlight {
-    stroke: steelblue;
+.rg_proj .view .axis:hover {
+    stroke: red;
     stroke-width: 3px;
+}
+
+.rg_proj .view .label:hover {
+    stroke: red;
+    /*stroke-width: 3px;*/
 }
 
 .rg_proj .view .pts .pt {
@@ -25,3 +29,4 @@
     stroke: none;
     stroke-width: 1px;
 }
+
