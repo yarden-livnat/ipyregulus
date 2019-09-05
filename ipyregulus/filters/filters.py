@@ -74,8 +74,14 @@ class UIFilter(BaseUIFilter):
         for i in range(min(len(v), 3)):
             if v[i] is not None:
                 r[i] = v[i]
-        self.ui.min = r[0]
+
+        if len(v) <3:
+            r[2] = (r[1]-r[0])/1000
+
+        if r[1] < self.ui.min:
+            self.ui.min = r[1]
         self.ui.max = r[1]
+        self.ui.min = r[0]
         self.ui.step = r[2]
 
     def _on_ui(self, change):
@@ -90,7 +96,6 @@ class UIFilter(BaseUIFilter):
 
 class AttrFilter(UIFilter, HBox):
     attr = Unicode()
-    # range = Instance(AttrRange, allow_none=True)
 
     def __init__(self, attr, *args, **kwargs):
         self.label = Label()
@@ -98,8 +103,6 @@ class AttrFilter(UIFilter, HBox):
             kwargs['func'] = lambda x,v: v < x
         super().__init__(attr=attr, *args, **kwargs)
         self.__name__ = attr
-        # self.label = Label(value=self.attr)
-        # self.box = HBox([self.label, self.ui])
         self.children = [self.label, self.ui]
 
     @observe('attr')

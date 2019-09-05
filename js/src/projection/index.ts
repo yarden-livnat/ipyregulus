@@ -1,3 +1,3 @@
 export {
   ProjectionModel, ProjectionView
-} from './projection';
+} from './projection'

@@ -1,0 +1,21 @@
+.rg_graph {
+  padding: 10px;
+  flex-grow: 1;
+  flex-shrink: 1;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.rg_graph .title {
+  font-size: 10pt;
+  font-weight: bold;
+}
+
+.rg_graph .view {
+  flex-grow: 1;
+}
+
+.rg_graph .view .origin {
+  color: steelblue;
+}

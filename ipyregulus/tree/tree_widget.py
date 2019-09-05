@@ -5,8 +5,7 @@
 from ipywidgets import register
 from traitlets import Dict, Instance, Unicode, Undefined, validate
 
-from regulus.core import HasTree
-from regulus.topo import RegulusTree
+from regulus import HasTree, RegulusTree
 from regulus.tree import Node
 
 from ipyregulus.core.base import RegulusWidget
@@ -68,6 +67,7 @@ class TreeWidget(HasTree, RegulusWidget):
             'id': node.id,
             'lvl': node.data.persistence if len(node.children) > 0 else 0,
             'size': node.data.size(),
+            'internal_size': node.data.internal_size(),
             'offset': node.offset
             }
 

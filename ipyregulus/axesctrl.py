@@ -51,6 +51,7 @@ class AxesCtrl(VBox):
             children.append(slider)
         # disconnect
         for rec in self.current.values():
+            print('rec=', rec)
             # rec['axis'].unobserve(self.update, names=['len'])
             for l in rec.links:
                 l.unlink()

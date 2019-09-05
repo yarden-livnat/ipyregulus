@@ -1,10 +1,10 @@
 # Copyright (c) University of Utah
 
 from traitlets import Bool, Dict, HasTraits, Instance, Int, List, Tuple, Unicode, observe, Set
-from ipywidgets import HBox, VBox
+from ipywidgets import HBox, VBox, IntRangeSlider, FloatRangeSlider
 import ipywidgets as widgets
 
-from regulus import Regulus
+from regulus import HasTree
 from . import BaseTreeView
 from .filters import AttrFilter, Trigger, GroupUIFilter
 
@@ -18,12 +18,13 @@ class TreeView(VBox):
         super().__init__(**kwargs)
         self._filters = {}
         self._treeview = None
-        self._attr_link = None
+        self._links = []
         self._group_filter = GroupUIFilter()
         self._trigger = Trigger(self._group_filter, func=self._apply_filter)
         self._filters = {}
         self._auto = auto
         self._auto_filter = None
+        self._ctrls = HBox()
 
         self._menu = widgets.Dropdown(
             options=self.attr_opts,
@@ -31,6 +32,10 @@ class TreeView(VBox):
             value=self.attr,
             disabled=False,
         )
+
+        self._x = IntRangeSlider(min=0, max = 100, value = (0, 100), description='Points:')
+        self._y = FloatRangeSlider(min=0, max=1, value=(0,1), description='Persistence:', step=0.001)
+        self._ctrls = HBox([self._menu, self._y, self._x])
 
         self._auto_filter = AttrFilter(attr=self._menu.value)
         if self._auto:
@@ -66,12 +71,16 @@ class TreeView(VBox):
 
     @view.setter
     def view(self, tv):
-        if self._attr_link is not None:
-            self._attr_link.unlink()
+        for link in self._links:
+            link.unlink()
 
         tv.show_attr = False
         self._treeview = tv
-        self._attr_link = widgets.link((self, 'attr'), (self._treeview, 'attr'))
+        self._links = [
+            widgets.link((self, 'attr'), (self._treeview, 'attr')),
+            widgets.link((self._x, 'value'), (self._treeview, 'x')),
+            widgets.link((self._y, 'value'), (self._treeview, 'y'))
+            ]
         self._update_children()
 
     @property
@@ -83,10 +92,14 @@ class TreeView(VBox):
     @tree.setter
     def tree(self, tree):
         if not isinstance(tree, BaseTreeView):
-            if isinstance(tree, Regulus):
+            if isinstance(tree, HasTree):
                 tree = tree.tree
 
         self.view = BaseTreeView(tree, attr=self.attr)
+        reset = self._x.value[1] == self._x.max
+        self._x.max = tree.regulus.pts.size()
+        if reset:
+            self._x.value = self._x.value[0], self._x.max
 
     @property
     def filters(self):
@@ -127,7 +140,7 @@ class TreeView(VBox):
                 self.attr = attrs[0] if len(attr) > 0 else None
 
     def _update_children(self):
-        children = [self._menu, self._group_filter]
+        children = [self._ctrls, self._group_filter]
 
         if self.view is not None:
             children.insert(1, self._treeview)

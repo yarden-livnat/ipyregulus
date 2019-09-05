@@ -50,7 +50,8 @@ export default function Panel() {
     d => [attr, d3.format('.3f')(value(d))],
     d => ['id', d3.format('d')(d.id)],
     d => ['lvl', d3.format('.3f')(d.lvl)],
-    d => ['size', d.size]
+    d => ['size', d.size],
+    d => ['internal', d.internal_size]
   ];
 
   function flatten(node, arr){
@@ -64,7 +65,7 @@ export default function Panel() {
   function preprocess() {
     if (!root) return;
     nodes = flatten(root, []);
-    sx.domain([0, root.size]);
+    sx.domain([0, root.internal_size]);
   }
 
   function layout() {
@@ -72,18 +73,10 @@ export default function Panel() {
     visit(root);
 
     function visit(node) {
-      node.pos = {x: node.offset, y: node.lvl, w: node.size, yp: node.parent ? node.parent.lvl : 1};
+      node.pos = {x: node.offset, y: node.lvl, w: node.internal_size, yp: node.parent ? node.parent.lvl : 1};
       for (let child of node.children) {
         visit(child);
       }
-      // let w = range[1] - range[0];
-      // node.pos = {x: node.offset, y: node.lvl, w: node.size, yp: node.parent && node.parent.lvl || 1};
-      // let from = range[0];
-      // for (let child of node.children) {
-      //   let to = from + child.size; // w * child.size / node.size;
-      //   visit(child, [from, to], depth+1);
-      //   from = to;
-      // }
     }
   }
 
@@ -309,6 +302,18 @@ export default function Panel() {
 
     select(_) {
       selected = _;
+      render();
+      return this;
+    },
+
+    x(_) {
+      sx.domain(_);
+      render();
+      return this;
+    },
+
+    y(_) {
+      sy.domain(_);
       render();
       return this;
     },

@@ -3,7 +3,7 @@
 from traitlets import Bool, Dict, Instance, Int, List, Tuple, Unicode, Set, validate
 from ipywidgets import register, widget_serialization
 
-from regulus.core import HasTree
+from regulus import HasTree
 from ipyregulus.core.base import RegulusDOMWidget
 from .tree import TreeWidget
 
@@ -28,6 +28,8 @@ class BaseTreeView(HasTree, RegulusDOMWidget):
     selected = List().tag(sync=True, from_json=from_json)
     details = List([]).tag(sync=True)
     range = Tuple((0,1)).tag(sync=True)
+    x = Tuple((0,1)).tag(sync=True)
+    y = Tuple((0,1)).tag(sync=True)
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
 
     def __init__(self, tree=None, attr='fitness', **kwargs):

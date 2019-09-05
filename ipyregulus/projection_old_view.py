@@ -3,16 +3,16 @@
 from traitlets import Instance, List, Unicode
 from ipywidgets import register, widget_serialization
 
-from regulus.core import HasTree
+from regulus import HasTree
 from ipyregulus.core.base import RegulusDOMWidget
 from .data_widget import DataWidget
 from .tree import TreeWidget
 
 
 @register
-class Projection1View(HasTree, RegulusDOMWidget):
-    _model_name = Unicode('ProjectionModel').tag(sync=True)
-    _view_name = Unicode('ProjectionView').tag(sync=True)
+class ProjectionOldView(HasTree, RegulusDOMWidget):
+    _model_name = Unicode('ProjectionOldModel').tag(sync=True)
+    _view_name = Unicode('ProjectionOldView').tag(sync=True)
 
     title = Unicode('').tag(sync=True)
 

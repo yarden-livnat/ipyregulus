@@ -13,15 +13,16 @@ export default function Panel() {
   let svg = null;
 
   let axes = [];
-  let pts = [];
-  let colors = [];
+  let graph = {};
+  let pts_invalid = false;
 
+  let color = '';
   let colorScale = d3.scaleSequential(chromatic['interpolate' + DEFAULT_CMAP]);
 
    let defs = [
-    {id: 'arrowhead-start', path: "M10,-5L0,0L10,5", box: "0 -5 10 10", color: '#aaa', refx: 0, refy: 0 },
-    {id: 'arrowhead-end', path: "M0,-5L10,0L0,5", box: "0 -5 10 10", color: '#ccc', refx: 0, refy: 0}
-  ];
+      {id: 'arrowhead-start', path: "M10,-5L0,0L10,5", box: "0 -5 10 10", color: '#aaa', refx: 0, refy: 0 },
+      {id: 'arrowhead-end', path: "M0,-5L10,0L0,5", box: "0 -5 10 10", color: '#ccc', refx: 0, refy: 0}
+    ];
 
    /*
    * Dragging
@@ -72,34 +73,41 @@ export default function Panel() {
   }
 
   function project() {
-    let d = axes.length-1;
-    for (let pt of pts) {
+    let v;
+    if (!graph || !graph.pts || !axes ) return;
+
+    for (let pt of graph.pts) {
       let x = 0, y = 0;
-      for (let i=0; i<d; i++) {
-        let a = axes[i];
-        x += a.sx(pt[i]);
-        y += a.sy(pt[i]);
+      for (let axis of axes) {
+        if (!axis.disabled) {
+          v = pt.values[axis.col];
+          x += axis.sx(v);
+          y += axis.sy(v);
+        }
       }
       pt.x = x;
       pt.y = y;
     }
+    pts_invalid = false;
   }
 
   function update_colors() {
-    let n = Math.min(colors.length, pts.length);
-    let i = -1;
-    while (++i< n) {
-      pts[i].color = colorScale(colors[i]);
-    }
-    n = pts.length;
-    while (++i < n) {
-      pts[i].color = DEFAULT_COLOR;
+    let axis = axes.find( a => a.label === color);
+    if (axis) {
+      colorScale.domain([axis.max, 0]);
+      for (let p of graph.pts) {
+        p.color = colorScale(p.values[axis.col])
+      }
     }
   }
 
   function render() {
-    render_pts();
     render_axes();
+    if (!graph || !graph.pts) return;
+    if (pts_invalid)
+      project();
+     render_pts();
+     render_partitions();
   }
 
   function render_axes() {
@@ -112,7 +120,8 @@ export default function Panel() {
      .attr('cx', 0)
      .attr('cy', 0);
 
-   let a = svg.select('.axes').selectAll('.axis').data(axes, d => d.label);
+   let active = axes.filter(a => !a.disabled);
+   let a = svg.select('.axes').selectAll('.axis').data(active, d => d.label);
    a.enter()
      .append('line')
       .attr('class', 'axis')
@@ -138,8 +147,24 @@ export default function Panel() {
    names.exit().remove();
   }
 
+  function render_partitions() {
+    let p = svg.select('.nodes').selectAll('.node').data(graph.nodes, d => d.pid);
+    p.enter()
+      .append('line')
+        .attr('class', 'node')
+      .merge(p)
+        .attr('x1', d => d.min.x)
+        .attr('y1', d => d.min.y)
+        .attr('x2', d => d.max.x)
+        .attr('y2', d => d.max.y)
+        .attr('stroke', 'gray')
+        .attr('stroke-width', '1px');
+    p.exit().remove();
+
+  }
+
   function render_pts() {
-     let p = svg.select('.pts').selectAll('.pt').data(pts);
+    let p = svg.select('.pts').selectAll('.pt').data(graph.pts, d => d.id);
     p.enter()
       .append('circle')
       .attr('class', 'pt')
@@ -157,11 +182,14 @@ export default function Panel() {
     svg = root.select('svg');
     let g = svg.append('g');
 
-    g.append('g')
-        .attr('class', 'axes');
+     g.append('g')
+      .attr('class', 'nodes');
 
     g.append('g')
       .attr('class', 'pts');
+
+    g.append('g')
+        .attr('class', 'axes');
 
     g.append('g')
       .attr('class', 'labels');
@@ -211,7 +239,9 @@ export default function Panel() {
           len = DEFAULT_AXIS_SIZE;
           updated = true;
         }
+
         let max = axis.get('max');
+        let disabled = axis.get('disabled');
 
         if (updated) {
           setTimeout(function () {
@@ -225,9 +255,11 @@ export default function Panel() {
 
         return {
           label: axis.get('label'),
+          col: axis.get('col'),
           max,
           theta,
           len,
+          disabled,
           model: axis,
           sx: d3.scaleLinear()
             .domain([0, max])
@@ -237,8 +269,7 @@ export default function Panel() {
             .range([0, len * Math.sin(theta)]),
         };
       });
-      project();
-      render();
+      pts_invalid = true;
       return this;
     },
 
@@ -252,25 +283,21 @@ export default function Panel() {
         axis.sx.domain([0, axis.max]).range([0, axis.len*Math.cos(axis.theta)]);
         axis.sy.domain([0, axis.max]).range([0, axis.len*Math.sin(axis.theta)]);
       }
-      project();
-      render();
+      update_colors();
+      pts_invalid = true;
       return this;
     },
 
-    pts(_) {
-      pts = _;
+    graph(_) {
+      graph = _;
       update_colors();
-      project();
-      render();
+      pts_invalid = true;
       return this;
     },
 
-    colors(_) {
-      colors = _;
-      let ext = d3.extent(colors);
-      colorScale.domain([ext[1], ext[0]]);
+    color(_) {
+      color = _;
       update_colors();
-      render();
       return this;
     },
 
@@ -279,7 +306,6 @@ export default function Panel() {
       let h = parseInt(svg.style('height'));
       svg.select('g')
         .attr('transform', `translate(${w / 2},${h / 2})`);
-      project();
       render();
       return this;
     },

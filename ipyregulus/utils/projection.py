@@ -2,12 +2,16 @@ import pandas as pd
 from ipyregulus.core.axis import Axis
 
 
-def create_axes(pts):
+def create_axes(pts, cols=None):
     axes = []
+    if cols is None:
+        cols = range(len(list(pts)))
+    elif isinstance(cols, int):
+        cols = [cols]
     if isinstance(pts, pd.DataFrame):
-        axes = [Axis(label=l, max=m) for l, m in zip(list(pts), pts.abs().max())]
+        axes = [Axis(label=l, col=c, max=m) for l, c, m in zip(list(pts), cols, pts.abs().max())]
     elif isinstance(pts, pd.Series):
-        axes = [Axis(label=pts.name, max=max(abs(pts)))]
+        axes = [Axis(label=pts.name, col=cols[0], max=max(abs(pts)))]
     else:
         raise ValueError('pts must be Pandas DataFrame or Series')
     return axes

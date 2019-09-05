@@ -2,7 +2,7 @@ from traitlets import Instance, List, Unicode, observe
 from ipywidgets import register, widget_serialization
 
 from ipyregulus.utils import *
-from .projectionWidget import ProjectionWidget
+from .projection_widget import ProjectionWidget
 
 
 @register
@@ -43,7 +43,7 @@ class ProjectionView(ProjectionWidget):
             regulus = tree.regulus
             self._pts = regulus.pts.x.merge(right=regulus.pts.values, how='left',
                                             left_index=True, right_index=True)
-            self.axes = create_axes(regulus.pts.x) + create_axes(regulus.y)
+            self.axes = create_axes(regulus.pts.x) + create_axes(regulus.y, [len(regulus.pts.x)])
             if self._color != '':
                 self.color = self._color
         else:

@@ -1,5 +1,5 @@
 
-from regulus.core import HasTree
+from regulus import HasTree
 from ipyregulus.tree import TreeWidget
 from ipyregulus.filters.filters import AttrFilter
 from ipyregulus.filters.trigger import Trigger

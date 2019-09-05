@@ -1,5 +1,5 @@
-from ipywidgets import Widget, register
-from traitlets import Float, Instance, Unicode
+from ipywidgets import register
+from traitlets import Bool, Float, Instance, Int, Unicode
 
 from .base import RegulusWidget
 
@@ -9,9 +9,11 @@ class Axis(RegulusWidget):
     _model_name = Unicode('AxisModel').tag(sync=True)
 
     label = Unicode('').tag(sync=True)
+    col = Int().tag(sync=True)
     max = Float().tag(sync=True)
     theta = Float(None, allow_none=True).tag(sync=True)
     len = Float(200, allow_none=True).tag(sync=True)
+    disabled = Bool(False).tag(sync=True)
 
 
 class AxisTraitType(Instance):

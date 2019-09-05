@@ -1,32 +1,31 @@
-.rg_proj .view {
+.rg_projection .title {
+    display: none;
+}
+
+.rg_projection .view {
     /*background-color: lightyellow;*/
 }
 
-.rg_proj .view .origin {
+.rg_projection .view .origin {
     fill: black;
     stroke: steelblue;
     stroke-width: 1px;
 }
 
-.rg_proj .view .axis {
+.rg_projection .view .axis {
     fill: none;
     stroke: #ddd;
     stroke-width: 1.5px;
+    opacity: 1;
 }
 
-.rg_proj .view .axis:hover {
-    stroke: red;
+.rg_projection .view .axis.highlight {
+    stroke: steelblue;
     stroke-width: 3px;
 }
 
-.rg_proj .view .label:hover {
-    stroke: red;
-    /*stroke-width: 3px;*/
-}
-
-.rg_proj .view .pts .pt {
+.rg_projection .view .pts .pt {
     fill: steelblue;
     stroke: none;
     stroke-width: 1px;
 }
-

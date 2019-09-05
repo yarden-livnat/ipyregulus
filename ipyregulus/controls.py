@@ -2,8 +2,7 @@ from ipywidgets import Label, HBox, FloatSlider
 from traitlets import Set
 from IPython.display import display
 
-# from regulus.tree.alg import filter as filter_tree, reduce as reduce_tree
-from .tree import HasTree
+from regulus import HasTree
 
 
 class TreeControler(HasTree):

@@ -10,10 +10,6 @@ import {
   RegulusViewModel
 } from "../RegulusWidget";
 
-import {
-  Partition
-} from '../models/partition';
-
 import * as d3 from 'd3';
 
 import Panel from './panel';
@@ -30,19 +26,14 @@ class ProjectionModel extends RegulusViewModel {
       _model_name: 'ProjectionModel',
       _view_name: 'ProjectionView',
 
-      title: '',
-      data: null,
-      tree_model: null,
-      measure: null,
-      color: null,
-      show: [],
+      pts: [],
+      axes: []
     };
   }
 
   static serializers = {
     ...RegulusViewModel.serializers,
-    data: {deserialize: unpack_models},
-    tree_model: {deserialize: unpack_models},
+    axes: {deserialize: unpack_models}
   };
 }
 
@@ -50,153 +41,56 @@ export
 class ProjectionView extends DOMWidgetView {
   initialize(parameters: any): void {
     super.initialize(parameters);
-    this.model.on('change:title', this.on_title_changed, this);
-    this.model.on('change:data', this.on_data_changed, this);
-    this.model.on('change:tree_model', this.on_tree_changed, this);
-    this.model.on('change:show', this.on_show_changed, this);
-    this.model.on('change:color', this.on_color_changed, this);
+    this.listenTo(this.model, 'change:pts', this.pts_changed);
+    this.listenTo(this.model, 'change:axes', this.axes_changed);
+    this.listenTo(this.model, 'change:colors', this.colors_changed);
   }
 
   render() {
-    this.d3el = d3.select(this.el)
-      .classed('rg_projection', true);
+     d3.select(this.el)
+      .classed('rg_projection', true)
+      .html(template);
 
-    this.d3el.html(template);
-    this.panel = Panel().el(d3.select(this.el));
-
-    setTimeout( () => {
-      console.log('projection setup');
-      this.panel.resize();
-      this.on_title_changed();
-      this.on_data_changed();
-      this.on_tree_changed();
-    }, 0);
+     this.panel = Panel().el(d3.select(this.el));
+     this.axes_changed(this.model, this.model.get('axes'), {});
+     this.pts_changed(this.model, this.model.get('pts'), {});
+     this.colors_changed(this.model, this.model.get('colors'), {});
   }
 
   processPhosphorMessage(msg:Message) {
-    // console.log('Tree phosphor message', msg);
     switch (msg.type) {
       case 'after-attach':
-        d3.select(this.el.parentNode).classed('rg_projection', true);
-        break;
-      case 'resize':
+        d3.select(this.el.parentNode).classed('rg_proj', true);
         this.panel.resize();
         break;
+      case 'resize':
+        if (this.panel)
+          this.panel.resize();
+        break;
     }
   }
 
-  on_title_changed() {
-    this.d3el.select('.title').text(this.model.get('title'));
+  pts_changed(model, value, options) {
+    this.panel.pts(value);
   }
 
-  on_data_changed() {
-    let data = this.model.get('data');
-    if (data) {
-      // axes info
-      let pts = data.get('pts');
-      let pts_idx = data.get('pts_idx');
-      let axes = this.collect(pts, pts_idx, 0, pts.shape[1]);
-
-      let attrs = data.get('attrs');
-      let attrs_idx = data.get('attrs_idx');
-      let measure = data.get('measure');
-      let m = attrs_idx.indexOf(measure);
-      axes = axes.concat( this.collect(attrs, attrs_idx, m, m+1));
-      this.panel.axes(axes);
-
-      // partitions
-      let pts_loc = data.get('pts_loc');
-      this.partitions = new Map( data.get('partitions').map(p => [p.id, new Partition(p, pts_loc)]));
+  axes_changed(model, value, options) {
+    for (let p of model.previous('axes') || []) {
+      this.stopListening(p);
     }
+    for (let a of value) {
+      this.listenTo(a, 'change', this.update_axes)
+    }
+    this.panel.axes(value);
   }
 
-  collect(pts, idx, from, to) {
-    let n = pts.shape[0];
-    let axes = idx.slice(from, to).map((col, i) => ({name:col, min:0, max:0}));
-    let v = 0;
-    for (let axis=0, d=from; d<to; axis++, d++) {
-      axes[axis].min= axes[axis].max = pts.get(0, d);
-    }
-    for (let i=1; i<n; i++) {
-      for (let axis=0, d=from; d<to; axis++, d++) {
-        let a = axes[axis];
-        v = pts.get(i, d);
-        if (v < a.min) a.min = v;
-        else if (a.max < v) a.max = v;
-      }
-    }
-    return axes;
+  update_axes(model, value, options) {
+    this.panel.update_axis(model);
   }
 
-  on_tree_changed() {
-    let tree = this.model.get('tree_model');
-    if (tree) {
-      console.log('tree');
-
-    }
+  colors_changed(model, value, options) {
+    this.panel.colors(value);
   }
 
-  on_color_changed() {
-    let name = this.model.get('color');
-    let data = this.model.get('data');
-    let attrs = data.get('attrs');
-    let attrs_idx = data.get('attrs_idx');
-    let color_idx = attrs_idx.indexOf(name);
-    let show = this.model.get('show');
-
-    let colors: Array<number> = [];
-    if (color_idx > -1) {
-      let colors_array = attrs.pick(null, color_idx);
-
-      if (this.partitions) {
-        for (let p of show) {
-          let partition = this.partitions.get(p);
-          if (!partition) continue;
-          let pts_idx = partition.index();
-          for (let idx of pts_idx) {
-            colors.push(colors_array.get(idx, 0));
-          }
-        }
-      }
-    }
-    this.panel.colors(colors);
-  }
-
-  on_show_changed() {
-    let show = this.model.get('show');
-    let data = this.model.get('data');
-    let data_pts = data.get('pts');
-    let attrs = data.get('attrs');
-    let attrs_idx = data.get('attrs_idx');
-    let measure_name = data.get('measure');
-    let measure_idx = attrs_idx.indexOf(measure_name);
-    let measure = attrs.pick(null,measure_idx);
-
-    let pts: Array<any> = [];
-    if (this.partitions) {
-      for (let p of show) {
-        let partition = this.partitions.get(p);
-        if (!partition) continue;
-
-        let pts_idx =  partition.index();
-        for (let idx of pts_idx) {
-          let pt:number[] = [];
-          let i;
-          for (i=0; i< data_pts.shape[1]; i++)
-            pt[i] = (data_pts.get(idx, i));
-
-          pt[i] = measure.get(idx);
-          // for (let j=0; j< data_attrs.shape[1]; j++)
-          //   pt[i+j] = (data_attrs.get(idx, j));
-          pts.push({ value: pt});
-        }
-      }
-    }
-    this.panel.pts(pts);
-    this.on_color_changed();
-  }
-
-  d3el: any;
-  panel: any;
-  partitions: Map<number, Partition> = new Map();
+  panel: Panel;
 }

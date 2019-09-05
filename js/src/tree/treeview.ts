@@ -31,7 +31,9 @@ class TreeViewModel extends RegulusViewModel {
       hightlight: null,
       selected: new Set(),
       details: [],
-      range: []
+      range: [],
+      x: [0, 1],
+      y: [0, 1]
     };
   }
 
@@ -68,6 +70,8 @@ class TreeView extends DOMWidgetView {
     this.model.on('change:selected', this.on_selected_changed, this);
     this.model.on('change:details', this.on_details_changed, this);
     this.model.on('change:range', this.on_range_changed, this);
+    this.model.on('change:x', this.on_x_changed, this);
+    this.model.on('change:y', this.on_y_changed, this);
 
 
     this.on_title_changed();
@@ -175,7 +179,15 @@ class TreeView extends DOMWidgetView {
   on_range_changed() {
     this.panel.range(this.model.get('range'));
   }
-  
+
+  on_x_changed() {
+    this.panel.x(this.model.get('x'));
+  }
+
+  on_y_changed() {
+    this.panel.y(this.model.get('y'));
+  }
+
   /*
    * events from Panel
    */

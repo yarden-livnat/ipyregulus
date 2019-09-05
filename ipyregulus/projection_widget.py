@@ -1,7 +1,7 @@
 # Copyright (c) University of Utah
 
 import pandas as pd
-from traitlets import Any, Dict, Instance, List, Unicode, Union, validate, TraitError
+from traitlets import Any, List, Unicode, validate, TraitError
 from ipywidgets import register, widget_serialization
 
 from .core.axis import Axis, AxisTraitType
@@ -11,8 +11,8 @@ from ipyregulus.core.base import RegulusDOMWidget
 
 @register
 class ProjectionWidget(RegulusDOMWidget):
-    _model_name = Unicode('ProjModel').tag(sync=True)
-    _view_name = Unicode('ProjView').tag(sync=True)
+    _model_name = Unicode('ProjectionModel').tag(sync=True)
+    _view_name = Unicode('ProjectionView').tag(sync=True)
 
     pts = List([]).tag(sync=True)
     axes = TypedTuple(trait=AxisTraitType()).tag(sync=True, **widget_serialization)
