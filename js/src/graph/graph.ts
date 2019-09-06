@@ -87,10 +87,10 @@ class GraphView extends DOMWidgetView {
           for (let p of g.pts) {
             map.set(p.id, p)
           }
-          let nodes:[any] = g.nodes;
-          for (let node of nodes) {
-            node.min = map.get(node.min_idx);
-            node.max = map.get(node.max_idx);
+          let partitions:[any] = g.partitions;
+          for (let partition of partitions) {
+            partition.min = map.get(partition.min_idx);
+            partition.max = map.get(partition.max_idx);
           }
           this.panel.graph(g);
           break;

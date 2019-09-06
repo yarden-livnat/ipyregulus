@@ -43,9 +43,7 @@ class GraphView(RegulusDOMWidget):
     def _show(self, change):
         items = change['new']
         if self.tree is not None and len(items) > 0:
-            regulus = self.tree.regulus
-            loc = regulus.pts_loc
-
+            data = self.tree.regulus
             partitions = []
             pts_idx = set()
             for node in self.tree:
@@ -55,7 +53,7 @@ class GraphView(RegulusDOMWidget):
                     partitions.append(dict(
                         pid=p.id,
                         born=p.persistence,
-                        die=node.parent.data.persistence if node.parent is not None else 1,
+                        die=node.parent.data.persistence,
                         size=p.size(),
                         min_idx=min_idx,
                         max_idx=max_idx
@@ -63,14 +61,16 @@ class GraphView(RegulusDOMWidget):
                     pts_idx.add(min_idx)
                     pts_idx.add(max_idx)
 
-            pts = pd.merge(left=regulus.pts.x.loc[pts_idx],
-                           right=regulus.pts.values.loc[pts_idx],
+            pts = pd.merge(left=data.pts.x.loc[pts_idx],
+                           right=data.pts.values.loc[pts_idx],
                            left_index=True,
                            right_index=True)
             pts = [dict(id=i, values=list(v)) for i, v in zip(pts.index, pts.values)]
-            # print('pts:', pts)
-            # print('partitions:', partitions)
-            self.graph = dict(pts=pts, nodes=partitions)
+        else:
+            pts = []
+            partitions = []
+        self.graph = dict(pts=pts, partitions=partitions)
+
 
 
 

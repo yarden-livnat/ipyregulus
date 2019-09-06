@@ -5,7 +5,7 @@ from ipyregulus.core.axis import Axis
 def create_axes(pts, cols=None):
     axes = []
     if cols is None:
-        cols = range(len(list(pts)))
+        cols = list(range(len(list(pts))))
     elif isinstance(cols, int):
         cols = [cols]
     if isinstance(pts, pd.DataFrame):

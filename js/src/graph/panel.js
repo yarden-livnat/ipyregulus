@@ -12,8 +12,9 @@ export default function Panel() {
   let root = null;
   let svg = null;
 
+  let r = 5;
   let axes = [];
-  let graph = {};
+  let graph = {pts:[], partitions:[]};
   let pts_invalid = false;
 
   let color = '';
@@ -57,6 +58,14 @@ export default function Panel() {
     d.len = Math.sqrt(x*x + y*y);
     d.sx.range([0, d.len*Math.cos(d.theta)]);
     d.sy.range([0, d.len*Math.sin(d.theta)]);
+
+    setTimeout( function() {
+      d.model.set({
+        theta: d.theta,
+        len: d.len
+      } );
+      d.model.save_changes();
+    }, 0);
 
     project();
     render();
@@ -148,15 +157,22 @@ export default function Panel() {
   }
 
   function render_partitions() {
-    let p = svg.select('.nodes').selectAll('.node').data(graph.nodes, d => d.pid);
+    let p = svg.select('.partitions').selectAll('.partition').data(graph.partitions, d => d.pid);
     p.enter()
       .append('line')
-        .attr('class', 'node')
+        .attr('class', 'partition')
+        .attr("marker-end", "url(#arrowhead-end)")
       .merge(p)
+        .each(d => {
+          d.dx = d.max.x - d.min.x;
+          d.dy = d.max.y - d.min.y;
+          let l = Math.sqrt(d.dx*d.dx + d.dy*d.dy);
+          d.f = (l-2*r)/l;
+          })
         .attr('x1', d => d.min.x)
         .attr('y1', d => d.min.y)
-        .attr('x2', d => d.max.x)
-        .attr('y2', d => d.max.y)
+        .attr('x2', d => d.min.x + d.f * d.dx)
+        .attr('y2', d => d.min.y + d.f * d.dy)
         .attr('stroke', 'gray')
         .attr('stroke-width', '1px');
     p.exit().remove();
@@ -168,7 +184,7 @@ export default function Panel() {
     p.enter()
       .append('circle')
       .attr('class', 'pt')
-      .attr('r', 3)
+      .attr('r', r)
       .merge(p)
         .attr('cx', d => d.x)
         .attr('cy', d => d.y)
@@ -183,7 +199,7 @@ export default function Panel() {
     let g = svg.append('g');
 
      g.append('g')
-      .attr('class', 'nodes');
+      .attr('class', 'partitions');
 
     g.append('g')
       .attr('class', 'pts');
@@ -274,17 +290,19 @@ export default function Panel() {
     },
 
     update_axis(model) {
-      let axis = axes.find( (d) => d.model === model);
+      let axis = axes.find( d => d.model === model);
       if (axis) {
         axis.label = model.get('label');
         axis.theta = model.get('theta');
         axis.len = model.get('len');
         axis.max = model.get('max');
-        axis.sx.domain([0, axis.max]).range([0, axis.len*Math.cos(axis.theta)]);
-        axis.sy.domain([0, axis.max]).range([0, axis.len*Math.sin(axis.theta)]);
+        axis.disabled = model.get('disabled');
+        axis.sx.domain([0, axis.max]).range([0, axis.len * Math.cos(axis.theta)]);
+        axis.sy.domain([0, axis.max]).range([0, axis.len * Math.sin(axis.theta)]);
       }
       update_colors();
       pts_invalid = true;
+      render();
       return this;
     },
 

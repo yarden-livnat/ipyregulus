@@ -57,6 +57,14 @@ export default function Panel() {
     d.sx.range([0, d.len*Math.cos(d.theta)]);
     d.sy.range([0, d.len*Math.sin(d.theta)]);
 
+    setTimeout( function() {
+      d.model.set({
+        theta: d.theta,
+        len: d.len
+      } );
+      d.model.save_changes();
+    }, 0);
+
     project();
     render();
   }
@@ -72,13 +80,13 @@ export default function Panel() {
   }
 
   function project() {
-    let d = axes.length-1;
     for (let pt of pts) {
       let x = 0, y = 0;
-      for (let i=0; i<d; i++) {
-        let a = axes[i];
-        x += a.sx(pt[i]);
-        y += a.sy(pt[i]);
+      for (let axis of axes) {
+        if (!axis.disabled) {
+          x += axis.sx(pt[axis.col]);
+          y += axis.sy(pt[axis.col]);
+        }
       }
       pt.x = x;
       pt.y = y;
@@ -228,6 +236,7 @@ export default function Panel() {
           max,
           theta,
           len,
+          col: axis.get('col'),
           model: axis,
           sx: d3.scaleLinear()
             .domain([0, max])
