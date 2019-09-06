@@ -100,7 +100,7 @@ class AttrFilter(UIFilter, HBox):
     def __init__(self, attr, *args, **kwargs):
         self.label = Label()
         if 'func' not in kwargs:
-            kwargs['func'] = lambda x,v: v < x
+            kwargs['func'] = lambda x,v: v <= x
         super().__init__(attr=attr, *args, **kwargs)
         self.__name__ = attr
         self.children = [self.label, self.ui]
