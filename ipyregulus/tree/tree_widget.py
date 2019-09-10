@@ -68,7 +68,8 @@ class TreeWidget(HasTree, RegulusWidget):
             'lvl': node.data.persistence if len(node.children) > 0 else 0,
             'size': node.data.size(),
             'internal_size': node.data.internal_size(),
-            'offset': node.offset
+            'offset': node.offset,
+            'base': node.data.base
             }
 
     def _select(self, node):

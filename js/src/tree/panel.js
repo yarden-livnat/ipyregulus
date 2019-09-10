@@ -121,10 +121,10 @@ export default function Panel() {
     d3nodes.enter()
     .append('rect')
       .attr('class', 'node')
+      // .on('mouseover.highlight', on_highlight)
+      // .on('mouseout.highlight', on_highlight)
       .on('mouseenter.tip', show_tip)
       .on('mouseleave.tip', hide_tip)
-      // .on('mouseenter.hover', d => on_hover(d, true))
-      // .on('mouseleave.hover', d => on_hover(d, false))
       .on('click', ensure_single(on_details))
       .on('dblclick', on_select)
     .merge(d3nodes)
@@ -141,44 +141,45 @@ export default function Panel() {
     d3nodes.exit().remove();
   }
 
+  let tip_timer = null;
+
   function show_tip() {
+    if (tip_timer) {
+      clearTimeout(tip_timer);
+      tip_timer = null;
+    }
     node_tip.show.apply(this, arguments);
     d3.select(this).on('mousemove', update_tip)
   }
 
   function hide_tip() {
-    node_tip.hide.apply(this, arguments);
+    tip_timer = setTimeout( remove_tip, 50, this, arguments);
     d3.select(this).on('mousemove', null);
+  }
+
+  function remove_tip(self, args) {
+      tip_timer = null;
+      node_tip.hide.apply(self, args);
   }
 
   function update_tip() {
     node_tip.show.apply(this, arguments);
   }
 
-  // function on_hover(d, on) {
-  //   if (on) {
-  //     node_tip.show();
-  //   } else {
-  //     node_tip().hide()
-  //   }
-  //   dispatch.call('highlight',this, on ? d.id : -2);
-  // }
-
   function on_select(d) {
-      // d.selected = !d.selected;
-
-      // render_names();
-      dispatch.call('select', this, d.id, !selected.has(d.id));
-    }
-
-  function on_details(d) {
-    // d.details = !d.details;
-    dispatch.call('details', this, d.id, !detailed.has(d.id));
-    // if (d.details) on_select(d);
+    dispatch.call('select', this, d.id, !selected.has(d.id));
   }
 
-  function render_tip(d) {
+  function on_details(d) {
+    dispatch.call('details', this, d.id, !detailed.has(d.id));
+  }
 
+  function on_highlight(d) {
+    if (d.id === highlighted)
+      highlighted = -1;
+    else
+      highlighted = d.id;
+    dispatch.call('highlight', this, highlighted);
   }
 
   return {
