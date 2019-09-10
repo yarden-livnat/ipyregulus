@@ -20,16 +20,16 @@ class BaseTreeView(HasTree, RegulusDOMWidget):
 
     changed = Int(0)
     title = Unicode('').tag(sync=True)
-    attrs = Dict({}).tag(sync=True)
+    attrs = Dict(default_value={}).tag(sync=True)
     attr = Unicode('').tag(sync=True)
     show_attr = Bool(True).tag(sync=True)
-    show = Set(None, allow_none=True).tag(sync=True)
+    show = Set(Int(), None, allow_none=True).tag(sync=True)
     highlight = Int(-2).tag(sync=True)
     selected = List().tag(sync=True, from_json=from_json)
-    details = List([]).tag(sync=True)
-    range = Tuple((0,1)).tag(sync=True)
-    x = Tuple((0,1)).tag(sync=True)
-    y = Tuple((0,1)).tag(sync=True)
+    details = List(Int(), []).tag(sync=True)
+    range = Tuple((0, 1)).tag(sync=True)
+    x = Tuple((0, 1)).tag(sync=True)
+    y = Tuple((0, 1)).tag(sync=True)
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
 
     def __init__(self, tree=None, attr='fitness', **kwargs):
@@ -43,11 +43,9 @@ class BaseTreeView(HasTree, RegulusDOMWidget):
         attr = proposal['value']
         if self.tree is None:
             return attr
-        # if attr in self.tree:
         self.ensure(attr)
         self.range = self.tree.attr[attr].properties['range'].value
         return attr
-        # raise TraitError('attr not in current tree')
 
     def set_show(self, node_ids):
         self.show = node_ids
