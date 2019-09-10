@@ -27,9 +27,9 @@ class GraphModel extends RegulusViewModel {
       _view_name: 'GraphView',
 
       axes: [],
-      color: '',
-      graph: {}
-
+      graph: [],
+      show: [],
+      color: ''
     };
   }
 
@@ -53,7 +53,9 @@ class GraphView extends DOMWidgetView {
 
      this.panel = Panel().el(d3.select(this.el));
      this.axes_changed();
+     this.panel.graph(this.model.get('graph'));
      this.panel.color(this.model.get('color'));
+     this.panel.show(this.model.get('show'));
      //this.panel.redraw();
   }
 
@@ -82,18 +84,24 @@ class GraphView extends DOMWidgetView {
           this.panel.color(this.model.get('color'));
           break;
         case 'graph':
-          let g = this.model.get('graph');
-          let map = new Map();
-          for (let p of g.pts) {
-            map.set(p.id, p)
-          }
-          let partitions:[any] = g.partitions;
-          for (let partition of partitions) {
-            partition.min = map.get(partition.min_idx);
-            partition.max = map.get(partition.max_idx);
-          }
-          this.panel.graph(g);
+          this.panel.graph(this.model.get('graph'));
           break;
+        case 'show':
+          this.panel.show(this.model.get('show'));
+          break;
+        // case 'graph':
+        //   let g = this.model.get('graph');
+        //   let map = new Map();
+        //   for (let p of g.pts) {
+        //     map.set(p.id, p)
+        //   }
+        //   let partitions:[any] = g.partitions;
+        //   for (let partition of partitions) {
+        //     partition.min = map.get(partition.min_idx);
+        //     partition.max = map.get(partition.max_idx);
+        //   }
+        //   this.panel.graph(g);
+        //   break;
         default:
           break;
       }

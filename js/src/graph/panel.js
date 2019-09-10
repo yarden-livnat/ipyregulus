@@ -12,13 +12,30 @@ export default function Panel() {
   let root = null;
   let svg = null;
 
-  let r = 5;
+  let node_r = 5;
+  let pt_r = 2;
+
   let axes = [];
-  let graph = {pts:[], partitions:[]};
+  let pts = [];
+  let partitions = [];
+  let active_partitions = [];
+  let active_pts = [];
+  let active_nodes = [];
+  let show = new Set();
+  let nodes_set = new Set();
+  let pts_set = new Set();
+
+  let graph_invalid = false;
   let pts_invalid = false;
+  let nodes_invalid = false;
+  let colors_invalid = false;
+  let active_invalid = false;
 
   let color = '';
   let colorScale = d3.scaleSequential(chromatic['interpolate' + DEFAULT_CMAP]);
+
+  let partition_width_scale = d3.scaleLinear().domain([0, 1]).range([0.5, 8]);
+  let partition_color = d3.scaleSequential(chromatic['interpolate' + DEFAULT_CMAP]).domain([1, 0]);
 
    let defs = [
       {id: 'arrowhead-start', path: "M10,-5L0,0L10,5", box: "0 -5 10 10", color: '#aaa', refx: 0, refy: 0 },
@@ -67,7 +84,7 @@ export default function Panel() {
       d.model.save_changes();
     }, 0);
 
-    project();
+    nodes_invalid = pts_invalid = true;
     render();
   }
 
@@ -81,11 +98,69 @@ export default function Panel() {
     }, 0);
   }
 
-  function project() {
-    let v;
-    if (!graph || !graph.pts || !axes ) return;
+  function invalidate_graph() {
+    graph_invalid = true;
+    active_invalid = true;
+  }
 
-    for (let pt of graph.pts) {
+
+  function invalidate_pts() {
+    pts_invalid = true;
+  }
+
+  function invalidate_show() {
+    active_invalid = true;
+  }
+
+  function validate() {
+    if (graph_invalid)  update_graph();
+    if (active_invalid) update_active();
+    if (nodes_invalid) {
+      project(active_nodes);
+      nodes_invalid = false;
+    }
+    if (pts_invalid)  {
+      project(active_pts);
+      pts_invalid = false;
+    }
+    if (colors_invalid) update_colors()
+  }
+
+  function update_graph() {
+    for (let p of partitions) {
+      p.min = pts[p.min_idx];
+      p.max = pts[p.max_idx];
+    }
+    graph_invalid = false;
+  }
+
+  function update_active() {
+    active_partitions = partitions.filter(p => show.has(p.pid));
+    nodes_set = new Set();
+    pts_set = new Set();
+
+    for (let p of active_partitions) {
+      nodes_set.add(p.min_idx);
+      nodes_set.add(p.max_idx);
+
+      for (let i of p.index) {
+        pts_set.add(i)
+      }
+    }
+
+    active_nodes = [];
+    for (let idx of nodes_set.values())
+      active_nodes.push(pts[idx]);
+
+    nodes_invalid = pts_invalid = colors_invalid = true;
+    active_invalid = false;
+  }
+
+
+
+  function project(active) {
+    let v;
+    for (let pt of active) {
       let x = 0, y = 0;
       for (let axis of axes) {
         if (!axis.disabled) {
@@ -101,22 +176,24 @@ export default function Panel() {
   }
 
   function update_colors() {
-    let axis = axes.find( a => a.label === color);
+    let axis = axes.find(a => a.label === color);
     if (axis) {
       colorScale.domain([axis.max, 0]);
-      for (let p of graph.pts) {
+      for (let p of active_pts) {
+        p.color = colorScale(p.values[axis.col])
+      }
+      for (let p of active_nodes) {
         p.color = colorScale(p.values[axis.col])
       }
     }
+    colors_invalid = false;
   }
 
   function render() {
     render_axes();
-    if (!graph || !graph.pts) return;
-    if (pts_invalid)
-      project();
-     render_pts();
-     render_partitions();
+    validate();
+    render_partitions();
+    render_pts();
   }
 
   function render_axes() {
@@ -157,34 +234,48 @@ export default function Panel() {
   }
 
   function render_partitions() {
-    let p = svg.select('.partitions').selectAll('.partition').data(graph.partitions, d => d.pid);
+    let p = svg.select('.partitions').selectAll('.partition').data(active_partitions, d => d.pid);
     p.enter()
       .append('line')
         .attr('class', 'partition')
-        .attr("marker-end", "url(#arrowhead-end)")
+        // .attr("marker-end", "url(#arrowhead-end)")
       .merge(p)
-        .each(d => {
-          d.dx = d.max.x - d.min.x;
-          d.dy = d.max.y - d.min.y;
-          let l = Math.sqrt(d.dx*d.dx + d.dy*d.dy);
-          d.f = (l-2*r)/l;
-          })
+        // .each(d => {
+        //   d.dx = d.max.x - d.min.x;
+        //   d.dy = d.max.y - d.min.y;
+        //   let l = Math.sqrt(d.dx*d.dx + d.dy*d.dy);
+        //   d.f = (l-2*r)/l;
+        //   })
         .attr('x1', d => d.min.x)
         .attr('y1', d => d.min.y)
-        .attr('x2', d => d.min.x + d.f * d.dx)
-        .attr('y2', d => d.min.y + d.f * d.dy)
-        .attr('stroke', 'gray')
-        .attr('stroke-width', '1px');
+        .attr('x2', d => d.max.x)
+        .attr('y2', d => d.max.y)
+        // .attr('x2', d => d.min.x + d.f * d.dx)
+        // .attr('y2', d => d.min.y + d.f * d.dy)
+        .attr('stroke', d => partition_color(d.die - d.born))
+        .attr('stroke-width', d => `${partition_width_scale(d.die - d.born)}px`);
     p.exit().remove();
 
-  }
-
-  function render_pts() {
-    let p = svg.select('.pts').selectAll('.pt').data(graph.pts, d => d.id);
+    p = svg.select('.partitions').selectAll('.pt').data(active_nodes, d => d.id);
     p.enter()
       .append('circle')
       .attr('class', 'pt')
-      .attr('r', r)
+      .attr('r', node_r)
+      .merge(p)
+        .attr('cx', d => d.x)
+        .attr('cy', d => d.y)
+        .style('fill', d => d.color)
+    ;
+
+    p.exit().remove();
+  }
+
+  function render_pts() {
+    let p = svg.select('.pts').selectAll('.pt').data(active_pts, d => d.id);
+    p.enter()
+      .append('circle')
+      .attr('class', 'pt')
+      .attr('r', pt_r)
       .merge(p)
         .attr('cx', d => d.x)
         .attr('cy', d => d.y)
@@ -285,7 +376,7 @@ export default function Panel() {
             .range([0, len * Math.sin(theta)]),
         };
       });
-      pts_invalid = true;
+      nodes_invalid = pts_invalid = true;
       return this;
     },
 
@@ -300,22 +391,28 @@ export default function Panel() {
         axis.sx.domain([0, axis.max]).range([0, axis.len * Math.cos(axis.theta)]);
         axis.sy.domain([0, axis.max]).range([0, axis.len * Math.sin(axis.theta)]);
       }
-      update_colors();
-      pts_invalid = true;
+      nodes_invalid = pts_invalid = true;
       render();
       return this;
     },
 
-    graph(_) {
-      graph = _;
-      update_colors();
-      pts_invalid = true;
+    graph(g) {
+      pts = g.pts;
+      partitions = g.partitions;
+      invalidate_graph();
       return this;
     },
 
+    show(_) {
+      show = new Set(_);
+      invalidate_show();
+      return this;
+    },
+
+
     color(_) {
       color = _;
-      update_colors();
+      colors_invalid = true;
       return this;
     },
 

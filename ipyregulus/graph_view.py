@@ -16,11 +16,11 @@ class GraphView(RegulusDOMWidget):
     axes = TypedTuple(trait=AxisTraitType()).tag(sync=True, **widget_serialization)
     color = Unicode().tag(sync=True)
     graph = Dict().tag(sync=True)
-
-    show = List(Int())
+    show = List(Int()).tag(sync=True)
 
     def __init__(self, tree=None, **kwargs):
         super().__init__(**kwargs)
+        self._dataset = None
         self._tree = None
         self.tree = tree
 
@@ -31,47 +31,36 @@ class GraphView(RegulusDOMWidget):
     @tree.setter
     def tree(self, tree):
         self._tree = tree
-        if tree is not None:
-            regulus = tree.regulus
-            nx = len(list(regulus.pts.x))
-            cy = list(regulus.pts.values).index(regulus.measure)
-            self.axes = utils.create_axes(regulus.pts.x, cols=range(nx)) + utils.create_axes(regulus.y, cols=[nx+cy])
-        else:
+        if tree is None:
             self.axes = []
-
-    @observe('show')
-    def _show(self, change):
-        items = change['new']
-        if self.tree is not None and len(items) > 0:
-            data = self.tree.regulus
-            partitions = []
-            pts_idx = set()
-            for node in self.tree:
-                if node.data.id in items:
-                    p = node.data
-                    min_idx, max_idx = p.minmax_idx
-                    partitions.append(dict(
-                        pid=p.id,
-                        born=p.persistence,
-                        die=node.parent.data.persistence,
-                        size=p.size(),
-                        min_idx=min_idx,
-                        max_idx=max_idx
-                    ))
-                    pts_idx.add(min_idx)
-                    pts_idx.add(max_idx)
-
-            pts = pd.merge(left=data.pts.x.loc[pts_idx],
-                           right=data.pts.values.loc[pts_idx],
-                           left_index=True,
-                           right_index=True)
+            self.graph = dict(pts=[], partitions=[])
+            self._data = None
+        elif tree.regulus != self._dataset:
+            dataset = self._dataset = tree.regulus
+            nx = len(list(dataset.x))
+            cy = list(dataset.pts.values).index(dataset.measure)
+            self.axes = utils.create_axes(dataset.x, cols=range(nx)) + utils.create_axes(dataset.y, cols=[nx+cy])
+            pts = dataset.pts_with_values
             pts = [dict(id=i, values=list(v)) for i, v in zip(pts.index, pts.values)]
+            partitions = self._get_partitions()
+            self.graph = dict(pts=pts, partitions=partitions)
         else:
-            pts = []
-            partitions = []
-        self.graph = dict(pts=pts, partitions=partitions)
+            pass # pts and partitions are already set
 
-
-
-
-
+    def _get_partitions(self):
+        partitions = []
+        if self._tree is not None:
+            for node in self.tree:
+                p = node.data
+                min_idx, max_idx = p.minmax_idx
+                partitions.append(dict(
+                    pid=p.id,
+                    born=p.persistence,
+                    die=node.parent.data.persistence,
+                    size=p.size(),
+                    min_idx=min_idx,
+                    max_idx=max_idx,
+                    index=p.idx,
+                    base=p.base
+                ))
+        return partitions
