@@ -7,6 +7,7 @@ import {
 
 import Plot from './plot';
 import './panel.css';
+import row_header_template from './row_header.html';
 
 // let DEFAULT_WIDTH = 800;
 // let DEFAULT_HEIGHT = 500;
@@ -179,9 +180,12 @@ export default function Panel(ctrl) {
   }
 
   function render() {
+    let t0 = performance.now();
     render_cols();
     render_rows();
     render_plots();
+    let t1 = performance.now();
+    console.log(`details rendering: ${t1-t0} msec`);
   }
 
   function render_cols() {
@@ -200,17 +204,27 @@ export default function Panel(ctrl) {
 
   function render_rows() {
       let d3rows = root.select('.rg_left').selectAll('.rg_row_header').data(rows, d => d.id);
-      d3rows.enter()
+      let enter = d3rows.enter()
         .append('div')
         .classed('rg_row_header', true)
         .on('click', on_select)
         .on('mouseenter', on_enter)
         .on('mouseleave', on_leave)
         .style('opacity', 0)
-      .merge(d3rows)
-        .html(d => d.id)
+        .html(row_header_template);
+
+      let merge = enter.merge(d3rows);
+
+      merge
         .classed('highlight', d => d.id == highlighted)
         .transition().duration(DURATION).style('opacity', 1);
+
+      merge.select('.id')
+        .html(d => d.id);
+
+      // merge.select('.parent')
+      //   .html(d => d.parent);
+
 
       d3rows.exit()
         // .transition().duration(DURATION)
@@ -232,7 +246,7 @@ export default function Panel(ctrl) {
 
       list.transition().duration(DURATION)
         // .style('top', d => `${d.row*(PLOT_HEIGHT + 2*PLOT_BORDER + PLOT_GAP)}px`)
-        .style('opacity', 1)
+        .style('opacity', 1);
 
       d3plots.exit()
         // .transition().duration(DURATION)

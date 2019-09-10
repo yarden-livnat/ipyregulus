@@ -4,3 +4,29 @@
     background-color: lightgreen;
     display: inline-block; 
 }
+
+.rg_row_header {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+}
+
+.label {
+    font-weight: bold;
+    font-size: 9pt;
+}
+
+.id {
+
+}
+
+.parent {
+
+}
+
+.children {
+
+}
+
+.child {
+    display: inline-block;
+}
