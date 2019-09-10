@@ -1,0 +1,14 @@
+{
+  "title": "iPyRegulus",
+  "description": "Regulus widgets settings.",
+  "additionalProperties": false,
+  "properties": {
+    "saveState": {
+      "type": "boolean",
+      "title": "Save ipyregulus widget state in notebooks",
+      "description": "Automatically save Jupyter widget state when a notebook is saved.",
+      "default": false
+    }
+  },
+  "type": "object"
+}

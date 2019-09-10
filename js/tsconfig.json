@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+       "outDir": "lib",
+      "rootDir": "src",
+      "types" : ["node"],
+
+      "declaration": true,
+      "esModuleInterop": true,
+      "incremental": true,
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "noEmitOnError": true,
+      "noImplicitAny": false,
+      "noUnusedLocals": false,
+      "preserveWatchOutput": true,
+      "resolveJsonModule": true,
+      "target": "es2017",
+
+
+      "skipLibCheck": true,
+      "sourceMap": true,
+
+    },
+    "include": ["src/**/*"]
+}

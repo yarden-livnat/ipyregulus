@@ -1,26 +1,28 @@
 {
   "name": "@regulus/ipyregulus",
-  "version": "0.7.0",
+  "version": "0.8.4",
   "description": "Regulus widgets for JupyterLab",
   "author": "Yarden Livnat",
-  "main": "src/plugin.ts",
-  "types": "lib/labext.d.ts",
+  "main": "lib/labext",
+  "typings": "lib/index.d.ts",
   "keywords": [
     "jupyter",
     "widgets"
   ],
   "jupyterlab": {
-    "extension": "lib/labext"
+    "extension": true,
+    "schemaDir": "schema"
   },
   "files": [
-    "lib/**/*.{d.ts,js,css,scss,html}"
+    "lib/**/*.{d.ts,js,css,scss,html}",
+    "schema/*.json"
   ],
   "scripts": {
-    "clean": "rimraf lib",
-    "build:lib": "webpack -d",
+    "clean": "rimraf docs && rimraf lib && rimraf tsconfig.tsbuildinfo",
+    "build:lib": "webpack -p",
     "build:labextension": "cd ../ipyregulus && rimraf labextension && mkdir labextension&& cd labextension && npm pack ../../js",
-    "foo" : "rimraf dist && mkdirp dist && cd dist && npm pack ..",
-    "build": "npm run build:lib && npm run build:labextension",
+    "build": "npm run build:lib",
+    "prepare": "npm run clean && npm run build",
     "watch": "webpack -d --watch"
   },
   "devDependencies": {

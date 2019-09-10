@@ -14,9 +14,6 @@ module.exports =  {
   },
   mode: 'development',
   devtool: 'source-map',
-  // node: {
-  //    fs: 'empty',
-  //  },
   module: {
     rules: [
       { test: /\.ts$/, loader: 'ts-loader', exclude: /node_modules/ },
@@ -44,7 +41,4 @@ module.exports =  {
    '@jupyter-widgets/base',
     'jupyter-scales', 'jupyter-datawidgets', 'jupyter-dataserializers'
   ]
-  // externals: [nodeExternals(
-  //   whitelist=['/^d3/']
-  // )]
 };
