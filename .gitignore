@@ -41,5 +41,7 @@ data/
 *.sqlite
 *.hdf5
 
+*.regulus
+
 
 __pycache__
