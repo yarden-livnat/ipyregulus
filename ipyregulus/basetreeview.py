@@ -33,10 +33,21 @@ class BaseTreeView(HasTree, RegulusDOMWidget):
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
 
     def __init__(self, tree=None, attr='fitness', **kwargs):
+        super().__init__(None, **kwargs)
+        self.tree = tree
+        self.attr = attr
+
+    @HasTree.tree.getter
+    def tree(self):
+        return self._tree
+
+    @tree.setter
+    def tree(self, tree):
         if tree is not None and not isinstance(tree, TreeWidget):
             tree = TreeWidget(tree)
-        super().__init__(tree, **kwargs)
-        self.attr = attr
+        HasTree.tree.fset(self, tree)
+        if self.attr is not None:
+            self.attr = self.attr
 
     @validate('attr')
     def _valid_attr(self, proposal):

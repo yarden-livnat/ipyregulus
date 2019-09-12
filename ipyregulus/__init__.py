@@ -9,8 +9,6 @@ from .data_widget import *
 from .basetreeview import BaseTreeView
 from .tree_view import TreeView
 from .details_view import DetailsView
-
 from .projection_widget import ProjectionWidget
 from .projection_view import ProjectionView
-
 from .graph_view import GraphView
