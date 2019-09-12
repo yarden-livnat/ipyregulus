@@ -28,7 +28,7 @@ class TreeViewModel extends RegulusViewModel {
       show_attr: true,
       attrs: {},
       show: null,
-      hightlight: null,
+      highlight: null,
       selected: new Set(),
       details: [],
       range: [],
