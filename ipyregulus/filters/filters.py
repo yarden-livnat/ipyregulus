@@ -52,9 +52,6 @@ class BaseUIFilter(Filter):
     def value(self, value):
         self.ui.value = value
 
-    # def _ipython_display_(self, **kwargs):
-    #     display(self.ui)
-
 
 class UIFilter(BaseUIFilter):
 
