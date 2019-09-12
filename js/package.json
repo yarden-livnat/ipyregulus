@@ -1,6 +1,6 @@
 {
   "name": "@regulus/ipyregulus",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "description": "Regulus widgets for JupyterLab",
   "author": "Yarden Livnat",
   "main": "lib/labext",
