@@ -10,7 +10,9 @@ examples/3-details.ipynb
 examples/4-reduce.ipynb
 examples/5-projection.ipynb
 examples/6-graph.ipynb
+examples/7-attach.ipynb
 examples/gauss4.csv
+examples/gauss4.regulus
 ipyregulus/__init__.py
 ipyregulus/_version.py
 ipyregulus/axesctrl.py
