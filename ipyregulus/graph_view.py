@@ -2,6 +2,7 @@ import pandas as pd
 from traitlets import Dict, Int, List, Unicode, observe, validate, TraitError
 from ipywidgets import register, widget_serialization
 
+from regulus import HasTree
 from .core.axis import  AxisTraitType
 from .core.trait_types import TypedTuple
 from .core.base import RegulusDOMWidget
@@ -9,7 +10,7 @@ import ipyregulus.utils as utils
 
 
 @register
-class GraphView(RegulusDOMWidget):
+class GraphView(HasTree, RegulusDOMWidget):
     _model_name = Unicode('GraphModel').tag(sync=True)
     _view_name = Unicode('GraphView').tag(sync=True)
 
@@ -24,28 +25,36 @@ class GraphView(RegulusDOMWidget):
         self._tree = None
         self.tree = tree
 
-    @property
-    def tree(self):
-        return self._tree
+    # @HasTree.tree.getter
+    # def tree(self):
+    #     return self._tree
+    #
+    # @tree.setter
+    # def tree(self, tree):
+    #     if tree is None:
+    #         self.axes = []
+    #         self.graph = dict(pts=[], partitions=[])
+    #         self._data = None
+    #     elif isinstance(tree, HasTree):
 
-    @tree.setter
-    def tree(self, tree):
-        self._tree = tree
+    def update(self, tree):
+        super().update(tree)
         if tree is None:
             self.axes = []
             self.graph = dict(pts=[], partitions=[])
-            self._data = None
-        elif tree.regulus != self._dataset:
-            dataset = self._dataset = tree.regulus
+            self._dataset = None
+            return
+        elif self._tree.regulus != self._dataset:
+            dataset = self._dataset = self._tree.regulus
             nx = len(list(dataset.x))
             cy = list(dataset.pts.values).index(dataset.measure)
             self.axes = utils.create_axes(dataset.x, cols=range(nx)) + utils.create_axes(dataset.y, cols=[nx+cy])
             pts = dataset.pts_with_values
             pts = [dict(id=i, values=list(v)) for i, v in zip(pts.index, pts.values)]
-            partitions = self._get_partitions()
-            self.graph = dict(pts=pts, partitions=partitions)
         else:
-            pass # pts and partitions are already set
+            pts = self.graph.get('pts', None)
+        partitions = self._get_partitions()
+        self.graph = dict(pts=pts, partitions=partitions)
 
     def _get_partitions(self):
         partitions = []
