@@ -46,7 +46,7 @@ class BaseTreeView(HasTree, RegulusDOMWidget):
         if tree is not None and not isinstance(tree, TreeWidget):
             tree = TreeWidget(tree)
         HasTree.tree.fset(self, tree)
-        if self.attr is not None:
+        if self.attr is not None and self.attr != '':
             self.attr = self.attr
 
     @validate('attr')
