@@ -99,6 +99,10 @@ export default function Panel(ctrl) {
     render();
   }
 
+  function reverse(pair) {
+    return [pair[1], pair[0]];
+  }
+
   function update_measure() {
     let name = measure_name;
     if (name == null && data != null)
@@ -110,7 +114,7 @@ export default function Panel(ctrl) {
       measure_idx = attrs_idx.indexOf(current_measure);
 
       color_idx = measure_idx;
-      colorScale.domain(attrs_extent[color_idx]);
+      colorScale.domain(reverse(attrs_extent[color_idx]));
     } else {
       measure_idx = null;
       color_idx = null;

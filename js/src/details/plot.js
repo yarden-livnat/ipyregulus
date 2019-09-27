@@ -2,7 +2,7 @@ import * as d3 from 'd3';
 
 
 export default function Plot() {
-  let margin = {top: 2, right: 2, bottom: 2, left: 2}
+  let margin = {top: 2, right: 2, bottom: 2, left: 2};
   let pt_size = 2;
   let canvas_draw_circles = false;
 
