@@ -24,7 +24,6 @@ class DataWidget(RegulusWidget):
     attrs_extent = List().tag(sync=True)
     partitions = List().tag(sync=True)
     measure = Unicode().tag(sync=True)
-    # scaler = Dict().tag(sync=True)
 
     _data = None
 
@@ -60,17 +59,12 @@ class DataWidget(RegulusWidget):
                     'pts_span': p.pts_span,
                     'minmax_idx': p.minmax_idx,
                     'max_merge': p.max_merge,
+                    'extrema': p.extrema,
                     'x': None,
                     'y': None
                 }
                 for p in regulus.partitions()
             ]
-            # self.scaler = {
-            #     "scale": regulus.scaler.scale_.tolist(),
-            #     "mean": regulus.scaler.mean_.tolist(),
-            #     "var": regulus.scaler.var_.tolist(),
-            #     "n": regulus.scaler.n_samples_seen_
-            # }
         else:
             self.measure = ''
             self.pts = []

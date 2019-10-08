@@ -8,9 +8,6 @@ export {
   DetailsModel, DetailsView
 } from './details';
 
-export {
-  ProjectionOldModel, ProjectionOldView
-} from './projection_old';
 
 export {
   ProjectionModel, ProjectionView

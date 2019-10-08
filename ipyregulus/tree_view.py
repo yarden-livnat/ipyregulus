@@ -4,10 +4,8 @@ from traitlets import Bool, Dict, HasTraits, Instance, Int, List, Tuple, Unicode
 from ipywidgets import HBox, VBox, IntRangeSlider, FloatRangeSlider
 import ipywidgets as widgets
 
-from regulus import HasTree
 from . import BaseTreeView
 from .filters import AttrFilter, Trigger, GroupUIFilter
-from .tree import TreeWidget
 
 
 class TreeView(VBox):

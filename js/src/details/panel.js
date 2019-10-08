@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import * as chromatic from 'd3-scale-chromatic';
+import {inverseMultipleRegression, averageStd, multipleRegression, linspace, fun as kernel, subLinearSpace} from './regression';
 
 import {
   Partition
@@ -45,6 +46,7 @@ export default function Panel(ctrl) {
   let show = [];
   let filtered = [];
   let highlighted = -2;
+  let inverse = new Map();
 
   let initial_cmap = 'RdYlBu';
   let colorScale = d3.scaleSequential(chromatic['interpolate' + initial_cmap]);
@@ -66,6 +68,7 @@ export default function Panel(ctrl) {
     model.on('change:measure', measure_changed);
     model.on('change:show', show_changed);
     model.on('change:highlight', highlight_changed);
+    model.on('change:inverse', inverse_changed);
     measure_changed();
     model_changed();
     show_changed();
@@ -88,7 +91,9 @@ export default function Panel(ctrl) {
   }
 
   function show_changed() {
+    console.log('show changed');
     show = model.get('show');
+    // update_inverse();
     update_rows();
     update_plots();
     render();
@@ -98,6 +103,24 @@ export default function Panel(ctrl) {
     highlighted = model.get('highlight');
     render();
   }
+
+  function inverse_changed() {
+    let new_lines = model.get('inverse');
+    if (!new_lines) return;
+
+    for (let [pid, line] of Object.entries(new_lines)) {
+      inverse.set(parseInt(pid), line);
+    }
+    update_plots();
+    render();
+  }
+
+  // function curves_changed() {
+  //   console.log('curves changed');
+  //   inv_lines = model.get('curves');
+  //   update_plots();
+  //   render();
+  // }
 
   function reverse(pair) {
     return [pair[1], pair[0]];
@@ -143,6 +166,7 @@ export default function Panel(ctrl) {
       attrs_extent = [];
       partitions = new Map();
     }
+    inverse = new Map();
   }
 
   function update_cols() {
@@ -153,6 +177,50 @@ export default function Panel(ctrl) {
   function update_rows() {
     rows = show.sort((a,b) => a -b).map((r, i) => ({idx: i, id: r}));
     root.select('.rg_right_scroll').style('height', `${rows.length*(PLOT_HEIGHT + 2*PLOT_BORDER + PLOT_GAP) - PLOT_GAP}px`);
+  }
+
+  const bandwidth_factor = 0.05;
+
+  function get_pt(idx) {
+    let pt = [];
+    let n = pts.shape[1];
+    for (let i=0; i<n; i++) {
+      pt.push(pts.get(idx, i));
+    }
+    return pt;
+  }
+
+  function update_inverse() {
+    for (let pid of show) {
+      if (!inverse.has(pid)) {
+        let t0 = performance.now();
+        let partition = partitions.get(pid);
+        let x = partition.index.map(idx => get_pt(idx));
+        let y = partition.index.map(idx => attrs.get(idx, measure_idx));
+        let extent = attrs_extent[measure_idx];
+        let bandwidth = bandwidth_factor * [extent[1] - extent[0]];
+
+        let curve = inverseMultipleRegression(x, y, kernel.gaussian, bandwidth);
+        let stddev = averageStd(x, y, kernel.gaussian, bandwidth);
+
+        let minmax_idx = partition.data.minmax_idx;
+        let minmax = [attrs.get(minmax_idx[0], measure_idx), attrs.get(minmax_idx[1], measure_idx)];
+        // let py = subLinearSpace(minmax, extent, 100);
+        let py = linspace(minmax[0], minmax[1], 40);
+        let px = curve(py);
+        let std = stddev(py, px);
+
+        let line = [];
+        for (let i = 0; i < py.length; i++) {
+          line.push({x: px[i], y: py[i], std: std[i]});
+        }
+
+        inverse.set(pid, line);
+
+        let t1 = performance.now();
+        console.log(`partition ${pid}: compute inverse in ${t1-t0} msec`);
+      }
+    }
   }
 
   function update_plots() {
@@ -171,12 +239,13 @@ export default function Panel(ctrl) {
            y_extent: attrs_extent[measure_idx],
            x: pts,
            y: attrs,
-           pts_idx: partition.index(),
+           pts_idx: partition.index,
            x_dim: col.idx,
            y_dim: measure_idx,
            c_dim: color_idx,
            filtered: filtered,
-           color: colorScale
+           color: colorScale,
+           inverse: inverse.get(row.id)
          };
          plots.push(p);
       }

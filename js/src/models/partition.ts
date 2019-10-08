@@ -41,13 +41,14 @@ class Partition {
   //   return this._pts;
   // }
 
-  index() {
+  get index() {
+    if (!this._index) {
       let [from, to] = this.data.pts_span;
-      let idx:number[] = [];
-      for (let i=from; i<to; i++) idx.push(this.loc[i]);
-      idx.push(this.data.minmax_idx[0]);
-      idx.push(this.data.minmax_idx[1]);
-      return idx;
+      let idx: number[] = [].concat(this.data.extrema);
+      for (let i = from; i < to; i++) idx.push(this.loc[i]);
+      this._index = idx;
+    }
+    return this._index;
   }
 
   reset() {
@@ -55,9 +56,11 @@ class Partition {
   }
 
   _pts:number[][] | null = null;
+  _index:number[] | null = null;
 
   id: number;
   persistence: number;
   loc: number[];
   data: any;
+
 }

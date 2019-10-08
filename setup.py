@@ -65,7 +65,7 @@ install_requires = setuptools_args['install_requires'] = [
     'traitlets>4.3.0',
     'traittypes',
     'pandas',
-    'regulus>=0.8.0'
+    'regulus>=0.8.1'
 ]
 
 extras_require = setuptools_args['extras_require'] = {

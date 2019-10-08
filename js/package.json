@@ -19,9 +19,7 @@
   ],
   "scripts": {
     "clean": "rimraf docs && rimraf lib && rimraf tsconfig.tsbuildinfo",
-    "build:lib": "webpack -p",
-    "build:labextension": "cd ../ipyregulus && rimraf labextension && mkdir labextension&& cd labextension && npm pack ../../js",
-    "build": "npm run build:lib",
+    "build": "webpack -d",
     "prepare": "npm run clean && npm run build",
     "watch": "webpack -d --watch"
   },
@@ -51,8 +49,11 @@
     "jupyter-dataserializers": "^2.1.0",
     "jupyter-datawidgets": "^5.2.0",
     "jupyter-scales": "^3.0.0",
+    "kernel-smooth": "^0.2.3",
     "ndarray": "^1.0.18",
     "raw-loader": "^3.0.0",
-    "style-loader": "^0.23.1"
+    "style-loader": "^0.23.1",
+    "validate.io-array": "^1.0.6",
+    "validate.io-function": "^1.0.2"
   }
 }

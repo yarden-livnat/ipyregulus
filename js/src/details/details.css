@@ -138,3 +138,23 @@
 .rg_plot_svg {
   position: absolute;
 }
+
+.rg_plot_line {
+  fill: none;
+  stroke: #666;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-opacity: 0.7;
+  stroke-width: 1px;
+}
+
+.rg_plot_area {
+  fill: #f0f0f0;
+  fill-opacity: 0.4;
+  stroke: gray;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-opacity: 0.3;
+  stroke-width: 1px;
+  z-index: 0;
+}

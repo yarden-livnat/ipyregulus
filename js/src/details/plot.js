@@ -10,42 +10,47 @@ export default function Plot() {
   let sx = d3.scaleLinear();
   let sy = d3.scaleLinear();
 
-  function render_canvas(selection) {
-    selection.each(function(d, i) {
-      sx.domain(d.x_extent).range([margin.left, d.width-margin.right]);
-      sy.domain(d.y_extent).range([d.height-margin.top, margin.bottom]);
+  function render(d, i) {
+    let root = d3.select(this);
+    sx.domain(d.x_extent).range([margin.left, d.width-margin.right]);
+    sy.domain(d.y_extent).range([d.height-margin.top, margin.bottom]);
+    render_canvas(root, d, i);
+    render_svg(root, d, i);
+    // selection.call(render_canvas);
+    // selection.call(render_svg);
+  }
 
-      let bg_ctx = d3.select(this).select('.rg_plot_canvas-bg').node().getContext('2d');
-      let fg_ctx = d3.select(this).select('.rg_plot_canvas-fg').node().getContext('2d');
+  function render_canvas(root, d, i) {
+    let bg_ctx = root.select('.rg_plot_canvas-bg').node().getContext('2d');
+    let fg_ctx = root.select('.rg_plot_canvas-fg').node().getContext('2d');
 
-      bg_ctx.save();
-      bg_ctx.fillStyle = 'white';
-      bg_ctx.strokeStyle = 'black';
-      bg_ctx.fillRect(0, 0, d.width, d.height);
-      // bg_ctx.strokeRect(0, 0,  d.width, d.height);
+    bg_ctx.save();
+    bg_ctx.fillStyle = 'white';
+    bg_ctx.strokeStyle = 'black';
+    bg_ctx.fillRect(0, 0, d.width, d.height);
+    // bg_ctx.strokeRect(0, 0,  d.width, d.height);
 
-      fg_ctx.save();
-      fg_ctx.clearRect(0, 0, d.width, d.height);
+    fg_ctx.save();
+    fg_ctx.clearRect(0, 0, d.width, d.height);
 
-      // let cctx = ctx.get(this);
-      // let tx = pt => cctx.sx(pt[cctx.name]);
-      // let ty = y.get(this);
-      //
-      bg_ctx.fillStyle = '#eee';
-      for (let idx of d.pts_idx) {
-        let px = sx(d.x.get(idx, d.x_dim));
-        let py = sy(d.y.get(idx, d.y_dim));
-        if (!d.filtered[idx]) {
-          fg_ctx.fillStyle = d.color(d.y.get(idx, d.c_dim));
-          draw_shape(fg_ctx, px, py, pt_size);
-        } else { //if (show_filtered === 'all' || show_filtered === cctx.name) {
-          draw_shape(bg_ctx, px, py, pt_size);
-        }
+    // let cctx = ctx.get(this);
+    // let tx = pt => cctx.sx(pt[cctx.name]);
+    // let ty = y.get(this);
+    //
+    bg_ctx.fillStyle = '#eee';
+    for (let idx of d.pts_idx) {
+      let px = sx(d.x.get(idx, d.x_dim));
+      let py = sy(d.y.get(idx, d.y_dim));
+      if (!d.filtered[idx]) {
+        fg_ctx.fillStyle = d.color(d.y.get(idx, d.c_dim));
+        draw_shape(fg_ctx, px, py, pt_size);
+      } else { //if (show_filtered === 'all' || show_filtered === cctx.name) {
+        draw_shape(bg_ctx, px, py, pt_size);
       }
+    }
 
-      bg_ctx.restore();
-      fg_ctx.restore();
-    });
+    bg_ctx.restore();
+    fg_ctx.restore();
   }
 
   function draw_shape(ctx, x, y, r) {
@@ -58,7 +63,26 @@ export default function Plot() {
     }
   }
 
-  let plot = {
+  function render_svg(root, d, i) {
+    if (!d.inverse) return;
+
+    let line = d3.line()
+      .x(p => sx(p.x[d.x_dim])).y(p => sy(p.y));
+
+    let area = d3.area()
+      .x0(p => sx(p.x[d.x_dim] - p.std[d.x_dim]/2))
+      .y0( p => sy(p.y))
+      .x1(p => sx(p.x[d.x_dim] + p.std[d.x_dim]/2))
+      .y1( p => sy(p.y));
+
+    let svg = root.select('svg');
+    svg.select('.rg_plot_line')
+      .attr('d', line(d.inverse));
+    svg.select('.rg_plot_area')
+      .attr('d', area(d.inverse));
+  }
+
+  return {
     create(selection) {
       selection.classed('rg_plot', true);
       selection.append('canvas')
@@ -75,8 +99,8 @@ export default function Plot() {
         .attr('class', 'rg_plot_svg')
         .attr('width', d => d.width)
         .attr('height', d => d.height)
-        .append('g')
-          .attr('transform', `translate(${margin.left},${margin.top})`);
+        .append('g');
+          // .attr('transform', `translate(${margin.left},${margin.top})`);
 
       svg.append('path').attr('class', 'rg_plot_area');
       svg.append('g').attr('class', 'rg_plot_pts');
@@ -87,15 +111,7 @@ export default function Plot() {
     },
 
     render(selection) {
-      selection.select('svg')
-        .each( function(d, i) {
-          let svg = d3.select(this);
-          // show regression curve and area
-      });
-
-      selection.call(render_canvas);
+      selection.each(render);
     }
   };
-
-  return plot;
 }

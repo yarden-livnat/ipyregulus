@@ -24,16 +24,17 @@ import template from './details.html';
 export
 class DetailsModel extends RegulusViewModel {
   defaults() {
-    return  {
+    return {
       ...super.defaults(),
-      _model_name: DetailsModel.model_name,
-      _view_name: DetailsModel.view_name,
+      _model_name: 'DetailsModel',
+      _view_name: 'DetailsView',
 
       title: '',
       data: null,
       measure: null,
       show: [],
-      highlight: -2
+      highlight: -2,
+      inverse: {}
     };
   }
 
@@ -42,9 +43,6 @@ class DetailsModel extends RegulusViewModel {
     data: {deserialize: unpack_models},
     tree_model: {deserialize: unpack_models},
   };
-
-  static model_name = 'DetailsModel';
-  static view_name = 'DetailsView';
 }
 
 
