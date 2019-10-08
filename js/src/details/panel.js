@@ -245,7 +245,7 @@ export default function Panel(ctrl) {
            c_dim: color_idx,
            filtered: filtered,
            color: colorScale,
-           inverse: inverse.get(row.id)
+           inverse: inverse.has(row.id) && inverse.get(row.id)[col.idx]
          };
          plots.push(p);
       }

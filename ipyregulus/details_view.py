@@ -6,6 +6,33 @@ from ipyregulus.core.base import RegulusDOMWidget
 from .data_widget import DataWidget
 from .tree import TreeWidget
 
+import numpy as np
+
+# def convert(v):
+#     if isinstance(v, dict):
+#         return {k: convert(v) for k, v in v.items()}
+#     if isinstance(v, (list, tuple)):
+#         return [convert(v) for v in v]
+#     if isinstance(v, np.ndarray):
+#         if v.ndim == 1:
+#             return {'buffer': memoryview(v),
+#                     'dtype': str(v.dtype),
+#                     'shape': v.shape}
+#         else:
+#             return v.tolist()
+#     return v
+
+
+def convert(data):
+    line = []
+    for col in data:
+        x = col['x']
+        y = col['y']
+        s = col['std']
+        l = [[x[i], y[i], s[i]] for i in range(len(x))]
+        line.append(l)
+    return line
+
 
 @register
 class DetailsView(RegulusDOMWidget):
@@ -47,11 +74,12 @@ class DetailsView(RegulusDOMWidget):
             msg = {}
             for node in r.find_nodes(pids):
                 line = r.attr['inverse_regression_scale'][node]
-                msg[node.id] = [{
-                    'x': [v for v in line['x'][i]],
-                    'y': line['y'][i],
-                    'std': [v for v in line['std'][i]]
-                 } for i in range(len(line['x']))]
+                msg[node.id] = convert(line)
+                # msg[node.id] = [{
+                #     'x': [v for v in line['x'][i]],
+                #     'y': line['y'][i],
+                #     'std': [v for v in line['std'][i]]
+                #  } for i in range(len(line['x']))]
                 self._inverse_cache.add(node.id)
             self.inverse = msg
             self.inverse = None
