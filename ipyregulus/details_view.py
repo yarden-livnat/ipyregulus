@@ -1,3 +1,4 @@
+from time import time
 from traitlets import Instance, Int, List, Dict, Unicode, observe
 from ipywidgets import register, widget_serialization
 
@@ -51,7 +52,6 @@ class DetailsView(RegulusDOMWidget):
 
     def __init__(self, **kwargs):
         self._inverse_cache = set()
-        self._check = None
         if 'data' in kwargs:
             data = kwargs['data']
             if not isinstance(data, DataWidget):
@@ -72,15 +72,16 @@ class DetailsView(RegulusDOMWidget):
         if self.data is not None:
             pids = filter(lambda pid: pid not in self._inverse_cache, show)
             msg = {}
+            t0 = time()
             for node in r.find_nodes(pids):
                 line = r.attr['inverse_regression_scale'][node]
                 msg[node.id] = convert(line)
-                # msg[node.id] = [{
-                #     'x': [v for v in line['x'][i]],
-                #     'y': line['y'][i],
-                #     'std': [v for v in line['std'][i]]
-                #  } for i in range(len(line['x']))]
                 self._inverse_cache.add(node.id)
-            self.inverse = msg
-            self.inverse = None
-            self._check = msg
+                if time() - t0 > 1:
+                    self.inverse = msg
+                    self.inverse = None
+                    msg = {}
+                    t0 = time()
+            if len(msg) > 0:
+                self.inverse = msg
+                self.inverse = None
