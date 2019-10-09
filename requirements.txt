@@ -4,4 +4,4 @@ ipydatawidgets
 traitlets>4.3.0
 traittypes
 pandas
-regulus>=0.8.5
+regulus>=0.8.1
