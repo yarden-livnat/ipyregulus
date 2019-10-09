@@ -8,11 +8,12 @@ const DEFAULT_AXIS_SIZE = 200;
 const DEFAULT_CMAP = 'RdYlBu';
 const DEFAULT_COLOR = 'lightblue';
 
-export default function Panel() {
-  let root = null;
+export default function Panel(view, el) {
+  let root = d3.select(el);
+  let model = view.model;
   let svg = null;
 
-  let node_r = 5;
+  let node_r = 3;
   let pt_r = 2;
 
   let axes = [];
@@ -24,6 +25,7 @@ export default function Panel() {
   let show = new Set();
   let nodes_set = new Set();
   let pts_set = new Set();
+  let inverse = new Map();
 
   let graph_invalid = false;
   let pts_invalid = false;
@@ -37,10 +39,131 @@ export default function Panel() {
   let partition_width_scale = d3.scaleLinear().domain([0, 1]).range([0.5, 8]);
   let partition_color = d3.scaleSequential(chromatic['interpolate' + DEFAULT_CMAP]).domain([1, 0]);
 
-   let defs = [
-      {id: 'arrowhead-start', path: "M10,-5L0,0L10,5", box: "0 -5 10 10", color: '#aaa', refx: 0, refy: 0 },
-      {id: 'arrowhead-end', path: "M0,-5L10,0L0,5", box: "0 -5 10 10", color: '#ccc', refx: 0, refy: 0}
-    ];
+  let defs = [
+    {id: 'arrowhead-start', path: "M10,-5L0,0L10,5", box: "0 -5 10 10", color: '#aaa', refx: 0, refy: 0 },
+    {id: 'arrowhead-end', path: "M0,-5L10,0L0,5", box: "0 -5 10 10", color: '#ccc', refx: 0, refy: 0}
+  ];
+
+
+
+  function init() {
+    setup();
+
+    model.on('change:axes', axes_changed);
+    model.on('change:color', color_changed);
+    model.on('change:graph', graph_changed);
+    model.on('change:show', show_changed);
+    model.on('change:inverse', inverse_changed);
+
+    axes_changed();
+    graph_changed();
+    color_changed();
+    show_changed();
+    inverse_changed();
+  }
+
+  function axes_changed() {
+    for (let p of model.previous('axes') || []) {
+      p.off('change', update_axis)
+    }
+
+    for (let a of model.get('axes')) {
+      a.on('change', update_axis);
+    }
+
+    let n = _.length;
+    let angle = 2*Math.PI/n;
+    axes = model.get('axes').map((axis, i) => {
+      let updated = false;
+      let theta = axis.get('theta');
+      if (theta == null) {
+        theta = angle * i;
+        updated = true;
+      }
+      let len = axis.get('len');
+      if (len == null) {
+        len = DEFAULT_AXIS_SIZE;
+        updated = true;
+      }
+
+      let max = axis.get('max');
+      let disabled = axis.get('disabled');
+
+      if (updated) {
+        setTimeout(function () {
+          axis.set({
+            theta: theta,
+            len: len
+          });
+          axis.save_changes();
+        }, 0);
+      }
+
+      return {
+        label: axis.get('label'),
+        col: axis.get('col'),
+        max,
+        theta,
+        len,
+        disabled,
+        model: axis,
+        sx: d3.scaleLinear()
+          .domain([0, max])
+          .range([0, len * Math.cos(theta)]),
+        sy: d3.scaleLinear()
+          .domain([0, max])
+          .range([0, len * Math.sin(theta)]),
+      };
+    });
+    nodes_invalid = pts_invalid = true;
+    render();
+  }
+
+  function update_axis() {
+    let axis = axes.find( d => d.model === model);
+    if (axis) {
+      axis.label = model.get('label');
+      axis.theta = model.get('theta');
+      axis.len = model.get('len');
+      axis.max = model.get('max');
+      axis.disabled = model.get('disabled');
+      axis.sx.domain([0, axis.max]).range([0, axis.len * Math.cos(axis.theta)]);
+      axis.sy.domain([0, axis.max]).range([0, axis.len * Math.sin(axis.theta)]);
+    }
+    nodes_invalid = pts_invalid = true;
+    render();
+  }
+
+  function color_changed() {
+    color = model.get('color');
+    colors_invalid = true;
+    render();
+  }
+
+  function graph_changed() {
+    let graph = model.get('graph');
+    pts = graph.pts;
+    partitions = graph.partitions;
+    invalidate_graph();
+    render();
+  }
+
+  function show_changed() {
+    show = new Set(model.get('show'));
+    invalidate_show();
+    render();
+  }
+
+  function inverse_changed() {
+      for (let [pid, entry] of model.get('inverse').entries()) {
+        if (!inverse.has(pid)) {
+          let line = [...entry];
+          project(line);
+          inverse.set(pid, line);
+      }
+      render();
+    }
+  }
 
    /*
    * Dragging
@@ -98,6 +221,12 @@ export default function Panel() {
     }, 0);
   }
 
+  function highlight_partition(p, on) {
+    console.log('highlight ', p.id, on);
+    model.set('highlight', on ? p.id : -1);
+    view.touch();
+  }
+
   function invalidate_graph() {
     graph_invalid = true;
     active_invalid = true;
@@ -113,17 +242,29 @@ export default function Panel() {
   }
 
   function validate() {
-    if (graph_invalid)  update_graph();
-    if (active_invalid) update_active();
+    if (graph_invalid)
+      update_graph();
+
+    if (active_invalid)
+      update_active();
+
     if (nodes_invalid) {
       project(active_nodes);
-      nodes_invalid = false;
+      for (let p of active_partitions) {
+        let line = inverse.get(p.pid);
+        if (line) {
+          project(line);
+        }
+      }
+      nodes_invalid = pts_invalid = false;
     }
+
     if (pts_invalid)  {
       project(active_pts);
       pts_invalid = false;
     }
-    if (colors_invalid) update_colors()
+    if (colors_invalid)
+      update_colors();
   }
 
   function update_graph() {
@@ -156,8 +297,6 @@ export default function Panel() {
     active_invalid = false;
   }
 
-
-
   function project(active) {
     let v;
     for (let pt of active) {
@@ -172,7 +311,6 @@ export default function Panel() {
       pt.x = x;
       pt.y = y;
     }
-    pts_invalid = false;
   }
 
   function update_colors() {
@@ -224,7 +362,7 @@ export default function Panel() {
    names.enter()
      .append('text')
        .attr('class', 'label')
-     .call(drag)
+        .call(drag)
      .merge(names)
       .text(d => d.label)
        .attr('x', d => d.sx(d.max) + 10)
@@ -234,40 +372,58 @@ export default function Panel() {
   }
 
   function render_partitions() {
-    let p = svg.select('.partitions').selectAll('.partition').data(active_partitions, d => d.pid);
+    let lines = [];
+    let curves = [];
+
+    for (let partition of active_partitions) {
+      if (inverse.has(partition.pid))
+        curves.push({
+          id: partition.pid,
+          life: partition.life,
+          line: inverse.get(partition.pid)
+        });
+      else
+        lines.push(partition);
+    }
+
+    let p = svg.select('.partitions').selectAll('.temp_curve').data(lines, d => d.pid);
     p.enter()
       .append('line')
-        .attr('class', 'partition')
-        // .attr("marker-end", "url(#arrowhead-end)")
+        .attr('class', 'temp_curve')
       .merge(p)
-        // .each(d => {
-        //   d.dx = d.max.x - d.min.x;
-        //   d.dy = d.max.y - d.min.y;
-        //   let l = Math.sqrt(d.dx*d.dx + d.dy*d.dy);
-        //   d.f = (l-2*r)/l;
-        //   })
         .attr('x1', d => d.min.x)
         .attr('y1', d => d.min.y)
         .attr('x2', d => d.max.x)
         .attr('y2', d => d.max.y)
-        // .attr('x2', d => d.min.x + d.f * d.dx)
-        // .attr('y2', d => d.min.y + d.f * d.dy)
-        .attr('stroke', d => partition_color(d.die - d.born))
-        .attr('stroke-width', d => `${partition_width_scale(d.die - d.born)}px`);
+        .attr('stroke', d => partition_color(d.life))
+        .attr('stroke-width', d => `${partition_width_scale(d.life)}px`);
     p.exit().remove();
 
-    p = svg.select('.partitions').selectAll('.pt').data(active_nodes, d => d.id);
-    p.enter()
+    let line = d3.line().x(p => p.x).y(p => p.y);
+
+    let l = svg.select('.partitions').selectAll('.curve').data(curves, d => d.pid);
+    l.enter()
+      .append('path')
+        .attr('class', 'curve')
+      .on('mouseover', d => highlight_partition(d, true))
+      .on('mouseout',d => highlight_partition(d, false))
+      .merge(l)
+        .attr('d', d => line(d.line))
+        .attr('stroke', d => partition_color(d.life))
+        .attr('stroke-width', d => `${partition_width_scale(d.life)}px`);
+    l.exit().remove();
+
+    let n = svg.select('.partitions').selectAll('.pt').data(active_nodes, d => d.id);
+    n.enter()
       .append('circle')
       .attr('class', 'pt')
       .attr('r', node_r)
-      .merge(p)
+      .merge(n)
         .attr('cx', d => d.x)
         .attr('cy', d => d.y)
         .style('fill', d => d.color)
     ;
-
-    p.exit().remove();
+    n.exit().remove();
   }
 
   function render_pts() {
@@ -322,100 +478,10 @@ export default function Panel() {
         .attr("d", d => d.path);
   }
 
+  init();
 
   // API
   return {
-    el(_) {
-      root = _;
-      setup();
-      return this;
-    },
-
-    axes(_) {
-      let n = _.length;
-      let angle = 2*Math.PI/n;
-      axes = _.map((axis, i) => {
-        let updated = false;
-        let theta = axis.get('theta');
-        if (theta == null) {
-          theta = angle * i;
-          updated = true;
-        }
-        let len = axis.get('len');
-        if (len == null) {
-          len = DEFAULT_AXIS_SIZE;
-          updated = true;
-        }
-
-        let max = axis.get('max');
-        let disabled = axis.get('disabled');
-
-        if (updated) {
-          setTimeout(function () {
-            axis.set({
-              theta: theta,
-              len: len
-            });
-            axis.save_changes();
-          }, 0);
-        }
-
-        return {
-          label: axis.get('label'),
-          col: axis.get('col'),
-          max,
-          theta,
-          len,
-          disabled,
-          model: axis,
-          sx: d3.scaleLinear()
-            .domain([0, max])
-            .range([0, len * Math.cos(theta)]),
-          sy: d3.scaleLinear()
-            .domain([0, max])
-            .range([0, len * Math.sin(theta)]),
-        };
-      });
-      nodes_invalid = pts_invalid = true;
-      return this;
-    },
-
-    update_axis(model) {
-      let axis = axes.find( d => d.model === model);
-      if (axis) {
-        axis.label = model.get('label');
-        axis.theta = model.get('theta');
-        axis.len = model.get('len');
-        axis.max = model.get('max');
-        axis.disabled = model.get('disabled');
-        axis.sx.domain([0, axis.max]).range([0, axis.len * Math.cos(axis.theta)]);
-        axis.sy.domain([0, axis.max]).range([0, axis.len * Math.sin(axis.theta)]);
-      }
-      nodes_invalid = pts_invalid = true;
-      render();
-      return this;
-    },
-
-    graph(g) {
-      pts = g.pts;
-      partitions = g.partitions;
-      invalidate_graph();
-      return this;
-    },
-
-    show(_) {
-      show = new Set(_);
-      invalidate_show();
-      return this;
-    },
-
-
-    color(_) {
-      color = _;
-      colors_invalid = true;
-      return this;
-    },
-
     resize() {
       let w = parseInt(svg.style('width'));
       let h = parseInt(svg.style('height'));
@@ -424,10 +490,5 @@ export default function Panel() {
       render();
       return this;
     },
-
-    redraw() {
-      render();
-      return this;
-    }
   }
 }

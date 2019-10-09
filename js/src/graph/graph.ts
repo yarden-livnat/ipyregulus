@@ -29,8 +29,28 @@ class GraphModel extends RegulusViewModel {
       axes: [],
       graph: [],
       show: [],
-      color: ''
+      color: '',
+      inverse: new Map(),
+      highlight: -1,
+
+      _add_inverse: null
     };
+  }
+
+  initialize(attributes: any, options: { model_id: string; comm?: any; widget_manager: any }): void {
+    super.initialize(attributes, options);
+    this.listenTo(this, "change:_add_inverse", this.add_inverse);
+  }
+
+  add_inverse() {
+    let change = this.get('_add_inverse');
+    if (change) {
+      let current = this.get('inverse');
+      for (let [key, value] of Object.entries(change)) {
+        current.set(parseInt(key), value);
+      }
+      this.trigger('change:inverse');
+    }
   }
 
   static serializers = {
@@ -43,7 +63,7 @@ export
 class GraphView extends DOMWidgetView {
   initialize(parameters: any): void {
     super.initialize(parameters);
-    this.listenTo(this.model, 'change', this.model_changed);
+    // this.listenTo(this.model, 'change', this.model_changed);
   }
 
   render() {
@@ -51,12 +71,7 @@ class GraphView extends DOMWidgetView {
       .classed('rg_graph', true)
       .html(template);
 
-     this.panel = Panel().el(d3.select(this.el));
-     this.axes_changed();
-     this.panel.graph(this.model.get('graph'));
-     this.panel.color(this.model.get('color'));
-     this.panel.show(this.model.get('show'));
-     //this.panel.redraw();
+     this.panel = Panel(this, this.el);
   }
 
   processPhosphorMessage(msg:Message) {
@@ -71,59 +86,6 @@ class GraphView extends DOMWidgetView {
           this.panel.resize();
         break;
     }
-  }
-
-  model_changed() {
-    console.log('model changed:', this.model.changedAttributes());
-    for (let [name, value] of Object.entries(this.model.changedAttributes())) {
-      switch (name) {
-        case 'axes':
-          this.axes_changed();
-          break;
-        case 'color':
-          this.panel.color(this.model.get('color'));
-          break;
-        case 'graph':
-          this.panel.graph(this.model.get('graph'));
-          break;
-        case 'show':
-          this.panel.show(this.model.get('show'));
-          break;
-        // case 'graph':
-        //   let g = this.model.get('graph');
-        //   let map = new Map();
-        //   for (let p of g.pts) {
-        //     map.set(p.id, p)
-        //   }
-        //   let partitions:[any] = g.partitions;
-        //   for (let partition of partitions) {
-        //     partition.min = map.get(partition.min_idx);
-        //     partition.max = map.get(partition.max_idx);
-        //   }
-        //   this.panel.graph(g);
-        //   break;
-        default:
-          break;
-      }
-    }
-    this.panel.redraw();
-  }
-
-  axes_changed() {
-    console.log('axes changed');
-    for (let p of this.model.previous('axes') || []) {
-      this.stopListening(p);
-    }
-    let axes = this.model.get('axes');
-    for (let a of axes) {
-      this.listenTo(a, 'change', this.update_axes);
-    }
-    console.log('axes = ', axes);
-    this.panel.axes(axes).redraw();
-  }
-
-  update_axes(model, value, options) {
-    this.panel.update_axis(model);
   }
 
   panel: Panel;

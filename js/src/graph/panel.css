@@ -30,3 +30,20 @@
     /*stroke-width: 1px;*/
 }
 
+.rg_graph .view .partitions .curve {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 1px;
+}
+
+.rg_graph .view .partitions .curve:hover {
+    stroke: red;
+    stroke-width: 2px;
+}
+
+.rg_graph .view .partitions .temp_curve {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 1px;
+    opacity: 0.5;
+}
