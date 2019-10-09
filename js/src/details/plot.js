@@ -66,14 +66,6 @@ export default function Plot() {
   function render_svg(root, d, i) {
     if (!d.inverse) return;
 
-    // let line = d3.line()
-    //   .x(p => sx(p.x[d.x_dim])).y(p => sy(p.y));
-    //
-    // let area = d3.area()
-    //   .x0(p => sx(p.x[d.x_dim] - p.std[d.x_dim]/2))
-    //   .y0( p => sy(p.y))
-    //   .x1(p => sx(p.x[d.x_dim] + p.std[d.x_dim]/2))
-    //   .y1( p => sy(p.y));
      let line = d3.line()
       .x(p => sx(p[0])).y(p => sy(p[1]));
 
