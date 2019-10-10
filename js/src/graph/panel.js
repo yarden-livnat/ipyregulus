@@ -18,7 +18,7 @@ export default function Panel(view, el) {
 
   let axes = [];
   let pts = [];
-  let partitions = [];
+  let partitions = new Map();
   let active_partitions = [];
   let active_pts = [];
   let active_nodes = [];
@@ -54,6 +54,8 @@ export default function Panel(view, el) {
     model.on('change:graph', graph_changed);
     model.on('change:show', show_changed);
     model.on('change:inverse', inverse_changed);
+    model.on('change:selected', selected_changed);
+    model.on('change:highlight', highlight_changed);
 
     axes_changed();
     graph_changed();
@@ -119,14 +121,14 @@ export default function Panel(view, el) {
     render();
   }
 
-  function update_axis() {
-    let axis = axes.find( d => d.model === model);
+  function update_axis(axis_model) {
+    let axis = axes.find( d => d.model === axis_model);
     if (axis) {
-      axis.label = model.get('label');
-      axis.theta = model.get('theta');
-      axis.len = model.get('len');
-      axis.max = model.get('max');
-      axis.disabled = model.get('disabled');
+      axis.label = axis_model.get('label');
+      axis.theta = axis_model.get('theta');
+      axis.len = axis_model.get('len');
+      axis.max = axis_model.get('max');
+      axis.disabled = axis_model.get('disabled');
       axis.sx.domain([0, axis.max]).range([0, axis.len * Math.cos(axis.theta)]);
       axis.sy.domain([0, axis.max]).range([0, axis.len * Math.sin(axis.theta)]);
     }
@@ -143,8 +145,20 @@ export default function Panel(view, el) {
   function graph_changed() {
     let graph = model.get('graph');
     pts = graph.pts;
-    partitions = graph.partitions;
+    partitions = new Map();
+    for (let p of graph.partitions)
+      partitions.set(p.pid, p);
+
     invalidate_graph();
+    render();
+  }
+
+  function highlight_changed() {
+    let p = partitions.get(model.previous('highlight'));
+    if (p) p.highlight = false;
+
+    p = partitions.get(model.get('highlight'));
+    if (p) p.highlight = true;
     render();
   }
 
@@ -163,6 +177,22 @@ export default function Panel(view, el) {
       }
       render();
     }
+  }
+
+  function selected_changed() {
+    let prev = new Set(model.previous('selected'));
+    let current = new Set(model.get('selected'));
+    for (let pid of prev) {
+      if (!current.has(pid)) {
+        partitions.get(pid).selected = false;
+      }
+    }
+    for (let pid of current) {
+      if (!prev.has(pid)) {
+        partitions.get(pid).selected = true;
+      }
+    }
+    render();
   }
 
    /*
@@ -222,8 +252,18 @@ export default function Panel(view, el) {
   }
 
   function highlight_partition(p, on) {
-    console.log('highlight ', p.id, on);
-    model.set('highlight', on ? p.id : -1);
+    model.set('highlight', on ? p.pid : -1);
+    view.touch();
+  }
+
+  function select_partition(p) {
+    let selected = new Set(model.get('selected'));
+    p.selected = !p.selected;
+    if (p.selected)
+      selected.add(p.pid);
+    else
+      selected.delete(p.pid);
+    model.set('selected', [...selected]);
     view.touch();
   }
 
@@ -231,7 +271,6 @@ export default function Panel(view, el) {
     graph_invalid = true;
     active_invalid = true;
   }
-
 
   function invalidate_pts() {
     pts_invalid = true;
@@ -268,7 +307,7 @@ export default function Panel(view, el) {
   }
 
   function update_graph() {
-    for (let p of partitions) {
+    for (let p of partitions.values()) {
       p.min = pts[p.min_idx];
       p.max = pts[p.max_idx];
     }
@@ -276,7 +315,11 @@ export default function Panel(view, el) {
   }
 
   function update_active() {
-    active_partitions = partitions.filter(p => show.has(p.pid));
+    active_partitions = [];
+    for (let p of partitions.values())
+      if (show.has(p.pid))
+        active_partitions.push(p);
+
     nodes_set = new Set();
     pts_set = new Set();
 
@@ -375,22 +418,23 @@ export default function Panel(view, el) {
     let lines = [];
     let curves = [];
 
-    for (let partition of active_partitions) {
-      if (inverse.has(partition.pid))
-        curves.push({
-          id: partition.pid,
-          life: partition.life,
-          line: inverse.get(partition.pid)
-        });
+    for (let p of active_partitions) {
+      if (inverse.has(p.pid))
+        curves.push(p);
       else
-        lines.push(partition);
+        lines.push(p);
     }
 
     let p = svg.select('.partitions').selectAll('.temp_curve').data(lines, d => d.pid);
     p.enter()
       .append('line')
         .attr('class', 'temp_curve')
+        .on('mouseover', d => highlight_partition(d, true))
+        .on('mouseout',d => highlight_partition(d, false))
+        .on('click', select_partition)
       .merge(p)
+        .classed('selected', d => d.selected)
+        .classed('highlight', d => d.highlight)
         .attr('x1', d => d.min.x)
         .attr('y1', d => d.min.y)
         .attr('x2', d => d.max.x)
@@ -405,10 +449,13 @@ export default function Panel(view, el) {
     l.enter()
       .append('path')
         .attr('class', 'curve')
-      .on('mouseover', d => highlight_partition(d, true))
-      .on('mouseout',d => highlight_partition(d, false))
+        .on('mouseover', d => highlight_partition(d, true))
+        .on('mouseout',d => highlight_partition(d, false))
+        .on('click', select_partition)
       .merge(l)
-        .attr('d', d => line(d.line))
+        .classed('selected', d => d.selected)
+        .classed('highlight', d => d.highlight)
+        .attr('d', d => line(inverse.get(d.pid)))
         .attr('stroke', d => partition_color(d.life))
         .attr('stroke-width', d => `${partition_width_scale(d.life)}px`);
     l.exit().remove();

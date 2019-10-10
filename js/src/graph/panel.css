@@ -36,14 +36,39 @@
     stroke-width: 1px;
 }
 
-.rg_graph .view .partitions .curve:hover {
-    stroke: red;
+.rg_graph .view .partitions .curve.selected {
+    stroke: green;
     stroke-width: 2px;
 }
+.rg_graph .view .partitions .curve:hover {
+    stroke: red;
+    stroke-width: 3px;
+}
+
+.rg_graph .view .partitions .curve.highlight {
+    stroke: red;
+    stroke-width: 3px;
+}
+
 
 .rg_graph .view .partitions .temp_curve {
     fill: none;
     stroke: steelblue;
     stroke-width: 1px;
     opacity: 0.5;
+}
+
+.rg_graph .view .partitions .temp_curve.selected {
+    stroke: green;
+    stroke-width: 2px;
+}
+
+.rg_graph .view .partitions .temp_curve:hover {
+    stroke: red;
+    stroke-width: 3px;
+}
+
+.rg_graph .view .partitions .temp_curve.highlight {
+    stroke: red;
+    stroke-width: 3px;
 }

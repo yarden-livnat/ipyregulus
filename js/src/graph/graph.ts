@@ -32,6 +32,7 @@ class GraphModel extends RegulusViewModel {
       color: '',
       inverse: new Map(),
       highlight: -1,
+      selected: [],
 
       _add_inverse: null
     };
