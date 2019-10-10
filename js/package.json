@@ -1,6 +1,6 @@
 {
   "name": "@regulus/ipyregulus",
-  "version": "0.8.5",
+  "version": "0.9.0",
   "description": "Regulus widgets for JupyterLab",
   "author": "Yarden Livnat",
   "main": "lib/labext",
@@ -49,11 +49,8 @@
     "jupyter-dataserializers": "^2.1.0",
     "jupyter-datawidgets": "^5.2.0",
     "jupyter-scales": "^3.0.0",
-    "kernel-smooth": "^0.2.3",
     "ndarray": "^1.0.18",
     "raw-loader": "^3.0.0",
-    "style-loader": "^0.23.1",
-    "validate.io-array": "^1.0.6",
-    "validate.io-function": "^1.0.2"
+    "style-loader": "^0.23.1"
   }
 }

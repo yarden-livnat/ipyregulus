@@ -13,7 +13,7 @@ export default function Panel(view, el) {
   let model = view.model;
   let svg = null;
 
-  let node_r = 3;
+  let node_r = 4;
   let pt_r = 2;
 
   let axes = [];
@@ -427,7 +427,7 @@ export default function Panel(view, el) {
         lines.push(p);
     }
 
-    let p = svg.select('.partitions').selectAll('.temp_curve').data(lines, d => d.pid);
+    let p = svg.select('.temp_curves').selectAll('.temp_curve').data(lines, d => d.pid);
     p.enter()
       .append('line')
         .attr('class', 'temp_curve')
@@ -447,7 +447,7 @@ export default function Panel(view, el) {
 
     let line = d3.line().x(p => p.x).y(p => p.y);
 
-    let l = svg.select('.partitions').selectAll('.curve').data(curves, d => d.pid);
+    let l = svg.select('.curves').selectAll('.curve').data(curves, d => d.pid);
     l.enter()
       .append('path')
         .attr('class', 'curve')
@@ -462,11 +462,11 @@ export default function Panel(view, el) {
         .attr('stroke-width', d => `${partition_width_scale(d.life)}px`);
     l.exit().remove();
 
-    let n = svg.select('.partitions').selectAll('.pt').data(active_nodes, d => d.id);
+    let n = svg.select('.nodes').selectAll('.pt').data(active_nodes, d => d.id);
     n.enter()
       .append('circle')
-      .attr('class', 'pt')
-      .attr('r', node_r)
+        .attr('class', 'pt')
+        .attr('r', node_r)
       .merge(n)
         .attr('cx', d => d.x)
         .attr('cy', d => d.y)
@@ -494,8 +494,15 @@ export default function Panel(view, el) {
     svg = root.select('svg');
     let g = svg.append('g');
 
-     g.append('g')
+    let p = g.append('g')
       .attr('class', 'partitions');
+
+    p.append('g')
+      .attr('class', 'temp_curves');
+    p.append('g')
+      .attr('class', 'curves');
+    p.append('g')
+      .attr('class', 'nodes');
 
     g.append('g')
       .attr('class', 'pts');

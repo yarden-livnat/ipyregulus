@@ -1,6 +1,5 @@
 import * as d3 from 'd3';
 import * as chromatic from 'd3-scale-chromatic';
-import {inverseMultipleRegression, averageStd, multipleRegression, linspace, fun as kernel, subLinearSpace} from './regression';
 
 import {
   Partition
@@ -91,7 +90,6 @@ export default function Panel(ctrl) {
   }
 
   function show_changed() {
-    console.log('show changed');
     show = model.get('show');
     // update_inverse();
     update_rows();
@@ -101,7 +99,7 @@ export default function Panel(ctrl) {
 
   function highlight_changed() {
     highlighted = model.get('highlight');
-    render();
+    render_rows();
   }
 
   function inverse_changed() {
@@ -114,13 +112,6 @@ export default function Panel(ctrl) {
     update_plots();
     render();
   }
-
-  // function curves_changed() {
-  //   console.log('curves changed');
-  //   inv_lines = model.get('curves');
-  //   update_plots();
-  //   render();
-  // }
 
   function reverse(pair) {
     return [pair[1], pair[0]];
@@ -258,7 +249,8 @@ export default function Panel(ctrl) {
     render_rows();
     render_plots();
     let t1 = performance.now();
-    console.log(`details rendering: ${t1-t0} msec`);
+    if (t1-t0 > 1000)
+      console.log(`details rendering: ${t1-t0} msec`);
   }
 
   function render_cols() {
@@ -289,7 +281,7 @@ export default function Panel(ctrl) {
       let merge = enter.merge(d3rows);
 
       merge
-        .classed('highlight', d => d.id == highlighted)
+        .classed('highlight', d => d.id === highlighted)
         .transition().duration(DURATION).style('opacity', 1);
 
       merge.select('.id')
@@ -356,13 +348,6 @@ export default function Panel(ctrl) {
     model.set('highlight', -2);
     sync();
   }
-
-  // let resizeObserver = new ResizeObserver(entries => {
-  //       entries.forEach( e => {
-  //         console.log('resize:', e.target, e.contentRect.width, e.contentRect.height);
-  //       });
-  //   }
-  // );
 
   return {
     el(_) {

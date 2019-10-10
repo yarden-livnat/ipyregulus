@@ -94,7 +94,6 @@ export default function Panel() {
       range_def[1] === 'auto' ? minmax[1] : range_def[1]
     ];
     colorScale.domain([range_values[1], range_values[0]]);
-    // console.log('update_range:', range_def, range_values);
   }
 
   function value(d) {
@@ -282,9 +281,11 @@ export default function Panel() {
       return this;
     },
 
-    highlight(node) {
-      highlighted = node;
-      render();
+    highlight(id) {
+      if (highlighted != id) {
+        highlighted = id;
+        render();
+      }
       return this;
     },
 

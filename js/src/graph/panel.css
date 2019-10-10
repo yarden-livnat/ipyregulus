@@ -30,45 +30,45 @@
     /*stroke-width: 1px;*/
 }
 
-.rg_graph .view .partitions .curve {
+.curves .curve {
     fill: none;
     stroke: steelblue;
     stroke-width: 1px;
 }
 
-.rg_graph .view .partitions .curve.selected {
+.curves .curve.selected {
     stroke: green;
     stroke-width: 2px;
 }
-.rg_graph .view .partitions .curve:hover {
+.curves .curve:hover {
     stroke: red;
     stroke-width: 3px;
 }
 
-.rg_graph .view .partitions .curve.highlight {
+.curves .curve.highlight {
     stroke: red;
     stroke-width: 3px;
 }
 
 
-.rg_graph .view .partitions .temp_curve {
+.temp_curves  .temp_curve {
     fill: none;
     stroke: steelblue;
     stroke-width: 1px;
     opacity: 0.5;
 }
 
-.rg_graph .view .partitions .temp_curve.selected {
+.temp_curves .temp_curve.selected {
     stroke: green;
     stroke-width: 2px;
 }
 
-.rg_graph .view .partitions .temp_curve:hover {
+.temp_curves .temp_curve:hover {
     stroke: red;
     stroke-width: 3px;
 }
 
-.rg_graph .view .partitions .temp_curve.highlight {
+.temp_curves .temp_curve.highlight {
     stroke: red;
     stroke-width: 3px;
 }
