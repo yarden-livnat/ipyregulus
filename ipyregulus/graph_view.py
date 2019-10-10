@@ -1,6 +1,6 @@
 from time import time
 import pandas as pd
-from traitlets import Dict, Int, List, Unicode, observe, validate, TraitError
+from traitlets import Dict, Int, List, Set, Unicode, observe, validate, TraitError
 from ipywidgets import register, widget_serialization
 
 from regulus import HasTree
@@ -34,6 +34,7 @@ class GraphView(HasTree, RegulusDOMWidget):
     graph = Dict().tag(sync=True)
     show = List(Int()).tag(sync=True)
     highlight = Int(-1).tag(sync=True)
+    selected = List((Int())).tag(sync=True)
     _add_inverse = Dict(allow_none=True).tag(sync=True)
 
     def __init__(self, tree=None, **kwargs):
@@ -77,6 +78,7 @@ class GraphView(HasTree, RegulusDOMWidget):
                 p = node.data
                 min_idx, max_idx = p.minmax_idx
                 base_born = self._dataset.partition(p.base).persistence
+                is_selected = p.id in self.selected
                 partitions.append(dict(
                     pid=p.id,
                     base_born=base_born,
@@ -87,7 +89,8 @@ class GraphView(HasTree, RegulusDOMWidget):
                     min_idx=min_idx,
                     max_idx=max_idx,
                     index=p.idx,
-                    base=p.base
+                    base=p.base,
+                    selected=is_selected
                 ))
         return partitions
 
