@@ -73,9 +73,10 @@ export default function Panel(view, el) {
       a.on('change', update_axis);
     }
 
-    let n = _.length;
+    let a = model.get('axes');
+    let n = a.length;
     let angle = 2*Math.PI/n;
-    axes = model.get('axes').map((axis, i) => {
+    axes = a.map((axis, i) => {
       let updated = false;
       let theta = axis.get('theta');
       if (theta == null) {
@@ -131,9 +132,10 @@ export default function Panel(view, el) {
       axis.disabled = axis_model.get('disabled');
       axis.sx.domain([0, axis.max]).range([0, axis.len * Math.cos(axis.theta)]);
       axis.sy.domain([0, axis.max]).range([0, axis.len * Math.sin(axis.theta)]);
+
+      nodes_invalid = pts_invalid = true;
+      render();
     }
-    nodes_invalid = pts_invalid = true;
-    render();
   }
 
   function color_changed() {
@@ -170,11 +172,11 @@ export default function Panel(view, el) {
 
   function inverse_changed() {
       for (let [pid, entry] of model.get('inverse').entries()) {
-        if (!inverse.has(pid)) {
+        // if (!inverse.has(pid)) {
           let line = [...entry];
           project(line);
           inverse.set(pid, line);
-      }
+      // }
       render();
     }
   }
