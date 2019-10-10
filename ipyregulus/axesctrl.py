@@ -5,15 +5,6 @@ from .core.axis import AxisTraitType
 from .core.trait_types import TypedTuple
 
 
-# def update_max(slider):
-#     def update(change):
-#         v = change['new']
-#         if v > slider.max:
-#             slider.max = v
-#         slider.value = v
-#     return update
-
-
 class UnboundedFloatSlider(FloatSlider):
     @validate('value')
     def _validate_value(self, proposal):
@@ -51,8 +42,6 @@ class AxesCtrl(VBox):
             children.append(slider)
         # disconnect
         for rec in self.current.values():
-            print('rec=', rec)
-            # rec['axis'].unobserve(self.update, names=['len'])
             for l in rec.links:
                 l.unlink()
         # set new values

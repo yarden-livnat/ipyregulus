@@ -1,4 +1,7 @@
+import logging
+
 from time import time
+
 import pandas as pd
 from traitlets import Dict, Int, List, Set, Unicode, observe, validate, TraitError
 from ipywidgets import register, widget_serialization
@@ -8,6 +11,10 @@ from .core.axis import  AxisTraitType
 from .core.trait_types import TypedTuple
 from .core.base import RegulusDOMWidget
 import ipyregulus.utils as utils
+
+logger = logging.getLogger(__name__)
+
+print('logger ', __name__)
 
 
 def convert(data, cy):
@@ -63,13 +70,16 @@ class GraphView(HasTree, RegulusDOMWidget):
                            left_index=True,
                            right_index=True)
             pts = [dict(id=i, values=list(v)) for i, v in zip(pts.index, pts.values)]
-            self._cache = set()
-            if len(self.show) > 0:
-                self._show({'new': self.show})
+            self.reset_inverse()
         else:
             pts = self.graph.get('pts', None)
         partitions = self._get_partitions()
         self.graph = dict(pts=pts, partitions=partitions)
+
+    def reset_inverse(self):
+        self._cache.clear()
+        self._add_inverse = dict(topic='reset')
+        self._show({'new': self.show})
 
     def _get_partitions(self):
         partitions = []
@@ -97,21 +107,26 @@ class GraphView(HasTree, RegulusDOMWidget):
     @observe('show')
     def _show(self, change):
         show = change['new']
+        logger.info('show')
         if self._tree is not None:
+            t_start = time()
             cy = len(list(self._dataset.x)) + list(self._dataset.values).index(self._dataset.measure)
-            msg = {}
+            data = {}
             pids = filter(lambda pid: pid not in self._cache, show)
             t0 = time()
             for node in self._dataset.find_nodes(pids):
-                line = self._tree.attr['inverse_regression_scale'][node]
-                msg[node.id] = convert(line, cy)
+                line = self._tree.attr['inverse_regression'][node]
+                data[node.id] = convert(line, cy)
                 self._cache.add(node.id)
                 if time() - t0 > 0.5:
-                    self._add_inverse = msg
+                    logger.debug(f'{time() - t0}')
+                    self._add_inverse = dict(topic='add', data=data)
                     self._add_inverse = None
-                    msg = {}
+                    data = {}
                     t0 = time()
-            if len(msg) > 0:
-                self._add_inverse = msg
+            if len(data) > 0:
+                logger.debug(f'{time() - t0}')
+                self._add_inverse = dict(topic='add', data=data)
                 self._add_inverse = None
+            logger.debug(f'   total={time() - t_start}')
 

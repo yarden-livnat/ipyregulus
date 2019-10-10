@@ -61,6 +61,10 @@ class DetailsView(RegulusDOMWidget):
                 kwargs['measure'] = data.data.measure
         super().__init__(**kwargs)
 
+    def reset_inverse(self):
+        self._inverse_cache.clear()
+        self._show({'new': self.show})
+
     def _send_msg(self, pid, data):
         self.inverse = {pid: data}
         self.inverse = None
@@ -74,7 +78,7 @@ class DetailsView(RegulusDOMWidget):
             msg = {}
             t0 = time()
             for node in r.find_nodes(pids):
-                line = r.attr['inverse_regression_scale'][node]
+                line = r.attr['inverse_regression'][node]
                 msg[node.id] = convert(line)
                 self._inverse_cache.add(node.id)
                 if time() - t0 > 1:

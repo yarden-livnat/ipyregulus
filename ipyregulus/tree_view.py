@@ -83,9 +83,6 @@ class TreeView(VBox):
     def tree(self, tree):
 
         self.view.tree = tree
-        # if not isinstance(tree, BaseTreeView):
-        #     if isinstance(tree, HasTree):
-        #         tree = tree.tree
         reset = self._x.value[1] == self._x.max
         self._x.max = self.view.tree.regulus.pts.size()
         if reset:

@@ -44,13 +44,20 @@ class GraphModel extends RegulusViewModel {
   }
 
   add_inverse() {
-    let change = this.get('_add_inverse');
-    if (change) {
-      let current = this.get('inverse');
-      for (let [key, value] of Object.entries(change)) {
-        current.set(parseInt(key), value);
+    let msg = this.get('_add_inverse');
+    if (msg) {
+      switch (msg.topic) {
+        case 'add':
+          let current = this.get('inverse');
+          for (let [key, value] of Object.entries(msg.data)) {
+            current.set(parseInt(key), value);
+          }
+          this.trigger('change:inverse');
+          break;
+        case 'reset':
+          this.set('inverse', new Map());
+          break;
       }
-      this.trigger('change:inverse');
     }
   }
 
