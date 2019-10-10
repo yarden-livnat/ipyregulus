@@ -86,12 +86,12 @@ export default function Panel() {
 
   function update_range() {
     let minmax;
-    if (range_def[0] == 'auto' || range_def[1] == 'auto') {
+    if (range_def[0] === 'auto' || range_def[1] === 'auto') {
       minmax = d3.extent(nodes, value);
     }
     range_values = [
-      range_def[0] == 'auto' ? minmax[0] : range_def[0],
-      range_def[1] == 'auto' ? minmax[1] : range_def[1]
+      range_def[0] === 'auto' ? minmax[0] : range_def[0],
+      range_def[1] === 'auto' ? minmax[1] : range_def[1]
     ];
     colorScale.domain([range_values[1], range_values[0]]);
     // console.log('update_range:', range_def, range_values);
@@ -121,8 +121,8 @@ export default function Panel() {
     d3nodes.enter()
     .append('rect')
       .attr('class', 'node')
-      // .on('mouseover.highlight', on_highlight)
-      // .on('mouseout.highlight', on_highlight)
+      .on('mouseover.highlight', on_highlight)
+      .on('mouseout.highlight', on_highlight)
       .on('mouseenter.tip', show_tip)
       .on('mouseleave.tip', hide_tip)
       .on('click', ensure_single(on_details))
