@@ -1,5 +1,5 @@
 from traitlets import observe, validate
-from ipywidgets import VBox, FloatSlider, link, dlink
+from ipywidgets import Checkbox, HBox,  VBox, FloatSlider, link, dlink
 
 from .core.axis import AxisTraitType
 from .core.trait_types import TypedTuple
@@ -38,8 +38,11 @@ class AxesCtrl(VBox):
                 l1 = link((slider, 'value'), (axis, 'len'))
                 l2 = link((axis, 'label'), (slider, 'description'))
                 # axis.observe(self.update, names=['len'])
-                sliders[name] = dict(slider=slider, links=[l1,l2], axis=axis)
-            children.append(slider)
+                check = Checkbox(value=False)
+                l3 = link((check, 'value'), (slider, 'disabled'))
+                box = HBox(children=[check, slider])
+                sliders[name] = dict(slider=slider, links=[l1, l2, l3], axis=axis)
+            children.append(box)
         # disconnect
         for rec in self.current.values():
             for l in rec.links:

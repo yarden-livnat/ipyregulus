@@ -2,6 +2,7 @@ import * as d3 from 'd3';
 
 import './panel.css';
 import * as chromatic from "d3-scale-chromatic";
+import tip from "d3-tip";
 
 const DEFAULT_POINT_SIZE = 1;
 const DEFAULT_AXIS_SIZE = 200;
@@ -27,6 +28,8 @@ export default function Panel(view, el) {
   let pts_set = new Set();
   let inverse = new Map();
 
+  let node_tip;
+
   let graph_invalid = false;
   let pts_invalid = false;
   let nodes_invalid = false;
@@ -44,7 +47,13 @@ export default function Panel(view, el) {
     {id: 'arrowhead-end', path: "M0,-5L10,0L0,5", box: "0 -5 10 10", color: '#ccc', refx: 0, refy: 0}
   ];
 
-
+  let tip_spec = [
+    // d => [attr, d3.format('.3f')(value(d))],
+    d => ['id', d3.format('d')(d.pid)],
+    d => ['lvl', `${d3.format('.2f')(d.born)}:${d3.format('.2f')(d.die)}`],
+    // d => ['min', `${d3.format('.2f')(d.min)}:${d3.format('.2f')(d.max)}`],
+    d => ['size', d.size],
+  ];
 
   function init() {
     setup();
@@ -196,6 +205,36 @@ export default function Panel(view, el) {
     }
     render();
   }
+
+  /*
+   * tip
+   */
+
+  let tip_timer = null;
+
+  function show_tip() {
+    if (tip_timer) {
+      clearTimeout(tip_timer);
+      tip_timer = null;
+    }
+    node_tip.show.apply(this, arguments);
+    d3.select(this).on('mousemove', update_tip)
+  }
+
+  function hide_tip() {
+    tip_timer = setTimeout( remove_tip, 50, this, arguments);
+    d3.select(this).on('mousemove', null);
+  }
+
+  function remove_tip(self, args) {
+      tip_timer = null;
+      node_tip.hide.apply(self, args);
+  }
+
+  function update_tip() {
+    node_tip.show.apply(this, arguments);
+  }
+
 
    /*
    * Dragging
@@ -453,6 +492,8 @@ export default function Panel(view, el) {
         .attr('class', 'curve')
         .on('mouseover', d => highlight_partition(d, true))
         .on('mouseout',d => highlight_partition(d, false))
+        .on('mouseenter.tip', show_tip)
+        .on('mouseleave.tip', hide_tip)
         .on('click', select_partition)
       .merge(l)
         .classed('selected', d => d.selected)
@@ -532,6 +573,23 @@ export default function Panel(view, el) {
         .attr('stroke-width', '1px')
         .append("path")
         .attr("d", d => d.path);
+
+    node_tip = tip()
+        .attr('class', 'd3-tip')
+        .offset( function() {
+          let m = d3.mouse(this);
+          let bb = this.getBBox();
+          return [m[1]-bb.y-10, m[0]-bb.x-bb.width/2];
+        })
+          .html(d => {
+            let content = tip_spec.map(spec => {
+              let rec = spec(d);
+              return `<tr><td>${rec[0]}:</td><td style="text-align: right">${rec[1]}</td></tr>`;
+            }).join('');
+            return `<table>${content}</table>`;
+          });
+
+      svg.call(node_tip);
   }
 
   init();

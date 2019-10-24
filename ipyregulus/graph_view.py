@@ -14,8 +14,6 @@ import ipyregulus.utils as utils
 
 logger = logging.getLogger(__name__)
 
-print('logger ', __name__)
-
 
 def convert(data, cy):
     def values(i):

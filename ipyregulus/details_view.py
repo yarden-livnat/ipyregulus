@@ -49,6 +49,7 @@ class DetailsView(RegulusDOMWidget):
     show = List().tag(sync=True)
     highlight = Int(-2).tag(sync=True)
     inverse = Dict(allow_none=True).tag(sync=True)
+    cmap = Unicode('RdYlBu').tag(sync=True)
 
     def __init__(self, **kwargs):
         self._inverse_cache = set()

@@ -68,6 +68,7 @@ export default function Panel(ctrl) {
     model.on('change:show', show_changed);
     model.on('change:highlight', highlight_changed);
     model.on('change:inverse', inverse_changed);
+    model.on('change:cmap', cmap_changed);
     measure_changed();
     model_changed();
     show_changed();
@@ -109,6 +110,13 @@ export default function Panel(ctrl) {
     for (let [pid, line] of Object.entries(new_lines)) {
       inverse.set(parseInt(pid), line);
     }
+    update_plots();
+    render();
+  }
+
+  function cmap_changed() {
+    let cmap = model.get('cmap');
+    colorScale = d3.scaleSequential(chromatic['interpolate' + cmap]);
     update_plots();
     render();
   }
