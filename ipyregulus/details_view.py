@@ -1,28 +1,13 @@
 from time import time
-from traitlets import Instance, Int, List, Dict, Unicode, observe
+from traitlets import Bool, Instance, Int, List, Dict, Unicode, observe
 from ipywidgets import register, widget_serialization
 
-
+from regulus import default_inverse_regression
 from ipyregulus.core.base import RegulusDOMWidget
 from .data_widget import DataWidget
 from .tree import TreeWidget
 
 import numpy as np
-
-# def convert(v):
-#     if isinstance(v, dict):
-#         return {k: convert(v) for k, v in v.items()}
-#     if isinstance(v, (list, tuple)):
-#         return [convert(v) for v in v]
-#     if isinstance(v, np.ndarray):
-#         if v.ndim == 1:
-#             return {'buffer': memoryview(v),
-#                     'dtype': str(v.dtype),
-#                     'shape': v.shape}
-#         else:
-#             return v.tolist()
-#     return v
-
 
 def convert(data):
     line = []
@@ -48,6 +33,7 @@ class DetailsView(RegulusDOMWidget):
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
     show = List().tag(sync=True)
     highlight = Int(-2).tag(sync=True)
+    show_inverse = Bool(True).tag(sync=True)
     inverse = Dict(allow_none=True).tag(sync=True)
     cmap = Unicode('RdYlBu').tag(sync=True)
 
@@ -72,10 +58,18 @@ class DetailsView(RegulusDOMWidget):
 
     @observe('show')
     def _show(self, change):
-        show = change['new']
+        self._update_inverse()
+
+    @observe('show_inverse')
+    def _show_inverse(self, change):
+        self._update_inverse()
+
+    def _update_inverse(self):
         r = self.data.data
-        if self.data is not None:
-            pids = filter(lambda pid: pid not in self._inverse_cache, show)
+        if self.show_inverse and self.data is not None:
+            if not self.data.data.attr.has('inverse_regression'):
+                self.data.data.add_attr(default_inverse_regression, name='inverse_regression')
+            pids = filter(lambda pid: pid not in self._inverse_cache, self.show)
             msg = {}
             t0 = time()
             for node in r.find_nodes(pids):
