@@ -140,6 +140,7 @@ class TreeView(VBox):
         f = self._group_filter.add(*args, **kwargs)
         if self.tree and hasattr(f, 'update_range'):
             f.update_range(self.tree.tree)
+        return f
 
     def insert_filter(self, idx, *args, **kwargs):
         f = self._group_filter.insert(idx, *args, **kwargs)
