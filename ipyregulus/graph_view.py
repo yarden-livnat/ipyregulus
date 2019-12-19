@@ -6,7 +6,8 @@ import pandas as pd
 from traitlets import Dict, Int, List, Set, Unicode, observe, validate, TraitError
 from ipywidgets import register, widget_serialization
 
-from regulus import HasTree
+from regulus import default_inverse_regression, HasTree
+
 from .core.axis import  AxisTraitType
 from .core.trait_types import TypedTuple
 from .core.base import RegulusDOMWidget
@@ -107,6 +108,8 @@ class GraphView(HasTree, RegulusDOMWidget):
         show = change['new']
         logger.info('show')
         if self._tree is not None:
+            if not self._tree.regulus.attr.has('inverse_regression'):
+                self._tree.regulus.add_attr(default_inverse_regression, name='inverse_regression')
             t_start = time()
             cy = len(list(self._dataset.x)) + list(self._dataset.values).index(self._dataset.measure)
             data = {}
