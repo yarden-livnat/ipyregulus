@@ -29,6 +29,7 @@ export default function Panel(view, el) {
   let inverse = new Map();
 
   let node_tip;
+  let show_inverse = true;
 
   let graph_invalid = false;
   let pts_invalid = false;
@@ -65,7 +66,9 @@ export default function Panel(view, el) {
     model.on('change:inverse', inverse_changed);
     model.on('change:selected', selected_changed);
     model.on('change:highlight', highlight_changed);
+    model.on('change:show_inverse', show_inverse_changed);
 
+    show_inverse = model.get('show_inverse');
     axes_changed();
     graph_changed();
     color_changed();
@@ -188,6 +191,11 @@ export default function Panel(view, el) {
       // }
       render();
     }
+  }
+
+  function show_inverse_changed() {
+    show_inverse = model.get('show_inverse');
+    render()
   }
 
   function selected_changed() {
@@ -460,7 +468,7 @@ export default function Panel(view, el) {
     let curves = [];
 
     for (let p of active_partitions) {
-      if (inverse.has(p.pid))
+      if (show_inverse && inverse.has(p.pid))
         curves.push(p);
       else
         lines.push(p);
