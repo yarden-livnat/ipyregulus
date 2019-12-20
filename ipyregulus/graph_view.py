@@ -3,7 +3,7 @@ import logging
 from time import time
 
 import pandas as pd
-from traitlets import Dict, Int, List, Set, Unicode, observe, validate, TraitError
+from traitlets import Bool, Dict, Int, List, Unicode, observe
 from ipywidgets import register, widget_serialization
 
 from regulus import default_inverse_regression, HasTree
@@ -16,12 +16,14 @@ import ipyregulus.utils as utils
 logger = logging.getLogger(__name__)
 
 
-def convert(data, cy):
+def convert(data, cy, scaler):
     def values(i):
-        v = [0] * (cy+1)
+        v = [0] * cy
         for c in range(cols):
             v[c] = data[c]['x'][i]
-        v[cy] = data[0]['y'][i]
+        if scaler is not None:
+            v = list(scaler.transform([v])[0])
+        v.append(data[0]['y'][i])
         return v
 
     cols = len(data)
@@ -41,6 +43,7 @@ class GraphView(HasTree, RegulusDOMWidget):
     show = List(Int()).tag(sync=True)
     highlight = Int(-1).tag(sync=True)
     selected = List((Int())).tag(sync=True)
+    show_inverse = Bool(True).tag(sync=True)
     _add_inverse = Dict(allow_none=True).tag(sync=True)
 
     def __init__(self, tree=None, **kwargs):
@@ -50,6 +53,7 @@ class GraphView(HasTree, RegulusDOMWidget):
         self.tree = tree
         self._cache = set()
         self._msg = None
+        self._show_inverse = True
 
     def update(self, tree):
         super().update(tree)
@@ -64,7 +68,7 @@ class GraphView(HasTree, RegulusDOMWidget):
             nx = len(list(dataset.x))
             cy = list(dataset.pts.values).index(dataset.measure)
             self.axes = utils.create_axes(dataset.x, cols=range(nx)) + utils.create_axes(dataset.y, cols=[nx+cy])
-            pts = pd.merge(left=dataset.pts.original_x,
+            pts = pd.merge(left=dataset.pts.x,
                            right=dataset.pts.values,
                            left_index=True,
                            right_index=True)
@@ -108,6 +112,7 @@ class GraphView(HasTree, RegulusDOMWidget):
         show = change['new']
         logger.info('show')
         if self._tree is not None:
+            scaler = self._dataset.pts.scaler
             if not self._tree.regulus.attr.has('inverse_regression'):
                 self._tree.regulus.add_attr(default_inverse_regression, name='inverse_regression')
             t_start = time()
@@ -117,16 +122,18 @@ class GraphView(HasTree, RegulusDOMWidget):
             t0 = time()
             for node in self._dataset.find_nodes(pids):
                 line = self._tree.attr['inverse_regression'][node]
-                data[node.id] = convert(line, cy)
+                data[node.id] = convert(line, cy, scaler)
                 self._cache.add(node.id)
                 if time() - t0 > 0.5:
                     logger.debug(f'{time() - t0}')
+                    # send partial data by assigning value and then set to None
                     self._add_inverse = dict(topic='add', data=data)
                     self._add_inverse = None
                     data = {}
                     t0 = time()
             if len(data) > 0:
                 logger.debug(f'{time() - t0}')
+                # send partial data by assigning value and then set to None
                 self._add_inverse = dict(topic='add', data=data)
                 self._add_inverse = None
             logger.debug(f'   total={time() - t_start}')
