@@ -42,7 +42,7 @@ class ProjectionView(ProjectionWidget):
         if tree is not None:
             data = tree.regulus
             self._pts = data.pts.x.merge(right=data.pts.values, how='left',
-                                            left_index=True, right_index=True)
+                                         left_index=True, right_index=True)
             y_col = len(list(data.pts.x)) + list(data.pts.values).index(data.measure)
             self.axes = create_axes(data.pts.x) + create_axes(data.y, [y_col])
             if self._color != '':
