@@ -33,7 +33,7 @@
   min-height: 0;
   overflow-y: hidden;
   display: grid;
-  grid-template-columns: 100px auto 10px;
+  grid-template-columns: 45px auto 10px;
   grid-template-rows:  20px auto 10px;
   grid-gap: 5px 5px;
   grid-template-areas:
@@ -74,7 +74,7 @@
 
 .rg_row_header {
   height: var(--row-height);
-  width: 90px;
+  width: 30px;
   margin: 0 0 5px 0;
   background-color: lightgreen;
   border: 1px solid gray;
