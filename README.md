@@ -3,8 +3,6 @@
 
 ## Installation
 
-
-`jupyter labextension install `
  
 ```bash
 pip install ipyregulus

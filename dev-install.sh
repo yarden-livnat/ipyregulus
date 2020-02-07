@@ -25,14 +25,14 @@ echo -n "Checking for @jupyter-widgets/jupyterlab-manager"
 jupyter labextension check @jupyter-widgets/jupyterlab-manager --installed
 if [ $? -ne 0 ]; then
 	echo "Installing @jupyter-widgets/jupyterlab-manager extension"
-	jupyter labextension install  @jupyter-widgets/jupyterlab-manager
+	jupyter labextension install  @jupyter-widgets/jupyterlab-manager --no-build
 fi
 
 echo -n "Checking for jupyterlab-datawidgets"
 jupyter labextension check jupyterlab-datawidgets --installed
 if [ $? -ne 0 ]; then
 	echo "Installing jupyterlab-datawidgets extension"
-	jupyter labextension install jupyterlab-datawidgets
+	jupyter labextension install jupyterlab-datawidgets  --no-build
 fi
 
 set -e
@@ -45,6 +45,6 @@ cd js
 npm install
 npm run build
 
-echo "Installing sidepanel extension"
+echo "Installing ipyregulus extension"
 jupyter labextension link
 
