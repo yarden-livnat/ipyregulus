@@ -26,7 +26,7 @@ class DetailsView(RegulusDOMWidget):
     _model_name = Unicode('DetailsModel').tag(sync=True)
     _view_name = Unicode('DetailsView').tag(sync=True)
 
-    title = Unicode('title').tag(sync=True)
+    title = Unicode('').tag(sync=True)
 
     data = Instance(klass=DataWidget).tag(sync=True, **widget_serialization)
     measure = Unicode(None, allow_none=True).tag(sync=True)

@@ -12,8 +12,10 @@ class TreeView(VBox):
 
     attr_opts = List(Unicode(), ['span', 'fitness', 'parent_fitness', 'child_fitness', 'min', 'max'])
     attr = Unicode('fitness')
+    x = Tuple((0, 100))
+    y = Tuple((0, 1))
 
-    def __init__(self, tree=None, auto=True, **kwargs):
+    def __init__(self, tree=None, auto=True, x=None, y=None, **kwargs):
         super().__init__(**kwargs)
         self._filters = {}
         self._treeview = None
@@ -23,6 +25,7 @@ class TreeView(VBox):
         self._filters = {}
         self._auto = auto
         self._auto_filter = None
+
         # setup controls
         self._ctrls = HBox()
         self._menu = widgets.Dropdown(
@@ -34,23 +37,32 @@ class TreeView(VBox):
         self._x = IntRangeSlider(min=0, max = 100, value = (0, 100), description='Points:')
         self._y = FloatRangeSlider(min=0, max=1, value=(0,1), description='Persistence:', step=0.001)
         self._ctrls = HBox([self._menu, self._y, self._x])
+
         self._auto_filter = AttrFilter(attr=self._menu.value)
         if self._auto:
             self._group_filter.add(self._auto_filter, name='auto')
         widgets.link((self._menu, 'value'), (self, 'attr'))
         self.observe(self._auto_update, names=['attr'])
+
         # setup view
         self._treeview = BaseTreeView(None, attr=self.attr)
         self._treeview.show_attr = False
         self._links = [
             widgets.link((self, 'attr'), (self._treeview, 'attr')),
-            widgets.link((self._x, 'value'), (self._treeview, 'x')),
-            widgets.link((self._y, 'value'), (self._treeview, 'y'))
+            widgets.link((self, 'x'), (self._x, 'value')),
+            widgets.link((self, 'x'), (self._treeview, 'x')),
+            widgets.link((self, 'y'), (self._y, 'value')),
+            widgets.link((self, 'y'), (self._treeview, 'y'))
         ]
         self._update_children()
 
         if tree is not None:
             self.tree = tree
+        if x is not None:
+            self.x = x
+        if y is not None:
+            self.y = y
+
 
     def _apply_filter(self):
         if self.view is not None:
