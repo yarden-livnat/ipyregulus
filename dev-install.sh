@@ -3,7 +3,7 @@
 echo -n "Checking for nodejs..."
 npm -v
 if [ $? -ne 0 ]; then
-	echo "npm is not installed"
+	echo "nodejs is not installed"
 	exit 1
 fi
 

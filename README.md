@@ -1,9 +1,12 @@
 # IPyRegulus
 
 
+## requirements
+nodejs
+
 ## Installation
 
- 
+
 ```bash
 pip install ipyregulus
 jupyter labextension install @regulus/ipyregulus @jupyter-widgets/jupyterlab-manager jupyterlab-datawidgets
