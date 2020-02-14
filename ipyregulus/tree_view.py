@@ -41,7 +41,7 @@ class TreeView(VBox):
         self._auto_filter = AttrFilter(attr=self._menu.value)
         if self._auto:
             self._group_filter.add(self._auto_filter, name='auto')
-        widgets.link((self._menu, 'value'), (self, 'attr'))
+        widgets.link((self, 'attr'), (self._menu, 'value'))
         self.observe(self._auto_update, names=['attr'])
 
         # setup view
@@ -62,7 +62,6 @@ class TreeView(VBox):
             self.x = x
         if y is not None:
             self.y = y
-
 
     def _apply_filter(self):
         if self.view is not None:
