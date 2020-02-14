@@ -189,38 +189,38 @@ export default function Panel(ctrl) {
     return pt;
   }
 
-  function update_inverse() {
-    for (let pid of show) {
-      if (!inverse.has(pid)) {
-        let t0 = performance.now();
-        let partition = partitions.get(pid);
-        let x = partition.index.map(idx => get_pt(idx));
-        let y = partition.index.map(idx => attrs.get(idx, measure_idx));
-        let extent = attrs_extent[measure_idx];
-        let bandwidth = bandwidth_factor * [extent[1] - extent[0]];
-
-        let curve = inverseMultipleRegression(x, y, kernel.gaussian, bandwidth);
-        let stddev = averageStd(x, y, kernel.gaussian, bandwidth);
-
-        let minmax_idx = partition.data.minmax_idx;
-        let minmax = [attrs.get(minmax_idx[0], measure_idx), attrs.get(minmax_idx[1], measure_idx)];
-        // let py = subLinearSpace(minmax, extent, 100);
-        let py = linspace(minmax[0], minmax[1], 40);
-        let px = curve(py);
-        let std = stddev(py, px);
-
-        let line = [];
-        for (let i = 0; i < py.length; i++) {
-          line.push({x: px[i], y: py[i], std: std[i]});
-        }
-
-        inverse.set(pid, line);
-
-        let t1 = performance.now();
-        console.log(`partition ${pid}: compute inverse in ${t1-t0} msec`);
-      }
-    }
-  }
+  // function update_inverse() {
+  //   for (let pid of show) {
+  //     if (!inverse.has(pid)) {
+  //       let t0 = performance.now();
+  //       let partition = partitions.get(pid);
+  //       let x = partition.index.map(idx => get_pt(idx));
+  //       let y = partition.index.map(idx => attrs.get(idx, measure_idx));
+  //       let extent = attrs_extent[measure_idx];
+  //       let bandwidth = bandwidth_factor * [extent[1] - extent[0]];
+  //
+  //       let curve = inverseMultipleRegression(x, y, kernel.gaussian, bandwidth);
+  //       let stddev = averageStd(x, y, kernel.gaussian, bandwidth);
+  //
+  //       let minmax_idx = partition.data.minmax_idx;
+  //       let minmax = [attrs.get(minmax_idx[0], measure_idx), attrs.get(minmax_idx[1], measure_idx)];
+  //       // let py = subLinearSpace(minmax, extent, 100);
+  //       let py = linspace(minmax[0], minmax[1], 40);
+  //       let px = curve(py);
+  //       let std = stddev(py, px);
+  //
+  //       let line = [];
+  //       for (let i = 0; i < py.length; i++) {
+  //         line.push({x: px[i], y: py[i], std: std[i]});
+  //       }
+  //
+  //       inverse.set(pid, line);
+  //
+  //       let t1 = performance.now();
+  //       console.log(`partition ${pid}: compute inverse in ${t1-t0} msec`);
+  //     }
+  //   }
+  // }
 
   function update_plots() {
     plots = [];
