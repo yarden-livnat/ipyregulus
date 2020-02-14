@@ -70,9 +70,9 @@ export default function Plot() {
       .x(p => sx(p[0])).y(p => sy(p[1]));
 
     let area = d3.area()
-      .x0(p => sx(p[0] - p[2]/2))
+      .x0(p => sx(p[0] - p[2]))
       .y0( p => sy(p[1]))
-      .x1(p => sx(p[0] + p[2]/2))
+      .x1(p => sx(p[0] + p[2]))
       .y1( p => sy(p[1]));
 
     let svg = root.select('svg');
