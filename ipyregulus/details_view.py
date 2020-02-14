@@ -84,3 +84,9 @@ class DetailsView(RegulusDOMWidget):
             if len(msg) > 0:
                 self.inverse = msg
                 self.inverse = None
+
+    # @observe('data')
+    # def _data_changed(self, change):
+    #     if change['old'] is not None:
+    #         if change['old'].data is not None:
+    #

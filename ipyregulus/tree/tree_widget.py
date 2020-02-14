@@ -26,7 +26,7 @@ def _tree_to_json(value, widget):
 
 @register
 class TreeWidget(HasTree, RegulusWidget):
-    "A widget represeting a tree"
+    "A widget representing a tree"
 
     _model_name = Unicode('TreeModel').tag(sync=True)
 
@@ -38,13 +38,21 @@ class TreeWidget(HasTree, RegulusWidget):
         super().__init__(tree)
 
     def update(self, src):
+        if self._tree is not None:
+            self._tree.unobserve(self._attrs_changed, names=['state'])
+
         tree = src if isinstance(src, RegulusTree) else src.tree
         with self.hold_sync():
-            self.root = tree.root if tree is not None else None
-            attrs = list(self.attrs.keys())
-            self.attrs = dict()
-            for attr in attrs:
-                self.attrs[attr] = tree.retrieve(attr)
+            if tree is None:
+                self.root = None
+                self.attrs = dict()
+            else:
+                self.root = tree.root
+                attrs = list(self.attrs.keys())
+                self.attrs = dict()
+                for attr in attrs:
+                    self.attrs[attr] = tree.retrieve(attr)
+                tree.observe(self._attrs_changed, names=['state'])
         super().update(src)
 
     def ensure(self, attr):
@@ -54,6 +62,18 @@ class TreeWidget(HasTree, RegulusWidget):
                 self._notify_trait('attrs', self.attrs, self.attrs)
                 return True
         return False
+
+    def _attrs_changed(self, change):
+        # TODO: why is this being called with 'attrs' at all and in paricular not with a dict?
+        # (due to self._notify_trait('attrs', self.attrs, self.attrs in line 76
+        if not isinstance(change, dict):
+            return
+
+        op, attr = change['new']
+        if attr in self.attrs:
+            if op == 'change':
+                self.attrs[attr] = self.tree.retrieve(attr)
+                self._notify_trait('attrs', self.attrs, self.attrs)
 
     @validate('model')
     def _validate_tree(self, proposal):
