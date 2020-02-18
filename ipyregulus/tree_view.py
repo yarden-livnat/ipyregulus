@@ -10,7 +10,12 @@ from .filters import AttrFilter, Trigger, GroupUIFilter
 
 class TreeView(VBox):
 
-    attr_opts = List(Unicode(), ['span', 'fitness', 'parent_fitness', 'child_fitness', 'min', 'max'])
+    attr_opts = List(Unicode(), ['span',
+                                 'fitness', 'parent_fitness', 'child_fitness',
+                                 'dim_parent_score', 'dim_child_score',
+                                 'dim_min_fitness',  'dim_max_fitness',
+                                 'min', 'max', 'unique_max', 'unique_min'
+                                 ])
     attr = Unicode('fitness')
     x = Tuple((0, 100))
     y = Tuple((0, 1))
