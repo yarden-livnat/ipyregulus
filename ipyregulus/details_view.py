@@ -1,5 +1,5 @@
 from time import time
-from traitlets import Bool, Instance, Int, List, Dict, Unicode, observe
+from traitlets import Bool, Instance, Int, List, Dict, Unicode, observe, validate
 from ipywidgets import register, widget_serialization
 
 from regulus import default_inverse_regression
@@ -28,7 +28,7 @@ class DetailsView(RegulusDOMWidget):
 
     title = Unicode('').tag(sync=True)
 
-    data = Instance(klass=DataWidget).tag(sync=True, **widget_serialization)
+    data = Instance(klass=DataWidget, allow_none=True).tag(sync=True, **widget_serialization)
     measure = Unicode(None, allow_none=True).tag(sync=True)
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
     show = List().tag(sync=True)
@@ -85,7 +85,14 @@ class DetailsView(RegulusDOMWidget):
                 self.inverse = msg
                 self.inverse = None
 
-    # @observe('data')
+    @validate('data')
+    def _valid_value(self, proposal):
+        data = proposal['value']
+        if data is not None and not isinstance(data, DataWidget):
+            data = DataWidget(data=data)
+        return data
+
+# @observe('data')
     # def _data_changed(self, change):
     #     if change['old'] is not None:
     #         if change['old'].data is not None:
