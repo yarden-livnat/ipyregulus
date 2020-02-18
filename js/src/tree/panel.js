@@ -49,9 +49,9 @@ export default function Panel() {
   let tip_spec = [
     d => [attr, d3.format('.3f')(value(d))],
     d => ['id', d3.format('d')(d.id)],
-    d => ['lvl', d3.format('.3f')(d.lvl)],
-    d => ['size', d.size],
-    d => ['internal', d.internal_size]
+    d => ['p_lvl', d3.format('.3f')(d.lvl)],
+    d => ['pts', d.size],
+    // d => ['internal', d.internal_size]
   ];
 
   function flatten(node, arr){
