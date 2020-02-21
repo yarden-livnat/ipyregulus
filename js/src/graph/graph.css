@@ -19,3 +19,7 @@
 .rg_graph .view .origin {
   color: steelblue;
 }
+
+label .widget-label {
+  width: 0
+}

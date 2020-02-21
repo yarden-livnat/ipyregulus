@@ -87,12 +87,13 @@ export default function Panel(view, el) {
 
     let a = model.get('axes');
     let n = a.length;
+    let angle_start = -Math.PI/2;
     let angle = 2*Math.PI/n;
     axes = a.map((axis, i) => {
       let updated = false;
       let theta = axis.get('theta');
       if (theta == null) {
-        theta = angle * i;
+        theta = angle_start + angle * i;
         updated = true;
       }
       let len = axis.get('len');
@@ -184,13 +185,11 @@ export default function Panel(view, el) {
 
   function inverse_changed() {
       for (let [pid, entry] of model.get('inverse').entries()) {
-        // if (!inverse.has(pid)) {
-          let line = [...entry];
-          project(line);
-          inverse.set(pid, line);
-      // }
+        let line = [...entry];
+        project_curve(line);
+        inverse.set(pid, line);
+      }
       render();
-    }
   }
 
   function show_inverse_changed() {
@@ -339,9 +338,9 @@ export default function Panel(view, el) {
     if (nodes_invalid) {
       project(active_nodes);
       for (let p of active_partitions) {
-        let line = inverse.get(p.pid);
-        if (line) {
-          project(line);
+        let curve = inverse.get(p.pid);
+        if (curve) {
+          project_curve(curve);
         }
       }
       nodes_invalid = pts_invalid = false;
@@ -405,6 +404,22 @@ export default function Panel(view, el) {
     }
   }
 
+  function project_curve(curve) {
+    let v;
+    for (let pt of curve) {
+      let x = 0, y = 0;
+      for (let axis of axes) {
+        if (!axis.disabled) {
+          v = pt[axis.col];
+          x += axis.sx(v);
+          y += axis.sy(v);
+        }
+      }
+      pt.x = x;
+      pt.y = y;
+    }
+  }
+
   function update_colors() {
     let axis = axes.find(a => a.label === color);
     if (axis) {
@@ -450,7 +465,7 @@ export default function Panel(view, el) {
       .attr('y2', d => d.sy(d.max));
    a.exit().remove();
 
-   let names = svg.select('.labels').selectAll('.label').data(axes);
+   let names = svg.select('.labels').selectAll('.label').data(active);
    names.enter()
      .append('text')
        .attr('class', 'label')

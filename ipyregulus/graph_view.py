@@ -6,7 +6,7 @@ import pandas as pd
 from traitlets import Bool, Dict, Int, List, Unicode, observe
 from ipywidgets import register, widget_serialization
 
-from regulus import default_inverse_regression, HasTree
+from regulus import HasTree
 
 from .core.axis import  AxisTraitType
 from .core.trait_types import TypedTuple
@@ -65,11 +65,13 @@ class GraphView(HasTree, RegulusDOMWidget):
             return
         elif self._tree.regulus != self._dataset:
             dataset = self._dataset = self._tree.regulus
-            nx = len(list(dataset.x))
-            cy = list(dataset.pts.values).index(dataset.measure)
-            self.axes = utils.create_axes(dataset.x, cols=range(nx)) + utils.create_axes(dataset.y, cols=[nx+cy])
-            pts = pd.merge(left=dataset.pts.x,
-                           right=dataset.pts.values,
+            # nx = len(list(dataset.x))
+            # cy = list(dataset.pts.values).index(dataset.measure)
+            # self.axes = utils.create_axes(dataset.x, cols=range(nx)) + utils.create_axes(dataset.y, cols=[nx+cy])
+            self.axes = utils.create_axes(dataset.y, cols=[0]) + \
+                        utils.create_axes(dataset.x, cols=range(1,1+dataset.x.shape[1]))
+            pts = pd.merge(left=dataset.y,
+                           right=dataset.pts.original_x,
                            left_index=True,
                            right_index=True)
             pts = [dict(id=i, values=list(v)) for i, v in zip(pts.index, pts.values)]
@@ -112,17 +114,16 @@ class GraphView(HasTree, RegulusDOMWidget):
         show = change['new']
         logger.info('show')
         if self._tree is not None:
-            scaler = self._dataset.pts.scaler
             if not self._tree.regulus.attr.has('inverse_regression'):
-                self._tree.regulus.add_attr(default_inverse_regression, name='inverse_regression')
+                return
             t_start = time()
-            cy = len(list(self._dataset.x)) + list(self._dataset.values).index(self._dataset.measure)
             data = {}
             pids = filter(lambda pid: pid not in self._cache, show)
             t0 = time()
             for node in self._dataset.find_nodes(pids):
-                line = self._tree.attr['inverse_regression'][node]
-                data[node.id] = convert(line, cy, scaler)
+                curve, std = self._tree.attr['inverse_regression'][node]
+                data[node.id] = curve.reset_index().values.tolist()
+
                 self._cache.add(node.id)
                 if time() - t0 > 0.5:
                     logger.debug(f'{time() - t0}')
