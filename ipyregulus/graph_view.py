@@ -11,25 +11,9 @@ from regulus import HasTree
 from .core.axis import  AxisTraitType
 from .core.trait_types import TypedTuple
 from .core.base import RegulusDOMWidget
-import ipyregulus.utils as utils
+from ipyregulus.utils import create_axes
 
 logger = logging.getLogger(__name__)
-
-
-def convert(data, cy, scaler):
-    def values(i):
-        v = [0] * cy
-        for c in range(cols):
-            v[c] = data[c]['x'][i]
-        if scaler is not None:
-            v = list(scaler.transform([v])[0])
-        v.append(data[0]['y'][i])
-        return v
-
-    cols = len(data)
-    n = len(data[0]['x'])
-    line = [dict(id=i, values=values(i)) for i in range(n)]
-    return line
 
 
 @register
@@ -65,11 +49,8 @@ class GraphView(HasTree, RegulusDOMWidget):
             return
         elif self._tree.regulus != self._dataset:
             dataset = self._dataset = self._tree.regulus
-            # nx = len(list(dataset.x))
-            # cy = list(dataset.pts.values).index(dataset.measure)
-            # self.axes = utils.create_axes(dataset.x, cols=range(nx)) + utils.create_axes(dataset.y, cols=[nx+cy])
-            self.axes = utils.create_axes(dataset.y, cols=[0]) + \
-                        utils.create_axes(dataset.x, cols=range(1,1+dataset.x.shape[1]))
+            self.axes = create_axes(dataset.y, cols=[0]) + \
+                        create_axes(dataset.x, cols=range(1,1+dataset.x.shape[1]))
             pts = pd.merge(left=dataset.y,
                            right=dataset.pts.x,
                            left_index=True,

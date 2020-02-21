@@ -2,12 +2,14 @@
     width: 100px;
     margin: 0;
     background-color: lightgreen;
-    display: inline-block; 
+    display: inline-block;
+    overflow: hidden;
 }
 
 .rg_row_header {
     display: grid;
     grid-template-columns: 40px 1fr;
+    overflow: hidden;
 }
 
 .label {
