@@ -71,7 +71,7 @@ class GraphView(HasTree, RegulusDOMWidget):
             self.axes = utils.create_axes(dataset.y, cols=[0]) + \
                         utils.create_axes(dataset.x, cols=range(1,1+dataset.x.shape[1]))
             pts = pd.merge(left=dataset.y,
-                           right=dataset.pts.original_x,
+                           right=dataset.pts.x,
                            left_index=True,
                            right_index=True)
             pts = [dict(id=i, values=list(v)) for i, v in zip(pts.index, pts.values)]
@@ -114,6 +114,7 @@ class GraphView(HasTree, RegulusDOMWidget):
         show = change['new']
         logger.info('show')
         if self._tree is not None:
+            scaler = self._tree.regulus.scaler
             if not self._tree.regulus.attr.has('inverse_regression'):
                 return
             t_start = time()
@@ -122,7 +123,8 @@ class GraphView(HasTree, RegulusDOMWidget):
             t0 = time()
             for node in self._dataset.find_nodes(pids):
                 curve, std = self._tree.attr['inverse_regression'][node]
-                data[node.id] = curve.reset_index().values.tolist()
+                line =  pd.DataFrame(scaler.transform(curve, copy=True), index=curve.index, columns=curve.columns)
+                data[node.id] = line.reset_index().values.tolist()
 
                 self._cache.add(node.id)
                 if time() - t0 > 0.5:
