@@ -2,22 +2,11 @@ from time import time
 from traitlets import Bool, Instance, Int, List, Dict, Unicode, observe, validate
 from ipywidgets import register, widget_serialization
 
-from regulus import default_inverse_regression
 from ipyregulus.core.base import RegulusDOMWidget
 from .data_widget import DataWidget
 from .tree import TreeWidget
 
-import numpy as np
-
-def convert(data):
-    line = []
-    for col in data:
-        x = col['x']
-        y = col['y']
-        s = col['std']
-        l = [[x[i], y[i], s[i]] for i in range(len(x))]
-        line.append(l)
-    return line
+import pandas as pd
 
 
 @register
@@ -68,13 +57,14 @@ class DetailsView(RegulusDOMWidget):
         r = self.data.data
         if self.show_inverse and self.data is not None:
             if not self.data.data.attr.has('inverse_regression'):
-                self.data.data.add_attr(default_inverse_regression, name='inverse_regression')
+                return
             pids = filter(lambda pid: pid not in self._inverse_cache, self.show)
             msg = {}
             t0 = time()
             for node in r.find_nodes(pids):
-                line = r.attr['inverse_regression'][node]
-                msg[node.id] = convert(line)
+                curve, std = r.attr['inverse_regression'][node]
+                msg[node.id] = [pd.DataFrame({col: curve[col], 'std': std[col]}).reset_index().values.tolist()
+                                for col in curve.columns]
                 self._inverse_cache.add(node.id)
                 if time() - t0 > 1:
                     self.inverse = msg

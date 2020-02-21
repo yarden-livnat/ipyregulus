@@ -67,13 +67,13 @@ export default function Plot() {
     if (!d.inverse) return;
 
      let line = d3.line()
-      .x(p => sx(p[0])).y(p => sy(p[1]));
+      .x(p => sx(p[1])).y(p => sy(p[0]));
 
     let area = d3.area()
-      .x0(p => sx(p[0] - p[2]))
-      .y0( p => sy(p[1]))
-      .x1(p => sx(p[0] + p[2]))
-      .y1( p => sy(p[1]));
+      .x0(p => sx(p[1] - p[2]))
+      .y0( p => sy(p[0]))
+      .x1(p => sx(p[1] + p[2]))
+      .y1( p => sy(p[0]));
 
     let svg = root.select('svg');
     svg.select('.rg_plot_line')

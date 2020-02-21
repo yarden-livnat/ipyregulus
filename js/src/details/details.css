@@ -33,7 +33,7 @@
   min-height: 0;
   overflow-y: hidden;
   display: grid;
-  grid-template-columns: 45px auto 10px;
+  grid-template-columns: 50px auto 10px;
   grid-template-rows:  20px auto 10px;
   grid-gap: 5px 5px;
   grid-template-areas:
@@ -47,6 +47,7 @@
   grid-area: measure;
   overflow: hidden;
   white-space: nowrap;
+  text-align: center;
 }
 
 /* TOP */
@@ -61,27 +62,35 @@
 .rg_details .rg_top .rg_col_header {
   width: var(--col-width);
   margin: 0 5px 0 0;
-  background-color: lightgreen;
+  background-color: lightgray;
   display: inline-block;
+  text-align: center;
 }
 
 /* LEFT */
 
 .rg_details .rg_left {
   grid-area: left;
-  overflow-y: hidden;
+  overflow: hidden;
 }
 
 .rg_row_header {
   height: var(--row-height);
-  width: 30px;
+  width: 50px;
   margin: 0 0 5px 0;
-  background-color: lightgreen;
+  background-color: lightgray;
   border: 1px solid gray;
+  font-size: 9pt;
+  text-align: left;
+}
+
+.rg_row_header .info {
+ font-size: 8pt;
 }
 
 .rg_row_header.highlight {
-  border: 2px solid red;
+  /*border: 2px solid red;*/
+  background-color: lightgreen;
 }
 
 /* RIGHT */

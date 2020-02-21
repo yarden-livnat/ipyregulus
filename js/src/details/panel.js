@@ -9,9 +9,6 @@ import Plot from './plot';
 import './panel.css';
 import row_header_template from './row_header.html';
 
-// let DEFAULT_WIDTH = 800;
-// let DEFAULT_HEIGHT = 500;
-
 let PLOT_WIDTH = 100;
 let PLOT_HEIGHT = 100;
 let PLOT_BORDER = 1;
@@ -20,10 +17,6 @@ let PLOT_GAP = 5;
 let DURATION = 1000;
 
 export default function Panel(ctrl) {
-  // let margin = {top: 10, right: 30, bottom: 50, left:60},
-  // width = DEFAULT_WIDTH - margin.left - margin.right,
-  // height = DEFAULT_HEIGHT - margin.top - margin.bottom;
-
   let root = null;
   let svg = null;
 
@@ -129,7 +122,6 @@ export default function Panel(ctrl) {
     let name = measure_name;
     if (name == null && data != null)
         name = data.get('measure');
-    // if (name === current_measure) return;
 
     current_measure = name || '';
     if (current_measure !== '' && data) {
@@ -174,7 +166,7 @@ export default function Panel(ctrl) {
   }
 
   function update_rows() {
-    rows = show.sort((a,b) => a -b).map((r, i) => ({idx: i, id: r}));
+    rows = show.sort((a,b) => a -b).map((r, i) => ({idx: i, id: r, size:partitions.get(r).index.length}));
     root.select('.rg_right_scroll').style('height', `${rows.length*(PLOT_HEIGHT + 2*PLOT_BORDER + PLOT_GAP) - PLOT_GAP}px`);
   }
 
@@ -189,38 +181,6 @@ export default function Panel(ctrl) {
     return pt;
   }
 
-  // function update_inverse() {
-  //   for (let pid of show) {
-  //     if (!inverse.has(pid)) {
-  //       let t0 = performance.now();
-  //       let partition = partitions.get(pid);
-  //       let x = partition.index.map(idx => get_pt(idx));
-  //       let y = partition.index.map(idx => attrs.get(idx, measure_idx));
-  //       let extent = attrs_extent[measure_idx];
-  //       let bandwidth = bandwidth_factor * [extent[1] - extent[0]];
-  //
-  //       let curve = inverseMultipleRegression(x, y, kernel.gaussian, bandwidth);
-  //       let stddev = averageStd(x, y, kernel.gaussian, bandwidth);
-  //
-  //       let minmax_idx = partition.data.minmax_idx;
-  //       let minmax = [attrs.get(minmax_idx[0], measure_idx), attrs.get(minmax_idx[1], measure_idx)];
-  //       // let py = subLinearSpace(minmax, extent, 100);
-  //       let py = linspace(minmax[0], minmax[1], 40);
-  //       let px = curve(py);
-  //       let std = stddev(py, px);
-  //
-  //       let line = [];
-  //       for (let i = 0; i < py.length; i++) {
-  //         line.push({x: px[i], y: py[i], std: std[i]});
-  //       }
-  //
-  //       inverse.set(pid, line);
-  //
-  //       let t1 = performance.now();
-  //       console.log(`partition ${pid}: compute inverse in ${t1-t0} msec`);
-  //     }
-  //   }
-  // }
 
   function update_plots() {
     plots = [];
@@ -228,6 +188,7 @@ export default function Panel(ctrl) {
       let partition = partitions.get(row.id);
       for (let col of cols) {
          let p = {
+           id: row.id,
            row: row.idx,
            col: col.idx,
            partition: partition,
@@ -295,8 +256,8 @@ export default function Panel(ctrl) {
       merge.select('.id')
         .html(d => d.id);
 
-      // merge.select('.parent')
-      //   .html(d => d.parent);
+      merge.select('.size')
+        .html(d => d.size);
 
 
       d3rows.exit()
@@ -311,6 +272,8 @@ export default function Panel(ctrl) {
         .append('div')
         .classed('rg_plot_item', true)
         .style('opacity', 0)
+        .on('mouseenter', on_enter)
+        .on('mouseleave', on_leave)
         .call(plot_renderer.create)
       .merge(d3plots)
         .style('left', d => `${d.col*(PLOT_WIDTH + 2*PLOT_BORDER + PLOT_GAP)}px`)
