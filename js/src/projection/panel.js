@@ -120,7 +120,8 @@ export default function Panel() {
      .attr('cx', 0)
      .attr('cy', 0);
 
-   let a = svg.select('.axes').selectAll('.axis').data(axes, d => d.label);
+   let active = axes.filter(a => !a.disabled);
+   let a = svg.select('.axes').selectAll('.axis').data(active, d => d.label);
    a.enter()
      .append('line')
       .attr('class', 'axis')
@@ -133,7 +134,7 @@ export default function Panel() {
       .attr('y2', d => d.sy(d.max));
    a.exit().remove();
 
-   let names = svg.select('.labels').selectAll('.label').data(axes);
+   let names = svg.select('.labels').selectAll('.label').data(active);
    names.enter()
      .append('text')
        .attr('class', 'label')
@@ -258,6 +259,7 @@ export default function Panel() {
         axis.theta = model.get('theta');
         axis.len = model.get('len');
         axis.max = model.get('max');
+        axis.disabled = model.get('disabled');
         axis.sx.domain([0, axis.max]).range([0, axis.len*Math.cos(axis.theta)]);
         axis.sy.domain([0, axis.max]).range([0, axis.len*Math.sin(axis.theta)]);
       }
