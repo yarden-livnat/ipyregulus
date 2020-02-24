@@ -18,13 +18,14 @@ class DetailsView(RegulusDOMWidget):
     title = Unicode('').tag(sync=True)
 
     data = Instance(klass=DataWidget, allow_none=True).tag(sync=True, **widget_serialization)
-    measure = Unicode(None, allow_none=True).tag(sync=True)
+    # measure = Unicode(None, allow_none=True).tag(sync=True)
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
     show = List().tag(sync=True)
     highlight = Int(-2).tag(sync=True)
     show_inverse = Bool(True).tag(sync=True)
     inverse = Dict(allow_none=True).tag(sync=True)
     cmap = Unicode('RdYlBu').tag(sync=True)
+    reload = Bool(True).tag(sync=True)
 
     def __init__(self, **kwargs):
         self._inverse_cache = set()
@@ -33,8 +34,8 @@ class DetailsView(RegulusDOMWidget):
             if not isinstance(data, DataWidget):
                 data = DataWidget(data=data)
                 kwargs['data'] = data
-            if 'measure' not in kwargs:
-                kwargs['measure'] = data.data.measure
+            # if 'measure' not in kwargs:
+            #     kwargs['measure'] = data.data.measure
         super().__init__(**kwargs)
 
     def reset_inverse(self):
@@ -77,13 +78,21 @@ class DetailsView(RegulusDOMWidget):
 
     @validate('data')
     def _valid_value(self, proposal):
+        if self.data is not None:
+            self.data.unobserve(self._data_changed, names=['data'])
+
         data = proposal['value']
         if data is not None and not isinstance(data, DataWidget):
             data = DataWidget(data=data)
+
+        if data is not None:
+            data.observe(self._data_changed, names=['data'])
         return data
 
-# @observe('data')
-    # def _data_changed(self, change):
-    #     if change['old'] is not None:
-    #         if change['old'].data is not None:
-    #
+    def _data_changed(self, change):
+        self.reload = not self.reload
+        with self.hold_sync():
+            self.show = ()
+            self.highlight = -2
+            self._inverse_cache.clear()
+

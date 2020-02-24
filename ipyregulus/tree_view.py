@@ -12,7 +12,7 @@ class TreeView(VBox):
 
     attr_opts = List(Unicode(), ['span',
                                  'fitness', 'parent_fitness', 'child_fitness',
-                                 'quad_fitness',
+                                 'q_fitness',
                                  'dim_parent_score', 'dim_child_score',
                                  'dim_min_fitness',  'dim_max_fitness',
                                  'min', 'max', 'unique_max', 'unique_min'

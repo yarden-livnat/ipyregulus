@@ -41,7 +41,7 @@ class TreeWidget(HasTree, RegulusWidget):
         if self._tree is not None:
             self._tree.unobserve(self._attrs_changed, names=['state'])
 
-        tree = src if isinstance(src, RegulusTree) else src.tree
+        tree = src if src is None or isinstance(src, RegulusTree) else src.tree
         with self.hold_sync():
             if tree is None:
                 self.root = None

@@ -65,8 +65,9 @@ class BaseTreeView(HasTree, RegulusDOMWidget):
         if self.tree is None:
             return
         if name not in self.attrs or force:
-            if name in self.tree:
-                self._owner.ensure(name)
+            self._owner.ensure(name)
+            # if name in self.tree:
+            #     self._owner.ensure(name)
 
     def update(self, tree):
         if tree is not None:

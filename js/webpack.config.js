@@ -1,5 +1,5 @@
 const path = require('path');
-const nodeExternals = require('webpack-node-externals');
+// const nodeExternals = require('webpack-node-externals');
 const CopyPlugin = require('copy-webpack-plugin');
 
 const dist_path = path.resolve(__dirname, 'lib');
@@ -38,7 +38,6 @@ module.exports =  {
   },
 
   externals: [
-   '@jupyter-widgets/base',
-    'jupyter-scales', 'jupyter-datawidgets', 'jupyter-dataserializers'
+   '@jupyter-widgets/base', 'jupyter-dataserializers', '@jupyter-widgets/jupyterlab-manager', '@jupyterlab/application'
   ]
 };

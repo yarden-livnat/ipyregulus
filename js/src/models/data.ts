@@ -34,7 +34,7 @@ class RegulusData extends RegulusModel {
   attrs: ndarray;
   attrs_idx: string[];
   attrs_extent: number[];
-  partitions: [];
+  partitions: any[];
   measure:string;
 
   static serializers = {

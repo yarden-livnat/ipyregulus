@@ -57,12 +57,11 @@ export default function Panel(ctrl) {
   function set_model(_) {
     model = _;
     model.on('change:data', model_changed);
-    model.on('change:measure', measure_changed);
+    model.on('change:reload', model_changed);
     model.on('change:show', show_changed);
     model.on('change:highlight', highlight_changed);
     model.on('change:inverse', inverse_changed);
     model.on('change:cmap', cmap_changed);
-    measure_changed();
     model_changed();
     show_changed();
   }
@@ -72,13 +71,6 @@ export default function Panel(ctrl) {
     update_measure();
     update_cols();
     update_rows();
-    update_plots();
-    render();
-  }
-
-  function measure_changed() {
-    measure_name = model.get('measure');
-    update_measure();
     update_plots();
     render();
   }
@@ -148,6 +140,7 @@ export default function Panel(ctrl) {
       attrs_extent = data.get('attrs_extent');
       partitions = new Map( data.get('partitions').map(p => [p.id, new Partition(p, pts_loc)]));
       filtered = Array(pts_idx.length).fill(false);
+      measure_name = data.get('measure');
     } else {
       pts = null;
       pts_idx = [];
@@ -156,8 +149,11 @@ export default function Panel(ctrl) {
       attrs_idx = [];
       attrs_extent = [];
       partitions = new Map();
+      measure_name = "";
     }
     inverse = new Map();
+    show = [];
+    highlighted = -2;
   }
 
   function update_cols() {
@@ -169,8 +165,6 @@ export default function Panel(ctrl) {
     rows = show.sort((a,b) => a -b).map((r, i) => ({idx: i, id: r, size:partitions.get(r).index.length}));
     root.select('.rg_right_scroll').style('height', `${rows.length*(PLOT_HEIGHT + 2*PLOT_BORDER + PLOT_GAP) - PLOT_GAP}px`);
   }
-
-  const bandwidth_factor = 0.05;
 
   function get_pt(idx) {
     let pt = [];
