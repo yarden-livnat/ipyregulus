@@ -2,7 +2,7 @@ from traitlets import observe, validate
 from ipywidgets import Checkbox, GridBox, HBox,  VBox, FloatSlider, link, dlink, Layout
 
 from .core.axis import AxisTraitType
-from .core.trait_types import TypedTuple
+from .core.traittypes import TypedTuple
 
 
 class UnboundedFloatSlider(FloatSlider):

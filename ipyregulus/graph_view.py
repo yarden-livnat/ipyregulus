@@ -9,7 +9,7 @@ from ipywidgets import register, widget_serialization
 from regulus import HasTree
 
 from .core.axis import  AxisTraitType
-from .core.trait_types import TypedTuple
+from .core.traittypes import TypedTuple
 from .core.base import RegulusDOMWidget
 from ipyregulus.utils import create_axes
 

@@ -2,7 +2,7 @@ from ipywidgets import FloatSlider, GridBox, HBox, Label, VBox, Widget
 from traitlets import Bool, HasTraits, Instance, Int, List, TraitType, Unicode, Undefined
 from traitlets import observe
 
-from regulus.core import AttrRange
+from regulus import AttrRange, Function, Mutable
 
 from .basic_filters import *
 
@@ -18,12 +18,7 @@ def minmax(obj):
     return min, max
 
 
-class Function(TraitType):
-    default_value = lambda x: x
-
-
-class Filter(HasTraits):
-    changed = Int(0)
+class Filter(Mutable):
     disabled = Bool(False)
     func = Function()
 
@@ -33,9 +28,6 @@ class Filter(HasTraits):
 
     def _on_changed(self, change=None):
         self.invalidate()
-
-    def invalidate(self):
-        self.changed += 1
 
     def __call__(self, *args, **kwargs):
         return self.disabled or self.func(*args, **kwargs)
@@ -82,10 +74,11 @@ class UIFilter(BaseUIFilter):
         self.ui.step = r[2]
 
     def _on_ui(self, change):
-        if change['new'] is not None:
-            self.ui.observe(self._on_changed, names='value')
         if change['old'] not in (None, Undefined):
             change['old'].unobserve(self._on_changed)
+        if change['new'] is not None:
+            self.ui.observe(self._on_changed, names='value')
+
 
     def __call__(self, *args, **kwargs):
         return self.disabled or self.func(self.value, *args, **kwargs)
@@ -171,7 +164,7 @@ class GroupUIFilter(Filter, VBox):
         filters = self.filters
         filters.insert(idx, f)
         self.filters = filters
-        f.observe(self._on_changed, names=['changed'])
+        f.observe(self._on_changed, names=['version'])
         self.invalidate()
         return f
 

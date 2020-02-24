@@ -3,10 +3,10 @@
 """
 
 from ipywidgets import register
-from traitlets import Dict, Instance, Unicode, Undefined, validate
+from traitlets import Dict, Instance, Unicode, Undefined, validate, observe
 
-from regulus import HasTree, RegulusTree
-from regulus.tree import Node
+from regulus import HasTree, RegulusTree, Node
+# from regulus.tree import Node
 
 from ipyregulus.core.base import RegulusWidget
 
@@ -35,13 +35,17 @@ class TreeWidget(HasTree, RegulusWidget):
 
     def __init__(self, tree=None, select=lambda x: {}, **kwargs):
         self.user_select = select
-        super().__init__(tree)
+        super().__init__()
+        self.tree = tree
 
-    def update(self, src):
-        if self._tree is not None:
-            self._tree.unobserve(self._attrs_changed, names=['state'])
+    @observe('tree')
+    def tree_changed(self, change):
+        print('TreeWidget.observe tree', change)
+        old = change['old']
+        if old is not None:
+            old.unobserve(self._attrs_changed, names=['state'])
 
-        tree = src if isinstance(src, RegulusTree) else src.tree
+        tree = change['new']
         with self.hold_sync():
             if tree is None:
                 self.root = None
@@ -53,7 +57,6 @@ class TreeWidget(HasTree, RegulusWidget):
                 for attr in attrs:
                     self.attrs[attr] = tree.retrieve(attr)
                 tree.observe(self._attrs_changed, names=['state'])
-        super().update(src)
 
     def ensure(self, attr):
         if attr not in self.attrs:
@@ -64,7 +67,7 @@ class TreeWidget(HasTree, RegulusWidget):
         return False
 
     def _attrs_changed(self, change):
-        # TODO: why is this being called with 'attrs' at all and in paricular not with a dict?
+        # TODO: why is this being called with 'attrs' at all and in particular not with a dict?
         # (due to self._notify_trait('attrs', self.attrs, self.attrs in line 76
         if not isinstance(change, dict):
             return
@@ -74,13 +77,6 @@ class TreeWidget(HasTree, RegulusWidget):
             if op == 'change':
                 self.attrs[attr] = self.tree.retrieve(attr)
                 self._notify_trait('attrs', self.attrs, self.attrs)
-
-    @validate('model')
-    def _validate_tree(self, proposal):
-        """validate the tree"""
-        value = proposal['value']
-        # TODO: validate
-        return value
 
     def _default_select(self, node):
         return {

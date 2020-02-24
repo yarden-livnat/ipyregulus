@@ -5,7 +5,7 @@ from traitlets import Any, List, Unicode, validate, TraitError
 from ipywidgets import register, widget_serialization
 
 from .core.axis import Axis, AxisTraitType
-from .core.trait_types import InstanceDict, TypedTuple
+from .core.traittypes import InstanceDict, TypedTuple
 from ipyregulus.core.base import RegulusDOMWidget
 
 
