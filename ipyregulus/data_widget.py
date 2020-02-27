@@ -2,12 +2,8 @@
     Regulus Data widget
 """
 
-<<<<<<< HEAD
-from traitlets import Instance, List, Unicode, validate
-=======
 from traitlets import Instance, Int, List, Unicode, observe
 from regulus import Regulus
->>>>>>> tree
 from ipywidgets import register
 from ipydatawidgets import DataUnion
 
