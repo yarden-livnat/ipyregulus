@@ -1,8 +1,7 @@
 import pandas as pd
 from traitlets import  Instance, observe, validate
 from ipywidgets import Checkbox, GridBox, FloatSlider,link, dlink, Layout
-
-from regulus import Mutable
+from .core.haslinks import HasLinks
 
 from .core.axis import Axis, AxisTraitType
 from .core.traittypes import TypedTuple
@@ -26,7 +25,7 @@ def invert(s, axis):
     return f
 
 
-class AxesCtrl(GridBox):
+class AxesCtrl(GridBox, HasLinks):
     axes = TypedTuple(trait=AxisTraitType())
     data = Instance(klass=DataWidget, default_value=None, allow_none=True)
 

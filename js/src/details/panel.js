@@ -298,6 +298,24 @@ export default function Panel(ctrl) {
         .remove();
   }
 
+
+  function render_plots() {
+      let d3plots = root.select('.rg_plots').selectAll('.rg_plot_item')
+        .data(plots, d => [d.partition.id, d.col])
+        .join(
+          enter => enter.append('div')
+            .classed('rg_plot_item', true)
+            .style('opacity', 1)
+            .on('mouseenter', on_enter)
+            .on('mouseleave', on_leave)
+            .call(create_item),
+          update => update.call(update_item),
+            // .transition().duration(DURATION)
+            // .style('opacity', 1),
+          exit => exit.remove()
+        );
+  }
+
   function create_item(selection) {
     selection
       .append('div')
@@ -319,24 +337,6 @@ export default function Panel(ctrl) {
         .style('width', d => `${Math.round(Math.abs(d.bar)*100)}%`)
         .style('background', d => d.bar > 0 ? 'lightgreen' : 'lightcoral' );
   }
-
-  function render_plots() {
-      let d3plots = root.select('.rg_plots').selectAll('.rg_plot_item')
-        .data(plots, d => [d.partition.id, d.col])
-        .join(
-          enter => enter.append('div')
-            .classed('rg_plot_item', true)
-            .style('opacity', 1)
-            .on('mouseenter', on_enter)
-            .on('mouseleave', on_leave)
-            .call(create_item),
-          update => update.call(update_item),
-            // .transition().duration(DURATION)
-            // .style('opacity', 1),
-          exit => exit.remove()
-        );
-  }
-
 
   function scroll_plots() {
     let left = root.select('.rg_bottom').node().scrollLeft;
