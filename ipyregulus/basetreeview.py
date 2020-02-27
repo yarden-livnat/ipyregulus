@@ -1,9 +1,9 @@
 # Copyright (c) University of Utah
 
-from traitlets import Bool, Dict, Instance, Int, List, Tuple, Unicode, Set, validate
+from traitlets import Bool, Dict, Instance, Int, List, Tuple, Unicode, Set, validate, observe, HasTraits
 from ipywidgets import register, widget_serialization
 
-from regulus import HasTree
+from regulus import HasTree, Tree
 from ipyregulus.core.base import RegulusDOMWidget
 from .tree import TreeWidget
 
@@ -22,7 +22,7 @@ class BaseTreeView(HasTree, RegulusDOMWidget):
     title = Unicode('').tag(sync=True)
     attrs = Dict(default_value={}).tag(sync=True)
     attr = Unicode('').tag(sync=True)
-    show_attr = Bool(True).tag(sync=True)
+    # show_attr = Bool(True).tag(sync=True)
     show = Set(Int(), None, allow_none=True).tag(sync=True)
     highlight = Int(-2).tag(sync=True)
     selected = List().tag(sync=True, from_json=from_json)
@@ -32,25 +32,35 @@ class BaseTreeView(HasTree, RegulusDOMWidget):
     y = Tuple((0, 1)).tag(sync=True)
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
 
-    def __init__(self, tree=None, attr='fitness', **kwargs):
+    @validate('src')
+    def validate_src(self, proposal):
+        src = proposal['value']
+        if isinstance(src, TreeWidget):
+            self.tree_model = src
+            # value = value.tree
+        elif isinstance(src, HasTraits) and src.has_trait('tree'):
+            self.tree_model = TreeWidget(src)
+            # value = value.tree
+        elif isinstance(src, Tree):
+            self.tree_model = TreeWidget(src)
+        elif src is None:
+            self.tree_model = None
+        return super().validate_src(proposal)
+
+    def __init__(self, src=None, attr='fitness', children=None, **kwargs):
         super().__init__(None, **kwargs)
-        self.tree = tree
+        self.src = src
         self.attr = attr
 
-    @HasTree.tree.getter
-    def tree(self):
-        return self._tree
-
-    @tree.setter
-    def tree(self, tree):
-        if tree is not None and not isinstance(tree, TreeWidget):
-            tree = TreeWidget(tree)
-        HasTree.tree.fset(self, tree)
+    @observe('tree')
+    def _tree_changed(self, change):
+        self.attrs = dict()
+        self.show = None
         if self.attr is not None and self.attr != '':
             self.attr = self.attr
 
     @validate('attr')
-    def _valid_attr(self, proposal):
+    def _validate_attr(self, proposal):
         attr = proposal['value']
         if self.tree is None:
             return attr
@@ -62,26 +72,9 @@ class BaseTreeView(HasTree, RegulusDOMWidget):
         self.show = node_ids
 
     def ensure(self, name, force=False):
-        if self.tree is None:
+        if self.tree_model is None:
             return
         if name not in self.attrs or force:
-            self._owner.ensure(name)
-            # if name in self.tree:
-            #     self._owner.ensure(name)
+            self.tree_model.ensure(name)
 
-    def update(self, tree):
-        if tree is not None:
-            if isinstance(tree, HasTree):
-                if tree == self._owner:
-                    super().update(tree)
-                    return
-            else:
-                print('BaseTreeView: create BaseTreeView')
-                tree = TreeWidget(tree=tree)
-                tree.ensure(self.attr)
-        with self.hold_sync():
-            self.attrs = dict()
-            self.show = None
-            self.tree_model = tree
-        super().update(tree)
-        self.changed += 1
+

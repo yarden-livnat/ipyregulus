@@ -20,22 +20,22 @@ class Trigger(Filter):
     @monitor.setter
     def monitor(self, obj):
         for m in self._monitored:
-            m.unobserve(self._exec, names='changed')
+            m.unobserve(self._exec, names='version')
         self._monitored = [obj] if not isinstance(obj, list) else obj
         for m in self._monitored:
-            m.observe(self._exec, names='changed')
+            m.observe(self._exec, names='version')
 
     def add(self, item):
         if item not in self._monitored:
             self._monitored.append(item)
-            item.observe(self._exec, names='changed')
+            item.observe(self._exec, names='version')
 
     def remove(self, item):
         if item in self._monitored:
             self._monitored.remove(item)
-            item.unobserve(self._exec, names='changed')
+            item.unobserve(self._exec, names='vesion')
 
     def clear(self):
         for item in self._monitored:
-            item.unobserve(self._exec, names='changed')
+            item.unobserve(self._exec, names='version')
         self._monitored = []

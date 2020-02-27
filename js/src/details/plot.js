@@ -39,6 +39,7 @@ export default function Plot() {
     //
     bg_ctx.fillStyle = '#eee';
     for (let idx of d.pts_idx) {
+      // console.log(`pt ${idx}  c_dim: ${d.c_dim}   v=${d.y.get(idx, d.c_dim)}  c=${d.color(d.y.get(idx, d.c_dim))}`);
       let px = sx(d.x.get(idx, d.x_dim));
       let py = sy(d.y.get(idx, d.y_dim));
       if (!d.filtered[idx]) {

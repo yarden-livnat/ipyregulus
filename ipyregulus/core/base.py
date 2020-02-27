@@ -3,14 +3,16 @@ Common base widgets for ipyregulus widgets.
 """
 
 from IPython.display import clear_output
-from ipywidgets import Widget, DOMWidget, Output
+from ipywidgets import Widget, DOMWidget, Output, link
 from traitlets import Unicode
 from ipyregulus._version import EXTENSION_SPEC_VERSION
+
+from .haslinks import HasLinks
 
 MODULE_NAME = '@regulus/ipyregulus'
 
 
-class RegulusWidget(Widget):
+class RegulusWidget(Widget, HasLinks):
     """An abstract widget class representing regulus data widgets"""
     _model_module = Unicode(MODULE_NAME).tag(sync=True)
     _model_module_version = Unicode(EXTENSION_SPEC_VERSION).tag(sync=True)
@@ -20,6 +22,14 @@ class RegulusWidget(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.dispatch = dict()
+        self._rlinks = []
+
+    def close(self):
+        for l in self._rlinks:
+            l[0].unlink()
+        super().close()
+
+
 
     def on(self, attr, f, out=None):
         """Execute a function when this widget's attr changed

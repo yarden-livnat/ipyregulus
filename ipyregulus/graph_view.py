@@ -9,15 +9,14 @@ from ipywidgets import register, widget_serialization
 from regulus import HasTree
 
 from .core.axis import  AxisTraitType
-from .core.trait_types import TypedTuple
+from .core.traittypes import TypedTuple
 from .core.base import RegulusDOMWidget
-from ipyregulus.utils import create_axes
 
 logger = logging.getLogger(__name__)
 
 
 @register
-class GraphView(HasTree, RegulusDOMWidget):
+class GraphView(RegulusDOMWidget, HasTree):
     _model_name = Unicode('GraphModel').tag(sync=True)
     _view_name = Unicode('GraphView').tag(sync=True)
 
@@ -30,29 +29,31 @@ class GraphView(HasTree, RegulusDOMWidget):
     show_inverse = Bool(True).tag(sync=True)
     _add_inverse = Dict(allow_none=True).tag(sync=True)
 
-    def __init__(self, tree=None, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, src=None, **kwargs):
+        super(HasTree, self).__init__(**kwargs)
+        super(RegulusDOMWidget, self).__init__()
         self._dataset = None
-        self._tree = None
-        self.tree = tree
         self._cache = set()
         self._msg = None
-        self._show_inverse = True
+        if src is not None:
+            self.src = src
 
-    def update(self, tree):
-        super().update(tree)
+    @observe('tree')
+    def update(self, change):
+        tree = change['new']
         if tree is None:
             self.axes = []
             self.graph = dict(pts=[], partitions=[])
             self._dataset = None
             self._cache = set()
             return
-        elif self._tree.regulus != self._dataset:
-            dataset = self._dataset = self._tree.regulus
-            self.axes = create_axes(dataset.y, cols=[0]) + \
-                        create_axes(dataset.x, cols=range(1,1+dataset.x.shape[1]))
+
+        if tree != self._dataset:
+            dataset = self._dataset = tree.regulus
+            # self.axes = create_axes(dataset.y, cols=[0]) + \
+            #             create_axes(dataset.pts.original_x, cols=range(1, 1 + dataset.x.shape[1]))
             pts = pd.merge(left=dataset.y,
-                           right=dataset.pts.x,
+                           right=dataset.pts.original_x,
                            left_index=True,
                            right_index=True)
             pts = [dict(id=i, values=list(v)) for i, v in zip(pts.index, pts.values)]
@@ -69,7 +70,7 @@ class GraphView(HasTree, RegulusDOMWidget):
 
     def _get_partitions(self):
         partitions = []
-        if self._tree is not None:
+        if self.tree is not None:
             for node in self.tree:
                 p = node.data
                 min_idx, max_idx = p.minmax_idx
@@ -94,16 +95,16 @@ class GraphView(HasTree, RegulusDOMWidget):
     def _show(self, change):
         show = change['new']
         logger.info('show')
-        if self._tree is not None:
-            scaler = self._tree.regulus.scaler
-            if not self._tree.regulus.attr.has('inverse_regression'):
+        if self.tree is not None:
+            scaler = self.tree.regulus.scaler
+            if not self.tree.regulus.attr.has('inverse_regression'):
                 return
             t_start = time()
             data = {}
             pids = filter(lambda pid: pid not in self._cache, show)
             t0 = time()
             for node in self._dataset.find_nodes(pids):
-                curve, std = self._tree.attr['inverse_regression'][node]
+                curve, std = self.tree.attr['inverse_regression'][node]
                 line =  pd.DataFrame(scaler.transform(curve, copy=True), index=curve.index, columns=curve.columns)
                 data[node.id] = line.reset_index().values.tolist()
 

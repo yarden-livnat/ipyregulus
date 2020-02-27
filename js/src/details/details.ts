@@ -36,7 +36,8 @@ class DetailsModel extends RegulusViewModel {
       highlight: -2,
       inverse: {},
       cmap: 'RdYlBu',
-      reload: true
+      color: '',
+      show_info: {}
     };
   }
 

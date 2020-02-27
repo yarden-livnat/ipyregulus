@@ -18,25 +18,23 @@ class DetailsView(RegulusDOMWidget):
     title = Unicode('').tag(sync=True)
 
     data = Instance(klass=DataWidget, allow_none=True).tag(sync=True, **widget_serialization)
-    # measure = Unicode(None, allow_none=True).tag(sync=True)
-    tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
+    measure = Unicode(None, allow_none=True).tag(sync=True)
+    # tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
     show = List().tag(sync=True)
     highlight = Int(-2).tag(sync=True)
     show_inverse = Bool(True).tag(sync=True)
     inverse = Dict(allow_none=True).tag(sync=True)
     cmap = Unicode('RdYlBu').tag(sync=True)
-    reload = Bool(True).tag(sync=True)
+    color = Unicode(None, allow_none=True).tag(sync=True)
+    show_info = Dict().tag(sync=True)
 
-    def __init__(self, **kwargs):
+    def __init__(self, data=None, **kwargs):
         self._inverse_cache = set()
-        if 'data' in kwargs:
-            data = kwargs['data']
+        super().__init__(**kwargs)
+        if data is not None:
             if not isinstance(data, DataWidget):
                 data = DataWidget(data=data)
-                kwargs['data'] = data
-            # if 'measure' not in kwargs:
-            #     kwargs['measure'] = data.data.measure
-        super().__init__(**kwargs)
+        self.data = data
 
     def reset_inverse(self):
         self._inverse_cache.clear()
@@ -48,6 +46,18 @@ class DetailsView(RegulusDOMWidget):
 
     @observe('show')
     def _show(self, change):
+        info = dict()
+        if self.data is not None and self.data.data is not None:
+            data = self.data.data
+            nodes = data.find_nodes(self.show)
+            m = 0
+            for node in nodes:
+                info[node.id] = data.attr['linear'][node].coef_
+                m = max(m, max(abs(info[node.id])))
+            for id in info.keys():
+                info[id] = (info[id]/m).tolist()
+        self.show_info = info
+
         self._update_inverse()
 
     @observe('show_inverse')
@@ -89,10 +99,18 @@ class DetailsView(RegulusDOMWidget):
             data.observe(self._data_changed, names=['data'])
         return data
 
-    def _data_changed(self, change):
-        self.reload = not self.reload
-        with self.hold_sync():
-            self.show = ()
-            self.highlight = -2
-            self._inverse_cache.clear()
+    @observe('data')
+    def _datasrc_changed(self, change):
+        old = change['old']
+        if old is not None:
+            old.unobserve(self._data_changed, names='data')
+
+        if self.data:
+            self.data.observe(self._data_changed, names='data')
+            self._data_changed()
+
+    def _data_changed(self, change=None):
+        if self.data.data:
+            self.color = self.data.data.measure
+        self._inverse_cache.clear()
 

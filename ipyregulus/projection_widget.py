@@ -5,7 +5,7 @@ from traitlets import Any, List, Unicode, validate, TraitError
 from ipywidgets import register, widget_serialization
 
 from .core.axis import Axis, AxisTraitType
-from .core.trait_types import InstanceDict, TypedTuple
+from .core.traittypes import InstanceDict, TypedTuple
 from ipyregulus.core.base import RegulusDOMWidget
 
 
@@ -15,6 +15,7 @@ class ProjectionWidget(RegulusDOMWidget):
     _view_name = Unicode('ProjectionView').tag(sync=True)
 
     pts = List([]).tag(sync=True)
+    values = List([]).tag(sync=True)
     axes = TypedTuple(trait=AxisTraitType()).tag(sync=True, **widget_serialization)
     colors = Any([]).tag(sync=True)
 

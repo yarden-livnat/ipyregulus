@@ -14,6 +14,10 @@ export {
 } from './projection';
 
 export {
+  ProjModel, ProjView
+} from './proj';
+
+export {
   GraphModel, GraphView
 } from './graph';
 
