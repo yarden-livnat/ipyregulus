@@ -45,11 +45,16 @@ class BaseUIFilter(Filter):
         self.ui.value = value
 
 
-class UIFilter(BaseUIFilter):
+class UIFilter(BaseUIFilter, HBox):
 
-    def __init__(self, func=lambda x,v: v<=x, **kwargs):
+    def __init__(self, func=lambda x,v: v<=x, name=None, **kwargs):
         ui = kwargs.pop('ui', FloatSlider(min=0, max=1, step=0.01, value=0.0))
+        if name is None:
+            name = func.__name__
+        self.__name__ = name
+        self.label = Label(name)
         super().__init__(func=func, **kwargs)
+        self.children = [self.label]
         self.observe(self._on_ui, names='ui')
         self.ui = ui
 
@@ -66,6 +71,7 @@ class UIFilter(BaseUIFilter):
 
         if len(v) <3:
             r[2] = (r[1]-r[0])/1000
+            r[1] = r[0] + 1001*r[2]
 
         if r[1] < self.ui.min:
             self.ui.min = r[1]
@@ -78,22 +84,19 @@ class UIFilter(BaseUIFilter):
             change['old'].unobserve(self._on_changed)
         if change['new'] is not None:
             self.ui.observe(self._on_changed, names='value')
-
+        self.children = [self.label, self.ui]
 
     def __call__(self, *args, **kwargs):
         return self.disabled or self.func(self.value, *args, **kwargs)
 
 
-class AttrFilter(UIFilter, HBox):
+class AttrFilter(UIFilter):
     attr = Unicode()
 
     def __init__(self, attr, *args, **kwargs):
-        self.label = Label()
         if 'func' not in kwargs:
             kwargs['func'] = lambda x,v: v <= x
-        super().__init__(attr=attr, *args, **kwargs)
-        self.__name__ = attr
-        self.children = [self.label, self.ui]
+        super().__init__(attr=attr, name=attr, *args, **kwargs)
 
     @observe('attr')
     def _observe_attr(self, change):

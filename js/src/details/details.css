@@ -8,8 +8,10 @@
   --plot-border-size: 1px;
   --plot-width: calc(var(--plot-border-size)*2 + var(--plot-internal-width));
   --plot-height: calc(var(--plot-border-size)*2 + var(--plot-internal-height));
+  --bars-height: 5px;
+  --bars-space: 5px;
   --col-width: var(--plot-width);
-  --row-height: var(--plot-height);
+  --row-height: calc(var(--plot-height) + var(--bars-space) + var(--bars-height));
 }
 
 .rg_details{
@@ -125,15 +127,27 @@
   position: relative;
 }
 
+
 .rg_plot_item {
   width: var(--plot-width);
-  height: var(--plot-height);
-  border: var(--plot-border-size) solid gray;
+  height: var(--row-height);
   /* background: lightblue; */
   position: absolute;
+  /*border: var(--plot-border-size) solid gray;*/
+}
+
+.rg_bar_item {
+    width: var(--plot-width);
+    height: var(--bars-height);
+    background: lightgreen;
+    position: absolute;
+    bottom: 0;
 }
 
 .rg_plot {
+  width: var(--plot-width);
+  height: var(--plot-height);
+  border: var(--plot-border-size) solid gray;
 }
 
 .rg_plot_canvas-bg {

@@ -3,7 +3,7 @@
 """
 
 from ipywidgets import register
-from traitlets import Dict, Instance, Unicode, Undefined, validate, observe
+from traitlets import Dict, Instance, Unicode, Undefined, validate, observe, HasTraits
 
 from regulus import HasTree, RegulusTree, Node
 # from regulus.tree import Node
@@ -33,16 +33,17 @@ class TreeWidget(HasTree, RegulusWidget):
     root = Instance(klass=Node, allow_none=True).tag(sync=True, to_json=_tree_to_json)
     attrs = Dict(allow_null=True).tag(sync=True)
 
-    def __init__(self, tree=None, select=lambda x: {}, **kwargs):
+    def __init__(self, src=None, select=lambda x: {}, **kwargs):
         self.user_select = select
         super().__init__()
-        self.tree = tree
+        if src is not None:
+            self.src = src
 
     @observe('tree')
     def tree_changed(self, change):
-        print('TreeWidget.observe tree', change)
+        # print('TreeWidget.observe tree', change)
         old = change['old']
-        if old is not None:
+        if old is not None and isinstance(old, HasTraits):
             old.unobserve(self._attrs_changed, names=['state'])
 
         tree = change['new']

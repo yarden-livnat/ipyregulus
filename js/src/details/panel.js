@@ -13,6 +13,7 @@ let PLOT_WIDTH = 100;
 let PLOT_HEIGHT = 100;
 let PLOT_BORDER = 1;
 let PLOT_GAP = 5;
+let ROW_HEIGHT = PLOT_HEIGHT + 15;
 
 let DURATION = 1000;
 
@@ -31,14 +32,14 @@ export default function Panel(ctrl) {
   let attrs_idx = [];
   let attrs_extent = [];
   let partitions = new Map();
+  let measure = '';
 
-  let measure_name = null;
-  let current_measure = null;
   let measure_idx = 0;
   let show = [];
   let filtered = [];
   let highlighted = -2;
   let inverse = new Map();
+  let show_info = new Map();
 
   let initial_cmap = 'RdYlBu';
   let colorScale = d3.scaleSequential(chromatic['interpolate' + initial_cmap]);
@@ -57,43 +58,59 @@ export default function Panel(ctrl) {
   function set_model(_) {
     model = _;
     model.on('change:data', model_changed);
-    model.on('change:measure', measure_changed);
-    model.on('change:show', show_changed);
+    // model.on('change:measure', measure_changed);
+    // model.on('change:show', show_changed);
+    model.on('change:show_info', show_info_changed);
     model.on('change:highlight', highlight_changed);
     model.on('change:inverse', inverse_changed);
     model.on('change:cmap', cmap_changed);
-    measure_changed();
+    model.on('change:color', color_changed);
     model_changed();
-    show_changed();
+    show_info_changed();
   }
 
   function model_changed() {
+    console.log('details: model_changed');
+    let p = model.previous('data');
+    if (p) p.off('change:version', model_updated);
+
+    let m = model.get('data');
+    if (m) m.on('change:version', model_updated);
+
+    model_updated();
+  }
+
+  function model_updated() {
+    console.log('details: model updated');
+
     update_data_model(model.get('data'));
-    update_measure();
+    update_color();
     update_cols();
     update_rows();
     update_plots();
     render();
   }
 
-  function measure_changed() {
-    measure_name = model.get('measure');
-    update_measure();
-    update_plots();
-    render();
-  }
+  function show_info_changed() {
+    let info = model.get('show_info');
+    show_info = new Map();
+    for (let [id, coef] of Object.entries(info)) {
+      show_info.set(parseInt(id), coef);
+    }
+    show = Array.from(show_info.keys());
 
-  function show_changed() {
-    show = model.get('show');
-    // update_inverse();
-    update_rows();
-    update_plots();
-    render();
+    if (measure_idx !== -1) {
+      update_rows();
+      update_plots();
+      render();
+    }
   }
 
   function highlight_changed() {
     highlighted = model.get('highlight');
-    render_rows();
+    if (measure_idx !== -1) {
+      render_rows();
+    }
   }
 
   function inverse_changed() {
@@ -110,31 +127,40 @@ export default function Panel(ctrl) {
   function cmap_changed() {
     let cmap = model.get('cmap');
     colorScale = d3.scaleSequential(chromatic['interpolate' + cmap]);
-    update_plots();
-    render();
+    if (measure_idx !== -1) {
+      update_plots();
+      render();
+    }
+  }
+
+  function color_changed() {
+    if (measure_idx === -1)  return;
+    let idx = color_idx;
+    update_color();
+    if (idx !== color_idx) {
+      update_plots();
+      render();
+    }
+  }
+
+  function update_color() {
+    let color = model.get('color');
+    color_idx = -1;
+    if (color && color !== '' && attrs)
+      color_idx = attrs_idx.indexOf(color);
+
+    if (color_idx === -1)
+        color_idx = measure_idx;
+    if (color_idx !== -1)
+      colorScale.domain(reverse(attrs_extent[color_idx]));
+
+    root.select('.rg_color').text(color);
   }
 
   function reverse(pair) {
     return [pair[1], pair[0]];
   }
 
-  function update_measure() {
-    let name = measure_name;
-    if (name == null && data != null)
-        name = data.get('measure');
-
-    current_measure = name || '';
-    if (current_measure !== '' && data) {
-      measure_idx = attrs_idx.indexOf(current_measure);
-
-      color_idx = measure_idx;
-      colorScale.domain(reverse(attrs_extent[color_idx]));
-    } else {
-      measure_idx = null;
-      color_idx = null;
-    }
-    root.select('.rg_measure').text(current_measure);
-  }
 
   function update_data_model(_) {
     data = _;
@@ -148,6 +174,8 @@ export default function Panel(ctrl) {
       attrs_extent = data.get('attrs_extent');
       partitions = new Map( data.get('partitions').map(p => [p.id, new Partition(p, pts_loc)]));
       filtered = Array(pts_idx.length).fill(false);
+      measure = data.get('measure');
+      measure_idx = attrs_idx.indexOf(measure);
     } else {
       pts = null;
       pts_idx = [];
@@ -156,8 +184,11 @@ export default function Panel(ctrl) {
       attrs_idx = [];
       attrs_extent = [];
       partitions = new Map();
+      measure = '';
+      measure_idx = -1;
     }
     inverse = new Map();
+    root.select('.rg_measure').text(measure);
   }
 
   function update_cols() {
@@ -167,7 +198,7 @@ export default function Panel(ctrl) {
 
   function update_rows() {
     rows = show.sort((a,b) => a -b).map((r, i) => ({idx: i, id: r, size:partitions.get(r).index.length}));
-    root.select('.rg_right_scroll').style('height', `${rows.length*(PLOT_HEIGHT + 2*PLOT_BORDER + PLOT_GAP) - PLOT_GAP}px`);
+    root.select('.rg_right_scroll').style('height', `${rows.length*(ROW_HEIGHT + 2*PLOT_BORDER + PLOT_GAP) - PLOT_GAP}px`);
   }
 
   const bandwidth_factor = 0.05;
@@ -205,7 +236,8 @@ export default function Panel(ctrl) {
            c_dim: color_idx,
            filtered: filtered,
            color: colorScale,
-           inverse: inverse.has(row.id) && inverse.get(row.id)[col.idx]
+           inverse: inverse.has(row.id) && inverse.get(row.id)[col.idx],
+           bar: show_info.has(row.id) && show_info.get(row.id)[col.idx]
          };
          plots.push(p);
       }
@@ -266,28 +298,43 @@ export default function Panel(ctrl) {
         .remove();
   }
 
+  function create_item(selection) {
+    selection
+      .append('div')
+      .call(plot_renderer.create);
+
+    selection
+      .append('div')
+      .classed('rg_bar_item', true);
+  }
+
+  function update_item(selection) {
+    selection
+      .style('left', d => `${d.col*(PLOT_WIDTH + 2*PLOT_BORDER + PLOT_GAP)}px`)
+      .style('top', d => `${d.row*(ROW_HEIGHT + 2*PLOT_BORDER + PLOT_GAP)}px`);
+
+    selection.call(plot_renderer.render);
+
+    selection.selectAll('.rg_bar_item')
+        .style('width', d => `${Math.round(Math.abs(d.bar)*100)}%`)
+        .style('background', d => d.bar > 0 ? 'lightgreen' : 'lightcoral' );
+  }
+
   function render_plots() {
-      let d3plots = root.select('.rg_plots').selectAll('.rg_plot').data(plots, d => [d.partition.id, d.col]);
-      let list = d3plots.enter()
-        .append('div')
-        .classed('rg_plot_item', true)
-        .style('opacity', 0)
-        .on('mouseenter', on_enter)
-        .on('mouseleave', on_leave)
-        .call(plot_renderer.create)
-      .merge(d3plots)
-        .style('left', d => `${d.col*(PLOT_WIDTH + 2*PLOT_BORDER + PLOT_GAP)}px`)
-        .style('top', d => `${d.row*(PLOT_HEIGHT + 2*PLOT_BORDER + PLOT_GAP)}px`)
-        .call(plot_renderer.render);
-
-      list.transition().duration(DURATION)
-        // .style('top', d => `${d.row*(PLOT_HEIGHT + 2*PLOT_BORDER + PLOT_GAP)}px`)
-        .style('opacity', 1);
-
-      d3plots.exit()
-        // .transition().duration(DURATION)
-        // .style('opacity', 0)
-        .remove();
+      let d3plots = root.select('.rg_plots').selectAll('.rg_plot_item')
+        .data(plots, d => [d.partition.id, d.col])
+        .join(
+          enter => enter.append('div')
+            .classed('rg_plot_item', true)
+            .style('opacity', 1)
+            .on('mouseenter', on_enter)
+            .on('mouseleave', on_leave)
+            .call(create_item),
+          update => update.call(update_item),
+            // .transition().duration(DURATION)
+            // .style('opacity', 1),
+          exit => exit.remove()
+        );
   }
 
 
@@ -304,7 +351,7 @@ export default function Panel(ctrl) {
   function on_select(d) {
     let selected = show.concat();
     let idx = selected.indexOf(d.id);
-    if (idx == -1) selected.push(d.id);
+    if (idx === -1) selected.push(d.id);
     else selected.splice(idx, 1);
     model.set('show', selected);
     sync();

@@ -1,8 +1,12 @@
-from traitlets import observe, validate
-from ipywidgets import Checkbox, GridBox, HBox,  VBox, FloatSlider, link, dlink, Layout
+import pandas as pd
+from traitlets import  Instance, observe, validate
+from ipywidgets import Checkbox, GridBox, FloatSlider,link, dlink, Layout
 
-from .core.axis import AxisTraitType
+from regulus import Mutable
+
+from .core.axis import Axis, AxisTraitType
 from .core.traittypes import TypedTuple
+from .data_widget import DataWidget
 
 
 class UnboundedFloatSlider(FloatSlider):
@@ -21,13 +25,17 @@ def invert(s, axis):
         axis.disabled = disabled
     return f
 
+
 class AxesCtrl(GridBox):
     axes = TypedTuple(trait=AxisTraitType())
+    data = Instance(klass=DataWidget, default_value=None, allow_none=True)
 
-    def __init__(self, **kwargs):
+    def __init__(self, data=data, **kwargs):
         super().__init__(**kwargs)
         self.layout = Layout(grid_template_columns='50px auto', grid_gap='5px')
         self.current = {}
+        if data is not None:
+            self.data = data
 
     @observe('axes')
     def _axes(self, change):
@@ -47,6 +55,40 @@ class AxesCtrl(GridBox):
             children.append(slider)
 
         self.children = children
+
+    @observe('data')
+    def data_changed(self, change):
+        old = change['old']
+        if old is not None:
+            old.unobserve(self.update_axes, names='data')
+
+        new = change['new']
+        if new is not None:
+            new.observe(self.update_axes, names='data')
+
+        self.update_axes()
+
+    def update_axes(self, change=None):
+        if self.data is not None and self.data.data is not None:
+            dataset = self.data.data
+            self.axes = self.create_axes(dataset.y, cols=[0]) + \
+                        self.create_axes(dataset.pts.original_x, cols=range(1, 1 + dataset.x.shape[1]))
+
+    def create_axes(self, pts, cols=None):
+        axes = []
+        if cols is None:
+            cols = list(range(len(list(pts))))
+        elif isinstance(cols, int):
+            cols = [cols]
+
+        if isinstance(pts, pd.DataFrame):
+            axes = [Axis(label=l, col=c, max=m) for l, c, m in zip(list(pts), cols, pts.abs().max())]
+        elif isinstance(pts, pd.Series):
+            axes = [Axis(label=pts.name, col=cols[0], max=max(abs(pts)))]
+        else:
+            raise ValueError('pts must be Pandas DataFrame or Series')
+        return axes
+
 
     # @observe('axes')
     # def _axes(self, change):
@@ -78,11 +120,11 @@ class AxesCtrl(GridBox):
     #     self.current = sliders
     #     self.children = children
 
-    def update(self, change):
-        value = change['new']
-        owner = change['owner']
-        slider = self.sliders[owner.label]['slider']
-        if value > slider.max:
-            slider.max = value
-        slider.value = value
+    # def update(self, change):
+    #     value = change['new']
+    #     owner = change['owner']
+    #     slider = self.sliders[owner.label]['slider']
+    #     if value > slider.max:
+    #         slider.max = value
+    #     slider.value = value
 

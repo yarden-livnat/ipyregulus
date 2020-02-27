@@ -23,7 +23,8 @@ class RegulusData extends RegulusModel {
       attrs_idx: [],
       attrs_extent: [],
       partitions: [],
-      measure: ''
+      measure: '',
+      version: -1
     }
   }
 
@@ -36,6 +37,7 @@ class RegulusData extends RegulusModel {
   attrs_extent: number[];
   partitions: [];
   measure:string;
+  version:number;
 
   static serializers = {
     ...RegulusModel.serializers,

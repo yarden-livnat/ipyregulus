@@ -17,11 +17,8 @@ class TreeView(BaseTreeView):
                                  'dim_min_fitness',  'dim_max_fitness',
                                  'min', 'max', 'unique_max', 'unique_min'
                                  ])
-    # attr = Unicode('fitness')
-    # x = Tuple((0, 100))
-    # y = Tuple((0, 1))
 
-    def __init__(self, tree=None, auto=True, x=None, y=None, **kwargs):
+    def __init__(self, src=None, auto=True, x=None, y=None, **kwargs):
         super().__init__(**kwargs)
         self._filters = {}
         self.box = VBox()
@@ -57,8 +54,8 @@ class TreeView(BaseTreeView):
         ]
         self._update_children()
 
-        if tree is not None:
-            self.tree = tree
+        if src is not None:
+            self.src = src
         if x is not None:
             self.x = x
         if y is not None:
@@ -136,14 +133,14 @@ class TreeView(BaseTreeView):
 
     def add_option(self, attr):
         if attr not in self.options:
-            self.options = list(self.options) + [attr]
-            # self.attr = attr
+            self._menu.options = list(self.options) + [attr]
+            self.attr = attr
 
-    def remove_attr(self, attr):
+    def remove_option(self, attr):
         if attr in self.options:
             opts = list(self.options)
             del opts[attr]
-            self.options = options
+            self._menu.options = opts
             if self.attr == attr:
                 self.attr = opts[0] if len(opts) > 0 else None
 
@@ -160,13 +157,13 @@ class TreeView(BaseTreeView):
     def add_filter(self, *args, **kwargs):
         f = self._group_filter.add(*args, **kwargs)
         if self.tree and hasattr(f, 'update_range'):
-            f.update_range(self.tree.tree)
+            f.update_range(self.tree)
         return f
 
     def insert_filter(self, idx, *args, **kwargs):
         f = self._group_filter.insert(idx, *args, **kwargs)
         if self.tree and hasattr(f, 'update_range'):
-            f.update_range(self.tree.tree)
+            f.update_range(self.tree)
 
     def remove_filter(self, item):
         self._group_filter.remove(item)

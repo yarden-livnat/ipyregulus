@@ -15,6 +15,7 @@ class ProjectionWidget(RegulusDOMWidget):
     _view_name = Unicode('ProjectionView').tag(sync=True)
 
     pts = List([]).tag(sync=True)
+    values = List([]).tag(sync=True)
     axes = TypedTuple(trait=AxisTraitType()).tag(sync=True, **widget_serialization)
     colors = Any([]).tag(sync=True)
 

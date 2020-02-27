@@ -1,6 +1,6 @@
 # Copyright (c) University of Utah
 
-from traitlets import Bool, Dict, Instance, Int, List, Tuple, Unicode, Set, validate, observe
+from traitlets import Bool, Dict, Instance, Int, List, Tuple, Unicode, Set, validate, observe, HasTraits
 from ipywidgets import register, widget_serialization
 
 from regulus import HasTree, Tree
@@ -32,31 +32,28 @@ class BaseTreeView(HasTree, RegulusDOMWidget):
     y = Tuple((0, 1)).tag(sync=True)
     tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
 
-    @validate('tree')
-    def validate_tree_base(self, proposal):
-        print('>>BaseTreeView.validate')
-        value = proposal['value']
-        if isinstance(value, TreeWidget):
-            self.tree_model = value
-            value = value.tree
-        elif isinstance(value, HasTree):
-            self.tree_model = TreeWidget(value)
-            value = value.tree
-        elif isinstance(value, Tree):
-            self.tree_model = TreeWidget(value)
-        elif value is None:
+    @validate('src')
+    def validate_src(self, proposal):
+        src = proposal['value']
+        if isinstance(src, TreeWidget):
+            self.tree_model = src
+            # value = value.tree
+        elif isinstance(src, HasTraits) and src.has_trait('tree'):
+            self.tree_model = TreeWidget(src)
+            # value = value.tree
+        elif isinstance(src, Tree):
+            self.tree_model = TreeWidget(src)
+        elif src is None:
             self.tree_model = None
-        print('<<BaseTreeView.validate')
-        return value
+        return super().validate_src(proposal)
 
-    def __init__(self, tree=None, attr='fitness', **kwargs):
+    def __init__(self, src=None, attr='fitness', children=None, **kwargs):
         super().__init__(None, **kwargs)
-        self.tree = tree
+        self.src = src
         self.attr = attr
 
     @observe('tree')
     def _tree_changed(self, change):
-        # print('basetreeview observe tree', self.tree)
         self.attrs = dict()
         self.show = None
         if self.attr is not None and self.attr != '':
