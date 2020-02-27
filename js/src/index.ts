@@ -8,11 +8,6 @@ export {
   DetailsModel, DetailsView
 } from './details';
 
-
-export {
-  ProjectionModel, ProjectionView
-} from './projection';
-
 export {
   ProjModel, ProjView
 } from './proj';
