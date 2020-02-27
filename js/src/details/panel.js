@@ -244,6 +244,7 @@ export default function Panel(ctrl) {
   }
 
   function render() {
+    console.log('details render');
     let t0 = performance.now();
     render_cols();
     render_rows();

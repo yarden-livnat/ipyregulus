@@ -120,8 +120,8 @@ export default function Panel() {
     d3nodes.enter()
     .append('rect')
       .attr('class', 'node')
-      .on('mouseover.highlight', on_highlight)
-      .on('mouseout.highlight', on_highlight)
+      // .on('mouseover.highlight', on_highlight)
+      // .on('mouseout.highlight', on_highlight)
       .on('mouseenter.tip', show_tip)
       .on('mouseleave.tip', hide_tip)
       .on('click', ensure_single(on_details))
@@ -142,23 +142,25 @@ export default function Panel() {
 
   let tip_timer = null;
 
-  function show_tip() {
+  function show_tip(d) {
     if (tip_timer) {
       clearTimeout(tip_timer);
       tip_timer = null;
     }
     node_tip.show.apply(this, arguments);
-    d3.select(this).on('mousemove', update_tip)
+    d3.select(this).on('mousemove', update_tip);
+    dispatch.call('highlight', this, d.id);
   }
 
   function hide_tip() {
-    tip_timer = setTimeout( remove_tip, 50, this, arguments);
+    tip_timer = setTimeout( remove_tip, 250, this, arguments);
     d3.select(this).on('mousemove', null);
   }
 
   function remove_tip(self, args) {
       tip_timer = null;
       node_tip.hide.apply(self, args);
+      dispatch.call('highlight', this, -1);
   }
 
   function update_tip() {
@@ -173,13 +175,17 @@ export default function Panel() {
     dispatch.call('details', this, d.id, !detailed.has(d.id));
   }
 
-  function on_highlight(d) {
-    if (d.id === highlighted)
-      highlighted = -1;
-    else
-      highlighted = d.id;
-    dispatch.call('highlight', this, highlighted);
-  }
+  // function on_highlight(d) {
+  //   if (d.id === highlighted) {
+  //     highlighted = -1;
+  //   }
+  //   else {
+  //     highlighted = d.id;
+  //     dispatch.call('highlight', this, highlighted);
+  //   }
+  //   dispatch.call('highlight', this, highlighted);
+  // }
+
 
   return {
     el(_) {
@@ -282,7 +288,7 @@ export default function Panel() {
     },
 
     highlight(id) {
-      if (highlighted != id) {
+      if (highlighted !== id) {
         highlighted = id;
         render();
       }

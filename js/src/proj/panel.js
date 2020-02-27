@@ -16,7 +16,10 @@ export default function Panel(view, el) {
 
   let axes = [];
   let active_pts = [];
-  let show = [];
+  let bg_pts = [];
+  let show = new Set();
+  let highlight = -2;
+  let highlight_ignored = false;
   // let colors = [];
   let color = '';
   let color_info = [null, 0, 1];
@@ -53,6 +56,7 @@ export default function Panel(view, el) {
     model.on('change:axes', axes_changed);
     model.on('change:show', show_changed);
     model.on('change:color_info', color_changed);
+    model.on('change:highlight', highlight_changed);
 
     data_changed();
     axes_changed();
@@ -85,9 +89,9 @@ export default function Panel(view, el) {
 
     } else {
       pts_extent = [];
-      show = new Set();
       active_invalid = true;
     }
+    show = new Set();
   }
 
   function axes_changed() {
@@ -191,6 +195,14 @@ export default function Panel(view, el) {
     render();
   }
 
+  function highlight_changed() {
+    highlight = model.get('highlight');
+    if (show.has(highlight) || bg_pts.length > 0) {
+      active_invalid = true;
+      render();
+    }
+  }
+
    /*
    * Dragging
    */
@@ -233,7 +245,8 @@ export default function Panel(view, el) {
       d.model.save_changes();
     }, 0);
 
-    project();
+    pts_invalid = true;
+    // project();
     render();
   }
 
@@ -247,8 +260,8 @@ export default function Panel(view, el) {
     }, 0);
   }
 
-  function project() {
-    for (let pt of active_pts) {
+  function project(list) {
+    for (let pt of list) {
       let x = 0, y = 0, v;
 
       for (let axis of axes) {
@@ -285,7 +298,8 @@ export default function Panel(view, el) {
       update_active();
 
     if (pts_invalid) {
-      project();
+      project(active_pts);
+      project(bg_pts);
       pts_invalid = false;
       color_invalid = true;
     }
@@ -296,28 +310,42 @@ export default function Panel(view, el) {
     }
   }
 
+  function collect(list, ignore) {
+    let set = new Set();
+    for (let pid of list) {
+      if (pid === ignore) continue;
+      let p = partitions.get(pid);
+      if (!p) continue;
+
+      for (let i = p.span[0]; i < p.span[1]; i++)
+        set.add(pts_loc[i]);
+
+      for (let j of p.extrema)
+        set.add(j);
+    }
+    list = [];
+    for (let i of set.values()) {
+      list.push({id: i, x: 0, y: 0})
+    }
+    return list;
+  }
+
   function update_active(){
     active_pts = [];
+    bg_pts = [];
     if (data) {
-      let active = new Set();
-      for (let s of show) {
-        let p = partitions.get(s);
-        if (!p) continue;
-        for (let i = p.span[0]; i < p.span[1]; i++)
-          active.add(pts_loc[i]);
-
-        for (let j of p.extrema)
-          active.add(j);
+      if (highlight < 0 || !show.has(highlight))
+        active_pts = collect(show, -1);
+      else  {
+        bg_pts = collect(show, highlight);
+        active_pts = collect([highlight], -1);
       }
-
-      for (let i of active.values())
-        active_pts.push({id: i, x: 0, y: 0});
     }
-
     pts_invalid = true;
   }
 
   function render() {
+    console.log('proj render');
     validate();
     render_pts();
     render_axes();
@@ -361,7 +389,19 @@ export default function Panel(view, el) {
   }
 
   function render_pts() {
-     let p = svg.select('.pts').selectAll('.pt').data(active_pts);
+    let bg = svg.select('.pts').selectAll('.bg').data(bg_pts);
+    bg.enter()
+      .append('circle')
+      .attr('class', 'bg')
+      .attr('r', 1)
+      .merge(bg)
+        .attr('cx', d => d.x)
+        .attr('cy', d => d.y)
+        .style('fill', 'lightgray')
+    ;
+    bg.exit().remove();
+
+    let p = svg.select('.pts').selectAll('.pt').data(active_pts);
     p.enter()
       .append('circle')
       .attr('class', 'pt')
@@ -371,7 +411,6 @@ export default function Panel(view, el) {
         .attr('cy', d => d.y)
         .style('fill', d => d.color)
     ;
-
     p.exit().remove();
   }
 
@@ -414,105 +453,14 @@ export default function Panel(view, el) {
 
   // API
   return {
-    // el(_) {
-    //   root = _;
-    //   setup();
-    //   return this;
-    // },
-    //
-    // axes(_) {
-    //   let n = _.length;
-    //   let angle = 2*Math.PI/n;
-    //   axes = _.map((axis, i) => {
-    //     let updated = false;
-    //     let theta = axis.get('theta');
-    //     if (theta == null) {
-    //       theta = angle * i;
-    //       updated = true;
-    //     }
-    //     let len = axis.get('len');
-    //     if (len == null) {
-    //       len = DEFAULT_AXIS_SIZE;
-    //       updated = true;
-    //     }
-    //     let max = axis.get('max');
-    //
-    //     if (updated) {
-    //       setTimeout(function () {
-    //         axis.set({
-    //           theta: theta,
-    //           len: len
-    //         });
-    //         axis.save_changes();
-    //       }, 0);
-    //     }
-    //
-    //     return {
-    //       label: axis.get('label'),
-    //       max,
-    //       theta,
-    //       len,
-    //       col: axis.get('col'),
-    //       model: axis,
-    //       sx: d3.scaleLinear()
-    //         .domain([0, max])
-    //         .range([0, len * Math.cos(theta)]),
-    //       sy: d3.scaleLinear()
-    //         .domain([0, max])
-    //         .range([0, len * Math.sin(theta)]),
-    //     };
-    //   });
-    //   project();
-    //   render();
-    //   return this;
-    // },
-    //
-    // update_axis(model) {
-    //   let axis = axes.find( (d) => d.model === model);
-    //   if (axis) {
-    //     axis.label = model.get('label');
-    //     axis.theta = model.get('theta');
-    //     axis.len = model.get('len');
-    //     axis.max = model.get('max');
-    //     axis.disabled = model.get('disabled');
-    //     axis.sx.domain([0, axis.max]).range([0, axis.len*Math.cos(axis.theta)]);
-    //     axis.sy.domain([0, axis.max]).range([0, axis.len*Math.sin(axis.theta)]);
-    //   }
-    //   project();
-    //   render();
-    //   return this;
-    // },
-    //
-    // pts(_) {
-    //   pts = _;
-    //   update_colors();
-    //   project();
-    //   render();
-    //   return this;
-    // },
-    //
-    // colors(_) {
-    //   colors = _;
-    //   let ext = d3.extent(colors);
-    //   colorScale.domain([ext[1], ext[0]]);
-    //   update_colors();
-    //   render();
-    //   return this;
-    // },
-
     resize() {
       let w = parseInt(svg.style('width'));
       let h = parseInt(svg.style('height'));
       svg.select('g')
         .attr('transform', `translate(${w / 2},${h / 2})`);
-      project();
+      pts_invalid = true;
       render();
       return this;
     },
-
-    // redraw() {
-    //   render();
-    //   return this;
-    // }
   }
 }
