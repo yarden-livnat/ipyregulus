@@ -24,15 +24,15 @@
     /*stroke-width: 3px;*/
 }
 
-.rg_proj .view .pts .bg {
-    fill: lightgray;
-    stroke: none;
-    stroke-width: 1px;
-}
+/*.rg_proj .view .pts .bg .pt {*/
+/*    fill: lightgray;*/
+/*    stroke: none;*/
+/*    stroke-width: 1px;*/
+/*}*/
 
-.rg_proj .view .pts .pt {
-    fill: steelblue;
-    stroke: none;
-    stroke-width: 1px;
-}
+/*.rg_proj .view .pts .fg .pt {*/
+/*    fill: steelblue;*/
+/*    stroke: none;*/
+/*    stroke-width: 1px;*/
+/*}*/
 

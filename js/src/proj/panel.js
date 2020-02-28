@@ -342,6 +342,7 @@ export default function Panel(view, el) {
       }
     }
     pts_invalid = true;
+    color_invalid = true;
   }
 
   function render() {
@@ -389,10 +390,10 @@ export default function Panel(view, el) {
   }
 
   function render_pts() {
-    let bg = svg.select('.pts').selectAll('.bg').data(bg_pts);
+    let bg = svg.select('.pts').select('.bg').selectAll('.pt').data(bg_pts);
     bg.enter()
       .append('circle')
-      .attr('class', 'bg')
+      .attr('class', 'pt')
       .attr('r', 2)
       .merge(bg)
         .attr('cx', d => d.x)
@@ -401,7 +402,7 @@ export default function Panel(view, el) {
     ;
     bg.exit().remove();
 
-    let p = svg.select('.pts').selectAll('.pt').data(active_pts);
+    let p = svg.select('.pts').select('.fg').selectAll('.pt').data(active_pts);
     p.enter()
       .append('circle')
       .attr('class', 'pt')
@@ -421,8 +422,14 @@ export default function Panel(view, el) {
     g.append('g')
         .attr('class', 'axes');
 
-    g.append('g')
+    let p = g.append('g')
       .attr('class', 'pts');
+
+    p.append('g')
+      .attr('class', 'bg');
+
+    p.append('g')
+      .attr('class', 'fg');
 
     g.append('g')
       .attr('class', 'labels');

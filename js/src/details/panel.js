@@ -83,6 +83,7 @@ export default function Panel(ctrl) {
   function model_updated() {
     // console.log('details: model updated');
     update_data_model(model.get('data'));
+
     update_color();
     update_cols();
     update_rows();

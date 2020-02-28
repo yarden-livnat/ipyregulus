@@ -189,7 +189,6 @@ class TreeView extends DOMWidgetView {
 
   on_select(id, is_on) {
     let selected = new Set(this.model.get('selected'));
-    console.log('tree selected', id, is_on);
     if (is_on) {
       selected.add(id);
     } else {
@@ -200,7 +199,6 @@ class TreeView extends DOMWidgetView {
   }
 
   on_details(id, is_on) {
-    console.log('tree details', id, is_on);
     let details = this.model.get('details').concat();
     if (is_on) {
       details.push(id);
