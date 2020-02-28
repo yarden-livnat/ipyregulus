@@ -50,12 +50,12 @@ class DetailsView(RegulusDOMWidget):
         if self.data is not None and self.data.data is not None:
             data = self.data.data
             nodes = data.find_nodes(self.show)
-            max_coef = 0
+            # max_coef = 0
             for node in nodes:
-                info[node.id] = data.attr['linear'][node].coef_
-                max_coef = max(max_coef, max(abs(info[node.id])))
-            for id in info.keys():
-                info[id] = (info[id]/max_coef).tolist()
+                info[node.id] = data.attr['linear'][node].coef_.tolist()
+                # max_coef = max(max_coef, max(abs(info[node.id])))
+            # for id in info.keys():
+            #     info[id] = (info[id]/max_coef).tolist()
 
         self.show_info = info
         self._update_inverse()

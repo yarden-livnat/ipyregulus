@@ -13,7 +13,7 @@ let PLOT_WIDTH = 100;
 let PLOT_HEIGHT = 100;
 let PLOT_BORDER = 1;
 let PLOT_GAP = 5;
-let ROW_HEIGHT = PLOT_HEIGHT + 15;
+let ROW_HEIGHT = PLOT_HEIGHT + 8;
 
 let DURATION = 1000;
 
@@ -93,11 +93,16 @@ export default function Panel(ctrl) {
 
   function show_info_changed() {
     let info = model.get('show_info');
-    // console.log('details: info_changed');
+    console.log('details: info_changed');
     show_info = new Map();
+    let m = 0;
     for (let [id, coef] of Object.entries(info)) {
       show_info.set(parseInt(id), coef);
+      m = Math.max(m, coef.reduce((a,v) => Math.max(a, Math.abs(v)), 0))
       // console.log(`\t ${id}: ${coef}`);
+    }
+    for (let [id, values] of show_info.entries()) {
+      show_info.set(id, values.map(v => v/m));
     }
     show = Array.from(show_info.keys());
 

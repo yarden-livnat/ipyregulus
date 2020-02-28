@@ -9,7 +9,7 @@
   --plot-width: calc(var(--plot-border-size)*2 + var(--plot-internal-width));
   --plot-height: calc(var(--plot-border-size)*2 + var(--plot-internal-height));
   --bars-height: 5px;
-  --bars-space: 5px;
+  --bars-space: 3px;
   --col-width: var(--plot-width);
   --row-height: calc(var(--plot-height) + var(--bars-space) + var(--bars-height));
 }
