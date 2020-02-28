@@ -29,7 +29,7 @@ class TreeViewModel extends RegulusViewModel {
       attrs: {},
       show: null,
       highlight: null,
-      selected: new Set(),
+      selected: [],
       details: [],
       range: [],
       x: [0, 1],
@@ -40,10 +40,10 @@ class TreeViewModel extends RegulusViewModel {
   static serializers = {
     ...RegulusViewModel.serializers,
       tree_model: {deserialize: unpack_models},
-      selected: {
-        serialize:   function(s:any)     { return Array.from(s); },
-        deserialize: function(array:any) { return new Set(array); }
-      }
+      // selected: {
+      //   serialize:   function(s:any)     { return Array.from(s); },
+      //   deserialize: function(array:any) { return new Set(array); }
+      // }
   };
 }
 
@@ -188,11 +188,11 @@ class TreeView extends DOMWidgetView {
   }
 
   on_select(id, is_on) {
-    let selected = new Set(this.model.get('selected'));
+    let selected = this.model.get('selected').concat();
     if (is_on) {
-      selected.add(id);
+      selected.push(id);
     } else {
-      selected.delete(id);
+      selected.splice(selected.indexOf(id), 1)
     }
     this.model.set('selected', selected);
     this.touch();
