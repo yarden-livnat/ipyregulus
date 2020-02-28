@@ -70,7 +70,7 @@ export default function Panel(ctrl) {
   }
 
   function model_changed() {
-    console.log('details: model_changed');
+    // console.log('details: model_changed');
     let p = model.previous('data');
     if (p) p.off('change:version', model_updated);
 
@@ -81,8 +81,7 @@ export default function Panel(ctrl) {
   }
 
   function model_updated() {
-    console.log('details: model updated');
-
+    // console.log('details: model updated');
     update_data_model(model.get('data'));
     update_color();
     update_cols();
@@ -93,9 +92,11 @@ export default function Panel(ctrl) {
 
   function show_info_changed() {
     let info = model.get('show_info');
+    // console.log('details: info_changed');
     show_info = new Map();
     for (let [id, coef] of Object.entries(info)) {
       show_info.set(parseInt(id), coef);
+      // console.log(`\t ${id}: ${coef}`);
     }
     show = Array.from(show_info.keys());
 
@@ -114,6 +115,7 @@ export default function Panel(ctrl) {
   }
 
   function inverse_changed() {
+    // console.log('details: inverse _changed');
     let new_lines = model.get('inverse');
     if (!new_lines) return;
 
@@ -134,6 +136,7 @@ export default function Panel(ctrl) {
   }
 
   function color_changed() {
+    // console.log('details: color changed');
     if (measure_idx === -1)  return;
     let idx = color_idx;
     update_color();
@@ -244,7 +247,7 @@ export default function Panel(ctrl) {
   }
 
   function render() {
-    console.log('details render');
+    // console.log('details render');
     let t0 = performance.now();
     render_cols();
     render_rows();
@@ -276,14 +279,14 @@ export default function Panel(ctrl) {
         .on('click', on_select)
         .on('mouseenter', on_enter)
         .on('mouseleave', on_leave)
-        .style('opacity', 0)
+        .style('opacity',1)
         .html(row_header_template);
 
       let merge = enter.merge(d3rows);
 
       merge
-        .classed('highlight', d => d.id === highlighted)
-        .transition().duration(DURATION).style('opacity', 1);
+        .classed('highlight', d => d.id === highlighted);
+        // .transition().duration(DURATION).style('opacity', 1);
 
       merge.select('.id')
         .html(d => d.id);
@@ -298,45 +301,51 @@ export default function Panel(ctrl) {
         .remove();
   }
 
-
   function render_plots() {
-      let d3plots = root.select('.rg_plots').selectAll('.rg_plot_item')
-        .data(plots, d => [d.partition.id, d.col])
-        .join(
-          enter => enter.append('div')
+    // console.log('details render plots');
+    let d3plots = root.select('.rg_plots').selectAll('.rg_plot_item')
+      .data(plots, d => [d.partition.id, d.col])
+      .join(
+        enter => {
+          let items = enter.append('div')
             .classed('rg_plot_item', true)
             .style('opacity', 1)
             .on('mouseenter', on_enter)
             .on('mouseleave', on_leave)
-            .call(create_item),
-          update => update.call(update_item),
-            // .transition().duration(DURATION)
-            // .style('opacity', 1),
-          exit => exit.remove()
-        );
+            .style('left', d => `${d.col * (PLOT_WIDTH + 2 * PLOT_BORDER + PLOT_GAP)}px`)
+            .style('top', d => `${d.row * (ROW_HEIGHT + 2 * PLOT_BORDER + PLOT_GAP)}px`);
+
+          items
+            .append('div')
+            .classed('rg_plot', true)
+            .call(plot_renderer.create)
+            .call(plot_renderer.render);
+
+          items
+            .append('div')
+            .classed('rg_bar_item', true)
+            .style('width', d => `${Math.round(Math.abs(d.bar) * 100)}%`)
+            .style('background', d => d.bar > 0 ? 'lightgreen' : 'lightcoral');
+          return items;
+        },
+        update => {
+          update
+            .style('left', d => `${d.col * (PLOT_WIDTH + 2 * PLOT_BORDER + PLOT_GAP)}px`)
+            .style('top', d => `${d.row * (ROW_HEIGHT + 2 * PLOT_BORDER + PLOT_GAP)}px`);
+
+          update.select('.rg_plot')
+            .call(plot_renderer.render);
+
+          update.select('.rg_bar_item')
+            .style('width', d => `${Math.round(Math.abs(d.bar) * 100)}%`)
+            .style('background', d => d.bar > 0 ? 'lightgreen' : 'lightcoral');
+
+          return update;
+        },
+        exit => exit.remove()
+      );
   }
 
-  function create_item(selection) {
-    selection
-      .append('div')
-      .call(plot_renderer.create);
-
-    selection
-      .append('div')
-      .classed('rg_bar_item', true);
-  }
-
-  function update_item(selection) {
-    selection
-      .style('left', d => `${d.col*(PLOT_WIDTH + 2*PLOT_BORDER + PLOT_GAP)}px`)
-      .style('top', d => `${d.row*(ROW_HEIGHT + 2*PLOT_BORDER + PLOT_GAP)}px`);
-
-    selection.call(plot_renderer.render);
-
-    selection.selectAll('.rg_bar_item')
-        .style('width', d => `${Math.round(Math.abs(d.bar)*100)}%`)
-        .style('background', d => d.bar > 0 ? 'lightgreen' : 'lightcoral' );
-  }
 
   function scroll_plots() {
     let left = root.select('.rg_bottom').node().scrollLeft;
@@ -374,25 +383,10 @@ export default function Panel(ctrl) {
       root.select('.rg_bottom').on('scroll', scroll_plots);
       root.select('.rg_right').on('scroll', scroll_plots);
 
-      // resizeObserver.observe(root.select('.rg_top').node());
-      // resizeObserver.observe(root.select('.rg_left').node());
-
-       // svg = _;
-      //
-      // let g = svg.append('g')
-      //   .attr('transform', `translate(${margin.left},${margin.top})`);
-
       return this;
     },
 
     resize() {
-      // if (!svg) return;
-      //
-      // let w = parseInt(svg.style('width')) || DEFAULT_WIDTH;
-      // let h = parseInt(svg.style('height')) || DEFAULT_HEIGHT;
-      // width =  w -margin.left - margin.right;
-      // height = h - margin.top - margin.bottom ;
-
       render();
       return this;
     },

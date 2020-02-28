@@ -100,16 +100,6 @@ class TreeView extends DOMWidgetView {
     }
   }
 
-  // events(): {[e: string]: string} {
-  //   // See http://stackoverflow.com/questions/22077023/why-cant-i-indirectly-return-an-object-literal-to-satisfy-an-index-signature-re and https://github.com/Microsoft/TypeScript/pull/7029
-  //   return {'click': '_handle_click'};
-  // }
-  //
-  // _handle_click(event) {
-  //   event.preventDefault();
-  //   this.touch();
-  // }
-
 
   on_show_attr_changed() {
     this.d3el.select('.controls').style('display', this.model.get('show_attr')  ? 'inherent' : 'none');
@@ -198,17 +188,19 @@ class TreeView extends DOMWidgetView {
   }
 
   on_select(id, is_on) {
-    let selected = new Set(this.model.get('selected'))
+    let selected = new Set(this.model.get('selected'));
+    console.log('tree selected', id, is_on);
     if (is_on) {
       selected.add(id);
     } else {
       selected.delete(id);
     }
-    this.model.set('selected', selected)
+    this.model.set('selected', selected);
     this.touch();
   }
 
   on_details(id, is_on) {
+    console.log('tree details', id, is_on);
     let details = this.model.get('details').concat();
     if (is_on) {
       details.push(id);

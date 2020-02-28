@@ -345,7 +345,7 @@ export default function Panel(view, el) {
   }
 
   function render() {
-    console.log('proj render');
+    // console.log('proj render');
     validate();
     render_pts();
     render_axes();
@@ -393,7 +393,7 @@ export default function Panel(view, el) {
     bg.enter()
       .append('circle')
       .attr('class', 'bg')
-      .attr('r', 1)
+      .attr('r', 2)
       .merge(bg)
         .attr('cx', d => d.x)
         .attr('cy', d => d.y)

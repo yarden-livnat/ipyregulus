@@ -124,8 +124,9 @@ export default function Panel() {
       // .on('mouseout.highlight', on_highlight)
       .on('mouseenter.tip', show_tip)
       .on('mouseleave.tip', hide_tip)
-      .on('click', ensure_single(on_details))
-      .on('dblclick', on_select)
+      .on('click', on_select)
+      // .on('click', ensure_single(on_details))
+      // .on('dblclick', on_select)
     .merge(d3nodes)
       .style('visibility', d => !show || show.has(d.id) ? 'visible' : 'hidden')
       .attr('x', d => sx(d.pos.x))
@@ -222,7 +223,7 @@ export default function Panel() {
         .offset( function() {
           let m = d3.mouse(this);
           let bb = this.getBBox();
-          return [m[1]-bb.y-10, m[0]-bb.x-bb.width/2];
+          return [m[1]-bb.y-20, m[0]-bb.x-bb.width/2];
         })
           .html(d => {
             let content = tip_spec.map(spec => {
