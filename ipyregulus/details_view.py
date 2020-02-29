@@ -27,6 +27,7 @@ class DetailsView(RegulusDOMWidget):
     cmap = Unicode('RdYlBu').tag(sync=True)
     color = Unicode('').tag(sync=True)
     show_info = Dict().tag(sync=True)
+    local_norm = Bool(False).tag(sync=True)
 
     def __init__(self, data=None, **kwargs):
         self._inverse_cache = set()
@@ -52,11 +53,8 @@ class DetailsView(RegulusDOMWidget):
             nodes = data.find_nodes(self.show)
             # max_coef = 0
             for node in nodes:
-                info[node.id] = data.attr['linear'][node].coef_.tolist()
-                # max_coef = max(max_coef, max(abs(info[node.id])))
-            # for id in info.keys():
-            #     info[id] = (info[id]/max_coef).tolist()
-
+                attr = data.attr['linear'][node]
+                info[node.id] = dict(intercept=attr.intercept_, coef=attr.coef_.tolist())
         self.show_info = info
         self._update_inverse()
 

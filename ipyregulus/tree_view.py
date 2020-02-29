@@ -132,13 +132,13 @@ class TreeView(BaseTreeView):
         self._menu.options = opts
 
     def add_option(self, attr):
-        if attr not in self.options:
+        if attr not in self._menu.options:
             self._menu.options = list(self.options) + [attr]
             self.attr = attr
 
     def remove_option(self, attr):
-        if attr in self.options:
-            opts = list(self.options)
+        if attr in self._menu.options:
+            opts = list(self._menu.options)
             del opts[attr]
             self._menu.options = opts
             if self.attr == attr:
