@@ -12,6 +12,7 @@
   --bars-space: 3px;
   --col-width: var(--plot-width);
   --row-height: calc(var(--plot-height) + var(--bars-space) + var(--bars-height));
+  --row-header-width: 50px;
 }
 
 .rg_details{
@@ -78,21 +79,36 @@
 
 .rg_row_header {
   height: var(--row-height);
-  width: 50px;
+  width: var(--row-header-width);
   margin: 0 0 5px 0;
-  background-color: lightgray;
-  border: 1px solid gray;
+  /*background-color: lightgray;*/
+  /*border: 1px solid gray;*/
   font-size: 9pt;
   text-align: left;
+  position: relative;
 }
 
 .rg_row_header .info {
  font-size: 8pt;
+  height: var(--plot-height);
+   width: var(--row-header-width);
+  background-color: lightgray;
+  border: 1px solid gray;
 }
 
-.rg_row_header.highlight {
+.rg_row_header .info.highlight {
   /*border: 2px solid red;*/
   background-color: lightgreen;
+}
+
+
+.rg_row_header .bar {
+  /*width: var(--plot-width);*/
+  width: 100%;
+  height: var(--bars-height);
+  background: lightgreen;
+  position: absolute;
+  bottom: 0;
 }
 
 /* RIGHT */

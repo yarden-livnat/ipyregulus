@@ -33,6 +33,7 @@ export default function Panel(ctrl) {
   let attrs_extent = [];
   let partitions = new Map();
   let measure = '';
+  let local_norm = false;
 
   let measure_idx = 0;
   let show = [];
@@ -65,6 +66,7 @@ export default function Panel(ctrl) {
     model.on('change:inverse', inverse_changed);
     model.on('change:cmap', cmap_changed);
     model.on('change:color', color_changed);
+    model.on('change:local_norm', norm_changed);
     model_changed();
     show_info_changed();
   }
@@ -91,19 +93,36 @@ export default function Panel(ctrl) {
     render();
   }
 
+  function norm_changed() {
+    local_norm = model.get('local_norm');
+    show_info_changed();
+  }
+
   function show_info_changed() {
     let info = model.get('show_info');
     console.log('details: info_changed');
     show_info = new Map();
-    let m = 0;
-    for (let [id, coef] of Object.entries(info)) {
-      show_info.set(parseInt(id), coef);
-      m = Math.max(m, coef.reduce((a,v) => Math.max(a, Math.abs(v)), 0))
-      // console.log(`\t ${id}: ${coef}`);
+    let max = 0;
+    let max_intercept = 0;
+    for (let [id, record] of Object.entries(info)) {
+      let coef = record.coef;
+      let local_max = coef.reduce((a,v) => Math.max(a, Math.abs(v)), 0);
+      if (local_norm)
+        coef = coef.map(v => v/local_max);
+      else
+        max = Math.max(max, local_max);
+      max_intercept = Math.max(max_intercept, Math.abs(record.intercept));
+      show_info.set(parseInt(id), {intercept: record.intercept, coef:coef});
     }
-    for (let [id, values] of show_info.entries()) {
-      show_info.set(id, values.map(v => v/m));
+
+    for (let [id, record] of show_info.entries()) {
+      if (!local_norm) {
+        for (let i in record.coef)
+          record.coef[i] /= max;
+      }
+      record.intercept /= max_intercept;
     }
+
     show = Array.from(show_info.keys());
 
     if (measure_idx !== -1) {
@@ -207,7 +226,12 @@ export default function Panel(ctrl) {
   }
 
   function update_rows() {
-    rows = show.sort((a,b) => a -b).map((r, i) => ({idx: i, id: r, size:partitions.get(r).index.length}));
+    rows = show.sort((a,b) => a -b).map((r, i) => ({
+      idx: i,
+      id: r,
+      size:partitions.get(r).index.length,
+      bar: show_info.has(r) && show_info.get(r).intercept
+    }));
     root.select('.rg_right_scroll').style('height', `${rows.length*(ROW_HEIGHT + 2*PLOT_BORDER + PLOT_GAP) - PLOT_GAP}px`);
   }
 
@@ -245,7 +269,7 @@ export default function Panel(ctrl) {
            filtered: filtered,
            color: colorScale,
            inverse: inverse.has(row.id) && inverse.get(row.id)[col.idx],
-           bar: show_info.has(row.id) && show_info.get(row.id)[col.idx]
+           bar: show_info.has(row.id) && show_info.get(row.id).coef[col.idx]
          };
          plots.push(p);
       }
@@ -290,15 +314,18 @@ export default function Panel(ctrl) {
 
       let merge = enter.merge(d3rows);
 
-      merge
+      merge.select('.info')
         .classed('highlight', d => d.id === highlighted);
-        // .transition().duration(DURATION).style('opacity', 1);
 
       merge.select('.id')
         .html(d => d.id);
 
       merge.select('.size')
         .html(d => d.size);
+
+      merge.select('.bar')
+        .style('width', d => `${Math.round(Math.abs(d.bar) * 100)}%`)
+        .style('background', d => d.bar > 0 ? 'lightgreen' : 'lightcoral');
 
 
       d3rows.exit()
