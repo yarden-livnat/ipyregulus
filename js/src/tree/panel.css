@@ -11,8 +11,9 @@
 }
 
 .rg_tree .view .node.highlight {
-  stroke: green;
-  stroke-width: 1px;
+  fill: lightgray;
+  /*stroke: green;*/
+  /*stroke-width: 1px;*/
 }
 
 .rg_tree .view .node.selected {
@@ -21,8 +22,9 @@
 }
 
 .rg_tree .view .node.selected.highlight {
-  stroke: green;
-  stroke-width: 4px;
+   fill: lightgray;
+  /*stroke: green;*/
+  /*stroke-width: 4px;*/
 }
 
 .rg_tree .view .node.details {
