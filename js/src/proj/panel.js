@@ -394,7 +394,7 @@ export default function Panel(view, el) {
     bg.enter()
       .append('circle')
       .attr('class', 'pt')
-      .attr('r', 2)
+      .attr('r', 1)
       .merge(bg)
         .attr('cx', d => d.x)
         .attr('cy', d => d.y)
