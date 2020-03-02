@@ -21,9 +21,10 @@ class DetailsView(RegulusDOMWidget):
     measure = Unicode(None, allow_none=True).tag(sync=True)
     # tree_model = Instance(klass=TreeWidget, allow_none=True).tag(sync=True, **widget_serialization)
     show = List().tag(sync=True)
-    highlight = Int(-2).tag(sync=True)
+    show_model = Bool(True).tag(sync=True)
     show_inverse = Bool(True).tag(sync=True)
     inverse = Dict(allow_none=True).tag(sync=True)
+    highlight = Int(-2).tag(sync=True)
     cmap = Unicode('RdYlBu').tag(sync=True)
     color = Unicode('').tag(sync=True)
     show_info = Dict().tag(sync=True)
@@ -33,9 +34,7 @@ class DetailsView(RegulusDOMWidget):
         self._inverse_cache = set()
         super().__init__(**kwargs)
         if data is not None:
-            if not isinstance(data, DataWidget):
-                data = DataWidget(data=data)
-        self.data = data
+            self.data = data
 
     def reset_inverse(self):
         self._inverse_cache.clear()
@@ -45,17 +44,19 @@ class DetailsView(RegulusDOMWidget):
         self.inverse = {pid: data}
         self.inverse = None
 
-    @observe('show')
-    def _show(self, change):
+    def update_model(self):
         info = dict()
         if self.data is not None and self.data.data is not None:
             data = self.data.data
             nodes = data.find_nodes(self.show)
-            # max_coef = 0
             for node in nodes:
-                attr = data.attr['linear'][node]
+                attr = data.attr['model'][node]
                 info[node.id] = dict(intercept=attr.intercept_, coef=attr.coef_.tolist())
         self.show_info = info
+
+    @observe('show')
+    def _show(self, change):
+        self.update_model()
         self._update_inverse()
 
     @observe('show_inverse')
@@ -86,29 +87,47 @@ class DetailsView(RegulusDOMWidget):
 
     @validate('data')
     def _valid_value(self, proposal):
-        if self.data is not None:
-            self.data.unobserve(self._data_changed, names=['data'])
+        # if self.data is not None:
+        #     self.data.unobserve(self._data_changed, names=['data'])
 
         data = proposal['value']
         if data is not None and not isinstance(data, DataWidget):
             data = DataWidget(data=data)
 
-        if data is not None:
-            data.observe(self._data_changed, names=['data'])
+        # if data is not None:
+        #     data.observe(self._data_changed, names=['data'])
         return data
 
     @observe('data')
-    def _datasrc_changed(self, change):
+    def _widget_changed(self, change):
+        old = change['old']
+        old_data = None
+        if old is not None:
+            old.unobserve(self._data_changed, names=['data'])
+            old_data = old.data
+
+        new_data = None
+        if self.data:
+            self.data.observe(self._data_changed, names=['data'])
+            new_data = self.data.data
+
+    def _data_changed(self, change):
+        if not isinstance(change, dict):
+            # print('bug? change object is a string')
+            return
+
         old = change['old']
         if old is not None:
-            old.unobserve(self._data_changed, names='data')
+            old.unobserve(self._model_changed, names='state')
 
-        if self.data:
-            self.data.observe(self._data_changed, names='data')
-            self._data_changed()
-
-    def _data_changed(self, change=None):
-        if self.data.data:
-            self.color = self.data.data.measure
+        new = change['new']
+        if new is not None:
+            self.color = new.measure
+            new.observe(self._model_changed, names='state')
         self._inverse_cache.clear()
+
+    def _model_changed(self, change):
+        op, name = change['new']
+        if op == 'change' and name == 'model':
+            self.update_model()
 
