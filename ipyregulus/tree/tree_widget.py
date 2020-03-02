@@ -6,7 +6,6 @@ from ipywidgets import register
 from traitlets import Dict, Instance, Unicode, Undefined, validate, observe, HasTraits
 
 from regulus import HasTree, RegulusTree, Node
-# from regulus.tree import Node
 
 from ipyregulus.core.base import RegulusWidget
 
@@ -41,7 +40,6 @@ class TreeWidget(HasTree, RegulusWidget):
 
     @observe('tree')
     def tree_changed(self, change):
-        # print('TreeWidget.observe tree', change)
         old = change['old']
         if old is not None and isinstance(old, HasTraits):
             old.unobserve(self._attrs_changed, names=['state'])
@@ -59,8 +57,8 @@ class TreeWidget(HasTree, RegulusWidget):
                     self.attrs[attr] = tree.retrieve(attr)
                 tree.observe(self._attrs_changed, names=['state'])
 
-    def ensure(self, attr):
-        if attr not in self.attrs:
+    def ensure(self, attr, force=False):
+        if attr not in self.attrs or force:
             if attr in self.tree:
                 self.attrs[attr] = self.tree.retrieve(attr)
                 self._notify_trait('attrs', self.attrs, self.attrs)

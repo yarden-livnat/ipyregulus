@@ -1,7 +1,6 @@
 from traitlets import Instance, Int, List, Unicode, observe, validate
 from ipywidgets import register, widget_serialization
 
-from regulus import Mutable
 from ipyregulus.core.base import RegulusDOMWidget
 from .data_widget import DataWidget
 from .core.axis import AxisTraitType

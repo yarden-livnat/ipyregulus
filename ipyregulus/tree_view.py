@@ -68,33 +68,6 @@ class TreeView(BaseTreeView):
     def _auto_update(self, change):
         self._auto_filter.attr = self.attr
         self._auto_filter.update_range(self.tree)
-        # if self.attr in self._filters:
-        #     children = list(self._filter_box.children)
-        #     children[0] = self._filters[self.attr]
-        #     self._filter_box.children = children
-        #     # self._auto.disabled = True
-        # else:
-        #     children = list(self._filter_box.children)
-        #     children[0] = self._auto
-        #     self._filter_box.children = children
-        #     self._auto.disabled = False
-
-    # @property
-    # def view(self):
-    #     return self._treeview
-    #
-    # @property
-    # def tree(self):
-    #     return self.view.owner
-    #
-    # @tree.setter
-    # def tree(self, tree):
-    #
-    #     self.view.tree = tree
-    #     reset = self.x_slider.value[1] == self.x_slider.max
-    #     self.x_slider.max = self.view.tree.regulus.pts.size()
-    #     if reset:
-    #         self.x_slider.value = self.x_slider.value[0], self.x_slider.max
 
     @observe('tree')
     def tree_view_tree_changed(self, change):
@@ -146,9 +119,6 @@ class TreeView(BaseTreeView):
 
     def _update_children(self):
         children = [self._ctrls, self, self._group_filter]
-
-        # if self.view is not None:
-        #     children.insert(1, self._treeview)
         self.box.children = children
 
     def find_filter(self, name):

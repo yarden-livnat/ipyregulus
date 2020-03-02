@@ -34,7 +34,6 @@ class GraphView(RegulusDOMWidget, HasTree):
         super(RegulusDOMWidget, self).__init__()
         self._dataset = None
         self._cache = set()
-        self._msg = None
         if src is not None:
             self.src = src
 
@@ -50,8 +49,6 @@ class GraphView(RegulusDOMWidget, HasTree):
 
         if tree != self._dataset:
             dataset = self._dataset = tree.regulus
-            # self.axes = create_axes(dataset.y, cols=[0]) + \
-            #             create_axes(dataset.pts.original_x, cols=range(1, 1 + dataset.x.shape[1]))
             pts = pd.merge(left=dataset.y,
                            right=dataset.pts.original_x,
                            left_index=True,
