@@ -33,6 +33,7 @@ class DetailsModel extends RegulusViewModel {
       data: null,
       measure: null,
       show: [],
+      show_model: true,
       highlight: -2,
       inverse: {},
       cmap: 'RdYlBu',

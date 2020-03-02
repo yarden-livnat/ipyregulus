@@ -65,22 +65,32 @@ export default function Plot() {
   }
 
   function render_svg(root, d, i) {
-    if (!d.inverse) return;
-
-     let line = d3.line()
-      .x(p => sx(p[1])).y(p => sy(p[0]));
-
-    let area = d3.area()
-      .x0(p => sx(p[1] - p[2]))
-      .y0( p => sy(p[0]))
-      .x1(p => sx(p[1] + p[2]))
-      .y1( p => sy(p[0]));
-
     let svg = root.select('svg');
-    svg.select('.rg_plot_line')
-      .attr('d', line(d.inverse));
-    svg.select('.rg_plot_area')
-      .attr('d', area(d.inverse));
+
+    if (d.inverse) {
+      let inverse = d3.line()
+        .x(p => sx(p[1])).y(p => sy(p[0]));
+
+      let area = d3.area()
+        .x0(p => sx(p[1] - p[2]))
+        .y0(p => sy(p[0]))
+        .x1(p => sx(p[1] + p[2]))
+        .y1(p => sy(p[0]));
+
+
+      svg.select('.rg_plot_line')
+        .attr('d', inverse(d.inverse));
+      svg.select('.rg_plot_area')
+        .attr('d', area(d.inverse));
+    }
+
+    if (d.model) {
+      let line = d3.line()
+        .x(p => sx(p.x)).y(p => sy(p.y));
+
+      svg.select('.rg_plot_model')
+        .attr('d', line(d.model));
+    }
   }
 
   return {
@@ -106,6 +116,7 @@ export default function Plot() {
       svg.append('path').attr('class', 'rg_plot_area');
       svg.append('g').attr('class', 'rg_plot_pts');
       svg.append('path').attr('class', 'rg_plot_line');
+      svg.append('path').attr('class', 'rg_plot_model');
       // svg.append('g')
       //    .attr('class', 'brush')
       //    .call(brush);

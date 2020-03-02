@@ -34,6 +34,7 @@ export default function Panel(ctrl) {
   let partitions = new Map();
   let measure = '';
   let local_norm = false;
+  let show_model = true;
 
   let measure_idx = 0;
   let show = [];
@@ -67,6 +68,7 @@ export default function Panel(ctrl) {
     model.on('change:cmap', cmap_changed);
     model.on('change:color', color_changed);
     model.on('change:local_norm', norm_changed);
+    model.on('change:show_model', show_model_changed);
     model_changed();
     show_info_changed();
   }
@@ -98,29 +100,38 @@ export default function Panel(ctrl) {
     show_info_changed();
   }
 
+  function show_model_changed() {
+    show_model = model.get('show_model');
+    if (measure_idx !== -1) {
+      update_plots();
+      render();
+    }
+  }
   function show_info_changed() {
     let info = model.get('show_info');
     console.log('details: info_changed');
     show_info = new Map();
     let max = 0;
     let max_intercept = 0;
+
     for (let [id, record] of Object.entries(info)) {
       let coef = record.coef;
+      let n_coef = coef;
       let local_max = coef.reduce((a,v) => Math.max(a, Math.abs(v)), 0);
       if (local_norm)
-        coef = coef.map(v => v/local_max);
+        n_coef = coef.map(v => v/local_max);
       else
         max = Math.max(max, local_max);
       max_intercept = Math.max(max_intercept, Math.abs(record.intercept));
-      show_info.set(parseInt(id), {intercept: record.intercept, coef:coef});
+      show_info.set(parseInt(id), {intercept: record.intercept, coef:coef, n_coef: n_coef});
     }
 
     for (let [id, record] of show_info.entries()) {
       if (!local_norm) {
-        for (let i in record.coef)
-          record.coef[i] /= max;
+        for (let i in record.n_coef)
+          record.n_coef[i] /= max;
       }
-      record.intercept /= max_intercept;
+      record.n_intercept  = record.intercept / max_intercept;
     }
 
     show = Array.from(show_info.keys());
@@ -250,6 +261,14 @@ export default function Panel(ctrl) {
     for (let row of rows) {
       let partition = partitions.get(row.id);
       for (let col of cols) {
+        let model = null;
+        if (show_model && show_info.has(row.id)) {
+          let info = show_info.get(row.id);
+          let [x0, x1] = pts_extent[col.idx];
+          let y0 = info.coef[col.idx] * x0 + info.intercept;
+          let y1 = info.coef[col.idx] * x1 + info.intercept;
+          model = [{x: x0, y:y0}, {x: x1, y: y1}]
+        }
          let p = {
            id: row.id,
            row: row.idx,
@@ -268,8 +287,9 @@ export default function Panel(ctrl) {
            c_dim: color_idx,
            filtered: filtered,
            color: colorScale,
+           model: model,
            inverse: inverse.has(row.id) && inverse.get(row.id)[col.idx],
-           bar: show_info.has(row.id) && show_info.get(row.id).coef[col.idx]
+           bar: show_info.has(row.id) && show_info.get(row.id).n_coef[col.idx]
          };
          plots.push(p);
       }
