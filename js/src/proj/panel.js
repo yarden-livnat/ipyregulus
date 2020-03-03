@@ -29,6 +29,7 @@ export default function Panel(view, el) {
   let pts_invalid = false;
   let color_invalid = false;
   let active_invalid = false;
+  let graph_invalid = false;
 
   let data = null;
   let partitions = new Map();
@@ -42,6 +43,11 @@ export default function Panel(view, el) {
   let y_idx = 0;
   let measure = '';
 
+  let graph = [];
+  let graph_pts = [];
+
+  let show_graph = true;
+  let show_pts = true;
 
   let defs = [
     {id: 'arrowhead-start', path: "M10,-5L0,0L10,5", box: "0 -5 10 10", color: '#aaa', refx: 0, refy: 0 },
@@ -57,6 +63,8 @@ export default function Panel(view, el) {
     model.on('change:show', show_changed);
     model.on('change:color_info', color_changed);
     model.on('change:highlight', highlight_changed);
+    model.on('change:show_graph', show_graph_changed);
+    model.on('change:show_pts', show_pts_changed);
 
     data_changed();
     axes_changed();
@@ -82,7 +90,8 @@ export default function Panel(view, el) {
       attrs = data.get('attrs');
       attrs_idx = data.get('attrs_idx');
       attrs_extent = data.get('attrs_extent');
-      partitions = new Map(data.get('partitions').map(p => [p.id, {span: p.pts_span, extrema: p.extrema}]));
+      partitions = new Map(data.get('partitions')
+        .map(p => [p.id, {span: p.pts_span, extrema: p.extrema, minmax_idx: p.minmax_idx}]));
       measure = data.get('measure');
       y_idx = attrs_idx.indexOf(measure);
       pts_invalid = true;
@@ -92,6 +101,7 @@ export default function Panel(view, el) {
       active_invalid = true;
     }
     show = new Set();
+    graph_invalid = true;
   }
 
   function axes_changed() {
@@ -174,9 +184,6 @@ export default function Panel(view, el) {
       axis.sx.range([0, axis.len * Math.cos(axis.theta)]);
       axis.sy.range([0, axis.len * Math.sin(axis.theta)]);
 
-      // axis.sx.domain([0, axis.max]).range([0, axis.len * Math.cos(axis.theta)]);
-      // axis.sy.domain([0, axis.max]).range([0, axis.len * Math.sin(axis.theta)]);
-
       pts_invalid = true;
       render();
     }
@@ -203,6 +210,17 @@ export default function Panel(view, el) {
     }
   }
 
+  function show_graph_changed() {
+    show_graph = model.get('show_graph');
+    graph_invalid = true;
+    render();
+  }
+
+  function show_pts_changed() {
+    show_pts = model.get('show_pts');
+    active_invalid = true;
+    render();
+  }
    /*
    * Dragging
    */
@@ -282,6 +300,7 @@ export default function Panel(view, el) {
     for (let pt of active_pts) {
       pt.color = colorScale(attrs.get(pt.id, color_info[0]));
     }
+
     // let n = Math.min(colors.length, pts.length);
     // let i = -1;
     // while (++i< n) {
@@ -293,20 +312,48 @@ export default function Panel(view, el) {
     // }
   }
 
+  function update_graph() {
+    graph = [];
+    graph_pts = [];
+    for (let pid of show) {
+      let p = partitions.get(pid);
+      let min_pts = {id: p.minmax_idx[0], x:0, y: 0};
+      let max_pts = {id: p.minmax_idx[1], x:0, y: 0};
+      graph.push({id:pid, min: min_pts, max: max_pts});
+      graph_pts.push(min_pts);
+      graph_pts.push(max_pts);
+    }
+
+    project(graph_pts);
+    for (let pt of graph_pts) {
+      pt.color = colorScale(attrs.get(pt.id, color_info[0]));
+    }
+  }
+
   function validate() {
-    if (active_invalid)
+    if (active_invalid) {
       update_active();
+      graph_invalid = true;
+    }
 
     if (pts_invalid) {
       project(active_pts);
       project(bg_pts);
+
       pts_invalid = false;
       color_invalid = true;
+      graph_invalid = true;
     }
 
     if (color_invalid) {
       update_colors();
+      graph_invalid = true;
       color_invalid = false;
+    }
+
+    if (graph_invalid) {
+      update_graph();
+      graph_invalid = false;
     }
   }
 
@@ -333,7 +380,8 @@ export default function Panel(view, el) {
   function update_active(){
     active_pts = [];
     bg_pts = [];
-    if (data) {
+
+    if (data && show_pts) {
       if (highlight < 0 || !show.has(highlight))
         active_pts = collect(show, -1);
       else  {
@@ -346,9 +394,9 @@ export default function Panel(view, el) {
   }
 
   function render() {
-    // console.log('proj render');
     validate();
     render_pts();
+    render_graph();
     render_axes();
   }
 
@@ -415,6 +463,32 @@ export default function Panel(view, el) {
     p.exit().remove();
   }
 
+  function render_graph() {
+    let g = svg.select('.graph').selectAll('.edge')
+      .data(graph, d => d.pid);
+
+    g.enter()
+      .append('line')
+        .attr('class', 'edge')
+        .on('mouseover', d => highlight_partition(d, true))
+        .on('mouseout',d => highlight_partition(d, false))
+      .merge(g)
+        .classed('highlight', d => d.id === highlight)
+        .attr('x1', d => d.min.x)
+        .attr('y1', d => d.min.y)
+        .attr('x2', d => d.max.x)
+        .attr('y2', d => d.max.y);
+        // .attr('stroke', 'black')
+        // .attr('stroke-width', '2px');
+
+    g.exit().remove();
+  }
+
+  function highlight_partition(p, on) {
+    model.set('highlight', on ? p.id : -1);
+    view.touch();
+  }
+
   function setup() {
     svg = root.select('svg');
     let g = svg.append('g');
@@ -430,6 +504,9 @@ export default function Panel(view, el) {
 
     p.append('g')
       .attr('class', 'fg');
+
+    p.append('g')
+      .attr('class', 'graph');
 
     g.append('g')
       .attr('class', 'labels');

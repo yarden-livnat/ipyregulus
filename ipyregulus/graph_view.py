@@ -26,7 +26,7 @@ class GraphView(RegulusDOMWidget, HasTree):
     show = List(Int()).tag(sync=True)
     highlight = Int(-1).tag(sync=True)
     selected = List((Int())).tag(sync=True)
-    show_inverse = Bool(True).tag(sync=True)
+    show_inverse = Bool(False).tag(sync=True)
     _add_inverse = Dict(allow_none=True).tag(sync=True)
 
     def __init__(self, src=None, **kwargs):
@@ -70,8 +70,15 @@ class GraphView(RegulusDOMWidget, HasTree):
         if self.tree is not None:
             for node in self.tree:
                 p = node.data
+                if p.id < 0:
+                    continue
                 min_idx, max_idx = p.minmax_idx
-                base_born = self._dataset.partition(p.base).persistence
+                base_born = 0
+                if p.base is not None:
+                    base = self._dataset.partition(p.base)
+                    if base is not None:
+                        base_born = base.persistence
+
                 is_selected = p.id in self.selected
                 partitions.append(dict(
                     pid=p.id,

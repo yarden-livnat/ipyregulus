@@ -24,6 +24,16 @@
     /*stroke-width: 3px;*/
 }
 
+.rg_proj .edge {
+    stroke: gray;
+    stroke-width: 2px;
+}
+
+.rg_proj .edge.highlight {
+    stroke: red;
+    stroke-width: 3px;
+}
+
 /*.rg_proj .view .pts .bg .pt {*/
 /*    fill: lightgray;*/
 /*    stroke: none;*/

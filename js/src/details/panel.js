@@ -60,8 +60,6 @@ export default function Panel(ctrl) {
   function set_model(_) {
     model = _;
     model.on('change:data', model_changed);
-    // model.on('change:measure', measure_changed);
-    // model.on('change:show', show_changed);
     model.on('change:show_info', show_info_changed);
     model.on('change:highlight', highlight_changed);
     model.on('change:inverse', inverse_changed);
@@ -255,21 +253,45 @@ export default function Panel(ctrl) {
     return pt;
   }
 
+  function minmax([x0, x1], coef){
+    let v = [x0*coef, x1*coef];
+    if (v[0] > v[1]) v = [v[1], v[0]];
+    return v;
+  }
+
+  function compute_ranges(row) {
+    let ranges = [];
+    let info = show_info.get(row.id);
+    for (let col of cols) {
+      ranges.push(minmax(pts_extent[col.idx], info.coef[col.idx]))
+    }
+
+    let v_min = ranges.reduce( (a, v) => a + v[0], info.intercept);
+    let v_max = ranges.reduce( (a, v) => a + v[1], info.intercept);
+
+    return { v_min, v_max, ranges}
+
+  }
 
   function update_plots() {
     plots = [];
     for (let row of rows) {
       let partition = partitions.get(row.id);
+      // let model_info = show_model && show_info.has(row.id) ? compute_ranges(row) : null;
       for (let col of cols) {
         let model = null;
-        if (show_model && show_info.has(row.id)) {
-          let info = show_info.get(row.id);
-          let [x0, x1] = pts_extent[col.idx];
-          let y0 = info.coef[col.idx] * x0 + info.intercept;
-          let y1 = info.coef[col.idx] * x1 + info.intercept;
-          model = [{x: x0, y:y0}, {x: x1, y: y1}]
-        }
-         let p = {
+        // if (model_info) {
+        //   let info = show_info.get(row.id);
+        //   let [x0, x1] = pts_extent[col.idx];
+        //   let y_min = model_info.v_min;
+        //   let y_max = model_info.v_max;
+        //   let r = model_info.ranges[col.idx];
+        //   model = [
+        //     {x0: x0, y0: y_min, x1: x0, y1: y_min - r[0] + r[1]},
+        //     {x0: x1, y0: y_min, x1: x1, y1: y_max - r[0] + r[1]}
+        //   ];
+        // }
+        let p = {
            id: row.id,
            row: row.idx,
            col: col.idx,
@@ -419,12 +441,23 @@ export default function Panel(ctrl) {
     sync();
   }
 
+  let highlight_timer = null;
+
   function on_enter(d) {
+    if (highlight_timer) {
+      clearTimeout(highlight_timer);
+      highlight_timer = null;
+    }
     model.set('highlight', d.id);
     sync();
   }
 
   function on_leave(d) {
+    highlight_timer = setTimeout( leave, 250, this, arguments);
+  }
+
+  function leave(self, args) {
+    highlight_timer = null;
     model.set('highlight', -2);
     sync();
   }

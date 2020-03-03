@@ -85,11 +85,14 @@ export default function Plot() {
     }
 
     if (d.model) {
-      let line = d3.line()
-        .x(p => sx(p.x)).y(p => sy(p.y));
+      let area = d3.area()
+        .x0(p => sx(p.x0))
+        .y0(p => sy(p.y0))
+        .x1(p => sx(p.x1))
+        .y1(p => sy(p.y1));
 
       svg.select('.rg_plot_model')
-        .attr('d', line(d.model));
+        .attr('d', area(d.model));
     }
   }
 

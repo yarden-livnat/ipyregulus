@@ -1,4 +1,4 @@
-from traitlets import Instance, Int, List, Unicode, observe, validate
+from traitlets import Bool, Instance, Int, List, Unicode, observe, validate
 from ipywidgets import register, widget_serialization
 
 from ipyregulus.core.base import RegulusDOMWidget
@@ -14,6 +14,8 @@ class ProjView(RegulusDOMWidget):
 
     data = Instance(klass=DataWidget, allow_none=True).tag(sync=True, **widget_serialization)
     show = List(Int()).tag(sync=True)
+    show_graph = Bool(False).tag(sync=True)
+    show_pts = Bool(True).tag(sync=True)
     highlight = Int(-2).tag(sync=True)
     axes = TypedTuple(trait=AxisTraitType()).tag(sync=True, **widget_serialization)
     color = Unicode(None, allow_none=True).tag(sync=True)
