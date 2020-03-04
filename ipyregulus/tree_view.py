@@ -11,12 +11,12 @@ from .filters import AttrFilter, Trigger, GroupUIFilter
 class TreeView(BaseTreeView):
 
     options = List(Unicode(), ['span',
-                                 'fitness', 'parent_fitness', 'child_fitness',
-                                 'q_fitness',
-                                 'dim_parent_score', 'dim_child_score',
-                                 'dim_min_fitness',  'dim_max_fitness',
-                                 'min', 'max', 'unique_max', 'unique_min'
-                                 ])
+                               'fitness', 'parent_fitness', 'child_fitness', 'shared_fitness',
+                               'q_fitness',
+                               'min', 'max', 'unique_max', 'unique_min',
+                               'dim_parent_score', 'dim_child_score',
+                               'dim_min_fitness',  'dim_max_fitness'
+                               ])
 
     def __init__(self, src=None, auto=True, x=None, y=None, **kwargs):
         super().__init__(**kwargs)
