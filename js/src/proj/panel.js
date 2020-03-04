@@ -68,6 +68,7 @@ export default function Panel(view, el) {
 
     data_changed();
     axes_changed();
+    show_graph_changed();
   }
 
   function data_changed() {
@@ -315,18 +316,20 @@ export default function Panel(view, el) {
   function update_graph() {
     graph = [];
     graph_pts = [];
-    for (let pid of show) {
-      let p = partitions.get(pid);
-      let min_pts = {id: p.minmax_idx[0], x:0, y: 0};
-      let max_pts = {id: p.minmax_idx[1], x:0, y: 0};
-      graph.push({id:pid, min: min_pts, max: max_pts});
-      graph_pts.push(min_pts);
-      graph_pts.push(max_pts);
-    }
+    if (show_graph) {
+      for (let pid of show) {
+        let p = partitions.get(pid);
+        let min_pts = {id: p.minmax_idx[0], x: 0, y: 0};
+        let max_pts = {id: p.minmax_idx[1], x: 0, y: 0};
+        graph.push({id: pid, min: min_pts, max: max_pts});
+        graph_pts.push(min_pts);
+        graph_pts.push(max_pts);
+      }
 
-    project(graph_pts);
-    for (let pt of graph_pts) {
-      pt.color = colorScale(attrs.get(pt.id, color_info[0]));
+      project(graph_pts);
+      for (let pt of graph_pts) {
+        pt.color = colorScale(attrs.get(pt.id, color_info[0]));
+      }
     }
   }
 
@@ -482,6 +485,22 @@ export default function Panel(view, el) {
         // .attr('stroke-width', '2px');
 
     g.exit().remove();
+
+    let gp = svg.select('.graph').selectAll('.pt')
+      .data(graph_pts, d => d.pid);
+
+    gp.enter()
+      .append('circle')
+      .attr('class', 'pt')
+        .attr('r', 4)
+        .style('stroke', 'black')
+      .merge(gp)
+        .attr('cx', d => d.x)
+        .attr('cy', d => d.y)
+        .style('fill', d => d.color)
+    ;
+    gp.exit().remove();
+
   }
 
   function highlight_partition(p, on) {
