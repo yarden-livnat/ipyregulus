@@ -313,6 +313,10 @@ export default function Panel(ctrl) {
     }
   }
 
+  function change_order(d) {
+    console.log('change order', d);
+  }
+
   function render() {
     // console.log('details render');
     let t0 = performance.now();
@@ -329,6 +333,7 @@ export default function Panel(ctrl) {
     d3cols.enter()
       .append('div')
       .classed('rg_col_header', true)
+      .on('click', change_order)
     .merge(d3cols)
       .html(d => d.name);
 
