@@ -17,8 +17,8 @@
 }
 
 .rg_tree .view .node.selected {
-  stroke: green;
-  stroke-width: 1px;
+  stroke: black;
+  stroke-width: 2.5px;
 }
 
 .rg_tree .view .node.selected.highlight {
