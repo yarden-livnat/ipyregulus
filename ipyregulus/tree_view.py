@@ -1,6 +1,6 @@
 # Copyright (c) University of Utah
 from IPython.display import display
-from traitlets import Bool, Dict, HasTraits, Instance, Int, List, Tuple, Unicode, observe, Set
+from traitlets import Bool, Dict, HasTraits, Instance, Int, List, Tuple, Unicode, observe, Set, link
 from ipywidgets import HBox, VBox, IntRangeSlider, FloatRangeSlider
 import ipywidgets as widgets
 
@@ -12,11 +12,15 @@ class TreeView(BaseTreeView):
 
     options = List(Unicode(), ['span',
                                'fitness', 'parent_fitness', 'child_fitness', 'shared_fitness',
+                               'coef_change', 'coef_similarity',
                                'q_fitness',
                                'min', 'max', 'unique_max', 'unique_min',
                                'dim_parent_score', 'dim_child_score',
                                'dim_min_fitness',  'dim_max_fitness'
                                ])
+
+    x_value = Tuple(default_value=(0, 1))
+    y_value = Tuple(default_value=(0, 1))
 
     def __init__(self, src=None, auto=True, x=None, y=None, **kwargs):
         super().__init__(**kwargs)
@@ -37,9 +41,13 @@ class TreeView(BaseTreeView):
             value=self.attr,
             disabled=False,
         )
+
         self.x_slider = IntRangeSlider(min=0, max=1, value=(0, 1), description='Points:')
         self.y_slider = FloatRangeSlider(min=0, max=1, value=(0,1), description='Persistence:', step=0.001)
         self._ctrls = HBox([self._menu, self.y_slider, self.x_slider])
+
+        link((self, 'x_value'), (self.x_slider, 'value'))
+        link((self, 'y_value'), (self.y_slider, 'value'))
 
         self._auto_filter = AttrFilter(attr=self._menu.value)
         if self._auto:
