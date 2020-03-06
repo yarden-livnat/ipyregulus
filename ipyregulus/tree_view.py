@@ -32,6 +32,7 @@ class TreeView(BaseTreeView):
         self._filters = {}
         self._auto = auto
         self._auto_filter = None
+        self.show_measure = False
 
         # setup controls
         self._ctrls = HBox()

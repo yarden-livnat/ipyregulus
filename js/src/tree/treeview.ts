@@ -24,6 +24,7 @@ class TreeViewModel extends RegulusViewModel {
       _view_name: 'TreeView',
 
       title: "",
+      show_measure: true,
       attr: null,
       show_attr: true,
       attrs: {},
@@ -61,6 +62,7 @@ class TreeView extends DOMWidgetView {
       .on('select', (d, is_on) => this.on_select(d, is_on));
 
     this.model.on('change:title', this.on_title_changed, this);
+    this.model.on('change:show_measure', this.on_show_measure_changed, this);
     this.model.on('change:attr', this.on_attr_changed, this);
     this.model.on('change:show_attr', this.on_show_attr_changed, this);
     this.model.on('change:tree_model',  this.on_tree_changed, this);
@@ -125,6 +127,10 @@ class TreeView extends DOMWidgetView {
     this.d3el.select('.title').text(this.model.get('title'));
   }
 
+  on_show_measure_changed() {
+    this.d3el.select('.controls').style('display', this.model.get('show_measure') == true ? 'inhernt': 'none');
+  }
+
   on_tree_updated() {
     let tree = this.model.get('tree_model');
     this.panel.data( tree && tree.get('root') || null)
@@ -134,8 +140,7 @@ class TreeView extends DOMWidgetView {
   on_attr_changed() {
     let attr = this.model.get('attr');
     this.d3el.select('.measure').html(attr);
-    this.panel.attr(attr)
-      .redraw();
+    this.panel.attr(attr).redraw();
     this.touch();
   }
 

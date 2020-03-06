@@ -20,6 +20,7 @@ class BaseTreeView(HasTree, RegulusDOMWidget):
 
     changed = Int(0)
     title = Unicode('').tag(sync=True)
+    show_measure = Bool(True).tag(sync=True)
     attrs = Dict(default_value={}).tag(sync=True)
     attr = Unicode('').tag(sync=True)
     # show_attr = Bool(True).tag(sync=True)
