@@ -4,7 +4,7 @@ import './panel.css';
 import * as chromatic from "d3-scale-chromatic";
 import {Partition} from "../models/partition";
 
-const DEFAULT_POINT_SIZE = 1;
+const DEFAULT_POINT_SIZE = 2;
 const DEFAULT_AXIS_SIZE = 200;
 const DEFAULT_CMAP = 'RdYlBu';
 const DEFAULT_COLOR = 'lightblue';
@@ -13,6 +13,7 @@ export default function Panel(view, el) {
   let root = d3.select(el);
   let model = view.model;
   let svg = null;
+  let overlay = null;
 
   let axes = [];
   let active_pts = [];
@@ -45,9 +46,12 @@ export default function Panel(view, el) {
 
   let graph = [];
   let graph_pts = [];
+  let origin = {x: 0, y:0};
 
   let show_graph = true;
   let show_pts = true;
+  let disabled = true;
+  let dragging = false;
 
   let defs = [
     {id: 'arrowhead-start', path: "M10,-5L0,0L10,5", box: "0 -5 10 10", color: '#aaa', refx: 0, refy: 0 },
@@ -66,9 +70,16 @@ export default function Panel(view, el) {
     model.on('change:show_graph', show_graph_changed);
     model.on('change:show_pts', show_pts_changed);
 
+    disabled = true;
     data_changed();
     axes_changed();
+    highlight_changed();
+    color_changed();
+    show_changed();
+    show_pts_changed();
     show_graph_changed();
+    disabled = false;
+    render()
   }
 
   function data_changed() {
@@ -103,9 +114,12 @@ export default function Panel(view, el) {
     }
     show = new Set();
     graph_invalid = true;
+    render();
   }
 
   function axes_changed() {
+    if (dragging) return;
+
     for (let p of model.previous('axes') || []) {
       p.off('change', update_axis)
     }
@@ -115,60 +129,25 @@ export default function Panel(view, el) {
     }
 
     let a = model.get('axes');
-    let n = a.length;
-    let angle_start = -Math.PI/2;
-    let angle = 2*Math.PI/n;
     axes = a.map((axis, i) => {
-      let updated = false;
-      let theta = axis.get('theta');
-      if (theta == null) {
-        theta = angle_start + angle * i;
-        updated = true;
-      }
-      let len = axis.get('len');
-      if (len == null) {
-        len = DEFAULT_AXIS_SIZE;
-        updated = true;
-      }
-
-      let max = axis.get('max');
-      let disabled = axis.get('disabled');
-
-      if (updated) {
-        setTimeout(function () {
-          axis.set({
-            theta: theta,
-            len: len
-          });
-          axis.save_changes();
-        }, 0);
-      }
-
-      let domain = !pts_extent || !pts_extent.length ? [0, 1] :
-                   i > 0 ? pts_extent[i-1] : attrs_extent[y_idx];
-
       return {
-        label: axis.get('label'),
         col: axis.get('col'),
-        max,
-        theta,
-        len,
-        disabled,
         model: axis,
-        sx: d3.scaleLinear()
-          .domain(domain)
-          .range([0, len * Math.cos(theta)]),
-        sy: d3.scaleLinear()
-          .domain(domain)
-          .range([0, len * Math.sin(theta)]),
-      };
+        sx: d3.scaleLinear(),
+        sy: d3.scaleLinear(),
+      }
     });
-    pts_invalid = true;
+
+    disabled = true;
+    axes.forEach(d => update_axis(d.model));
+    disabled = false;
     render();
   }
 
 
   function update_axis(axis_model) {
+    if (dragging) return;
+
     let axis = axes.find( d => d.model === axis_model);
     if (axis) {
       axis.label = axis_model.get('label');
@@ -179,11 +158,11 @@ export default function Panel(view, el) {
 
      let domain = !pts_extent || !pts_extent.length ? [0, 1] :
                    axis.col> 0 ? pts_extent[axis.col-1] : attrs_extent[y_idx];
-      axis.sx.domain(domain);
-      axis.sy.domain(domain);
+      axis.sx.domain(domain).range([0, axis.len * Math.cos(axis.theta)]);
+      axis.sy.domain(domain).range([0, axis.len * Math.sin(axis.theta)]);
 
-      axis.sx.range([0, axis.len * Math.cos(axis.theta)]);
-      axis.sy.range([0, axis.len * Math.sin(axis.theta)]);
+      axis.x = axis.sx(axis.max);
+      axis.y = axis.sy(axis.max);
 
       pts_invalid = true;
       render();
@@ -211,17 +190,19 @@ export default function Panel(view, el) {
     }
   }
 
+  function show_pts_changed() {
+    show_pts = model.get('show_pts');
+    active_invalid = true;
+    render();
+  }
+
   function show_graph_changed() {
     show_graph = model.get('show_graph');
     graph_invalid = true;
     render();
   }
 
-  function show_pts_changed() {
-    show_pts = model.get('show_pts');
-    active_invalid = true;
-    render();
-  }
+
    /*
    * Dragging
    */
@@ -243,6 +224,7 @@ export default function Panel(view, el) {
     drag_y = d3.event.y;
     start_x = d.sx(d.max);
     start_y = d.sy(d.max);
+    dragging = true;
   }
 
   function axisDrag(d) {
@@ -256,6 +238,8 @@ export default function Panel(view, el) {
     d.sx.range([0, d.len*Math.cos(d.theta)]);
     d.sy.range([0, d.len*Math.sin(d.theta)]);
 
+    d.x = d.sx(d.max);
+    d.y = d.sy(d.max);
     setTimeout( function() {
       d.model.set({
         theta: d.theta,
@@ -265,11 +249,11 @@ export default function Panel(view, el) {
     }, 0);
 
     pts_invalid = true;
-    // project();
     render();
   }
 
   function axisDragEnd(d) {
+    dragging = false;
     setTimeout( function() {
       d.model.set({
         theta: d.theta,
@@ -279,21 +263,97 @@ export default function Panel(view, el) {
     }, 0);
   }
 
-  function project(list) {
-    for (let pt of list) {
+  function project(pts_list) {
+    for (let pt of pts_list) {
       let x = 0, y = 0, v;
 
       for (let axis of axes) {
         if (!axis.disabled) {
           v = axis.col === 0 ?
             attrs.get(pt.id, y_idx) :
-            pts.get(pt.id, axis.col-1);
+            pts.get(pt.id, axis.col - 1);
           x += axis.sx(v);
           y += axis.sy(v);
         }
       }
       pt.x = x;
       pt.y = y;
+    }
+  }
+
+   /*
+   * Zoom
+   */
+
+  let zoom = d3.zoom()
+    .scaleExtent([0.1, 8])
+    .on('start', zoomStarted)
+    .on('zoom', zoomed);
+
+  function enableZoom() {
+    svg.call(zoom);
+  }
+
+  function disableZoom() {
+    svg.on('zoom', null);
+  }
+
+  function zoomStarted() {
+  }
+
+  function zoomed() {
+    svg.select('.bg').selectAll('.pt')
+      .data(bg_pts)
+      .call(transform);
+
+   svg.select('.fg').selectAll('.pt')
+    .data(active_pts)
+    .call(transform);
+
+  svg.select('.graph').selectAll('.pt')
+    .data(graph_pts)
+    .call(transform);
+
+  render_axes();
+  render_graph();
+  }
+
+  function transform(selection) {
+    let tr = d3.zoomTransform(svg.node());
+    selection.attr('transform', d => {
+        [d.zx, d.zy] = tr.apply([d.x, d.y]);     // save zoomed coordinates so graph edges can use them
+        return `translate(${d.zx}, ${d.zy})`;
+      });
+  }
+
+  /*
+   * updates
+   */
+
+   function validate() {
+    if (active_invalid) {
+      update_active();
+      graph_invalid = true;
+    }
+
+    if (pts_invalid) {
+      project(bg_pts);
+      project(active_pts);
+
+      pts_invalid = false;
+      color_invalid = true;
+      graph_invalid = true;
+    }
+
+    if (color_invalid) {
+      update_colors();
+      graph_invalid = true;
+      color_invalid = false;
+    }
+
+    if (graph_invalid) {
+      update_graph();
+      graph_invalid = false;
     }
   }
 
@@ -319,11 +379,11 @@ export default function Panel(view, el) {
     if (show_graph) {
       for (let pid of show) {
         let p = partitions.get(pid);
-        let min_pts = {id: p.minmax_idx[0], x: 0, y: 0};
-        let max_pts = {id: p.minmax_idx[1], x: 0, y: 0};
-        graph.push({id: pid, min: min_pts, max: max_pts});
-        graph_pts.push(min_pts);
-        graph_pts.push(max_pts);
+        let min_pt = {id: p.minmax_idx[0], x: 0, y: 0};
+        let max_pt = {id: p.minmax_idx[1], x: 0, y: 0};
+        graph.push({id: pid, min: min_pt, max: max_pt});
+        graph_pts.push(min_pt);
+        graph_pts.push(max_pt);
       }
 
       project(graph_pts);
@@ -333,32 +393,7 @@ export default function Panel(view, el) {
     }
   }
 
-  function validate() {
-    if (active_invalid) {
-      update_active();
-      graph_invalid = true;
-    }
 
-    if (pts_invalid) {
-      project(active_pts);
-      project(bg_pts);
-
-      pts_invalid = false;
-      color_invalid = true;
-      graph_invalid = true;
-    }
-
-    if (color_invalid) {
-      update_colors();
-      graph_invalid = true;
-      color_invalid = false;
-    }
-
-    if (graph_invalid) {
-      update_graph();
-      graph_invalid = false;
-    }
-  }
 
   function collect(list, ignore) {
     let set = new Set();
@@ -397,110 +432,100 @@ export default function Panel(view, el) {
   }
 
   function render() {
-    validate();
-    render_pts();
-    render_graph();
-    render_axes();
+     if (disabled) return;
+
+     validate();
+     render_pts();
+     render_graph();
+     render_axes();
   }
 
   function render_axes() {
-   let o = svg.select('.pts').selectAll('.origin').data([0, 0]);
+   let o = svg.select('.axes').selectAll('.pt').data([origin]);
    o.enter()
-     .append('circle')
-     .attr('class', 'origin')
-     .attr('r', DEFAULT_POINT_SIZE)
+      .append('circle')
+      .attr('class', 'pt')
+      .attr('r', DEFAULT_POINT_SIZE)
+      .attr('cx', 0)
+      .attr('cy', 0)
      .merge(o)
-     .attr('cx', 0)
-     .attr('cy', 0);
+      .call(transform);
 
+   let tr = d3.zoomTransform(svg.node());
    let active = axes.filter(a => !a.disabled);
-   let a = svg.select('.axes').selectAll('.axis').data(active, d => d.label);
+   active.forEach( d => [d.zx, d.zy] = tr.apply([d.x, d.y]));
+
+   let a = svg.select('.axes').selectAll('.axis')
+     .data(active, d => d.label);
+
    a.enter()
      .append('line')
       .attr('class', 'axis')
       .attr("marker-end", "url(#arrowhead-end)")
       .call(drag)
      .merge(a)
-      .attr('x1', 0)
-      .attr('y1', 0)
-      .attr('x2', d => d.sx(d.max))
-      .attr('y2', d => d.sy(d.max));
+      .attr('x1', origin.zx)
+      .attr('y1', origin.zy)
+      .attr('x2', d => d.zx + d.x)
+      .attr('y2', d => d.zy + d.y);
+
    a.exit().remove();
 
-   let names = svg.select('.labels').selectAll('.label').data(active);
+   let names = svg.select('.axes').selectAll('.label').data(active);
    names.enter()
      .append('text')
        .attr('class', 'label')
-     .call(drag)
+      .call(drag)
      .merge(names)
       .text(d => d.label)
-       .attr('x', d => d.sx(d.max) + 10)
-       .attr('y', d => d.sy(d.max));
+       .attr('x', d => d.zx + d.x + 10)
+       .attr('y', d => d.zy + d.y);
 
    names.exit().remove();
   }
 
-  function render_pts() {
-    let bg = svg.select('.pts').select('.bg').selectAll('.pt').data(bg_pts);
-    bg.enter()
-      .append('circle')
-      .attr('class', 'pt')
-      .attr('r', 1)
-      .merge(bg)
-        .attr('cx', d => d.x)
-        .attr('cy', d => d.y)
-        .style('fill', 'lightgray')
-    ;
-    bg.exit().remove();
+  function render_pts_group(group, group_pts) {
+     let g = svg.select(group).selectAll('.pt').data(group_pts);
 
-    let p = svg.select('.pts').select('.fg').selectAll('.pt').data(active_pts);
-    p.enter()
-      .append('circle')
-      .attr('class', 'pt')
-      .attr('r', 3)
-      .merge(p)
-        .attr('cx', d => d.x)
-        .attr('cy', d => d.y)
-        .style('fill', d => d.color)
-    ;
-    p.exit().remove();
+     g.exit().remove();
+
+     return g.enter()
+       .append('circle')
+        .attr('class', 'pt')
+        .attr('r', 3)
+        .merge(g)
+          .attr('cx', d => d.x)
+          .attr('cy', d => d.y)
+          .style('fill', d => d.color)
+          .call(transform)
+  }
+
+  function render_pts() {
+     render_pts_group('.bg', bg_pts)
+       .attr('r', 1);
+
+     render_pts_group('.fg', active_pts);
   }
 
   function render_graph() {
-    let g = svg.select('.graph').selectAll('.edge')
+     render_pts_group('.graph', graph_pts);
+
+    let edges = svg.select('.graph').selectAll('.edge')
       .data(graph, d => d.pid);
 
-    g.enter()
+    edges.enter()
       .append('line')
         .attr('class', 'edge')
         .on('mouseover', d => highlight_partition(d, true))
         .on('mouseout',d => highlight_partition(d, false))
-      .merge(g)
+      .merge(edges)
         .classed('highlight', d => d.id === highlight)
-        .attr('x1', d => d.min.x)
-        .attr('y1', d => d.min.y)
-        .attr('x2', d => d.max.x)
-        .attr('y2', d => d.max.y);
-        // .attr('stroke', 'black')
-        // .attr('stroke-width', '2px');
+        .attr('x1', d => d.min.zx + d.min.x)
+        .attr('y1', d => d.min.zy + d.min.y)
+        .attr('x2', d => d.max.zx + d.max.x)
+        .attr('y2', d => d.max.zy + d.max.y);
 
-    g.exit().remove();
-
-    let gp = svg.select('.graph').selectAll('.pt')
-      .data(graph_pts, d => d.pid);
-
-    gp.enter()
-      .append('circle')
-      .attr('class', 'pt')
-        .attr('r', 4)
-        .style('stroke', 'black')
-      .merge(gp)
-        .attr('cx', d => d.x)
-        .attr('cy', d => d.y)
-        .style('fill', d => d.color)
-    ;
-    gp.exit().remove();
-
+    edges.exit().remove();
   }
 
   function highlight_partition(p, on) {
@@ -510,25 +535,20 @@ export default function Panel(view, el) {
 
   function setup() {
     svg = root.select('svg');
+
     let g = svg.append('g');
 
     g.append('g')
         .attr('class', 'axes');
 
-    let p = g.append('g')
-      .attr('class', 'pts');
-
-    p.append('g')
+    g.append('g')
       .attr('class', 'bg');
 
-    p.append('g')
+    g.append('g')
       .attr('class', 'fg');
 
-    p.append('g')
-      .attr('class', 'graph');
-
     g.append('g')
-      .attr('class', 'labels');
+      .attr('class', 'graph');
 
     let svgDefs = svg.select('defs');
       if (svgDefs.empty())
@@ -549,6 +569,8 @@ export default function Panel(view, el) {
         .attr('stroke-width', '1px')
         .append("path")
         .attr("d", d => d.path);
+
+    enableZoom();
   }
 
 
@@ -559,9 +581,9 @@ export default function Panel(view, el) {
     resize() {
       let w = parseInt(svg.style('width'));
       let h = parseInt(svg.style('height'));
-      svg.select('g')
-        .attr('transform', `translate(${w / 2},${h / 2})`);
-      pts_invalid = true;
+      svg.attr('viewBox', [-w/2, -h/2, w, h]);
+      zoom.extent([[0,0], [w,h]]);
+      active_invalid = true;
       render();
       return this;
     },

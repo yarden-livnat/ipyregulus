@@ -2,47 +2,44 @@
     /*background-color: lightyellow;*/
 }
 
-.rg_proj .view .origin {
-    fill: black;
-    stroke: steelblue;
-    stroke-width: 1px;
-}
-
-.rg_proj .view .axis {
+.rg_proj .axes .axis {
     fill: none;
     stroke: #ddd;
     stroke-width: 1.5px;
 }
 
-.rg_proj .view .axis:hover {
+.rg_proj .axes .axis:hover {
     stroke: red;
     stroke-width: 3px;
 }
 
-.rg_proj .view .label:hover {
+.rg_proj .axes .label:hover {
     stroke: red;
     /*stroke-width: 3px;*/
 }
 
-.rg_proj .edge {
+.rg_proj .axes .pt {
+    fill: black;
+    stroke: steelblue;
+    stroke-width: 1px;
+}
+
+.rg_proj .bg .pt {
+    fill: lightgray;
+}
+
+.rg_proj .graph .pt {
+    stroke: #666666;
+    stroke-width: 0.5px;
+}
+
+.rg_proj .graph .edge {
     stroke: gray;
     stroke-width: 2px;
 }
 
-.rg_proj .edge.highlight {
+.rg_proj .graph .edge.highlight {
     stroke: red;
     stroke-width: 3px;
 }
-
-/*.rg_proj .view .pts .bg .pt {*/
-/*    fill: lightgray;*/
-/*    stroke: none;*/
-/*    stroke-width: 1px;*/
-/*}*/
-
-/*.rg_proj .view .pts .fg .pt {*/
-/*    fill: steelblue;*/
-/*    stroke: none;*/
-/*    stroke-width: 1px;*/
-/*}*/
 
