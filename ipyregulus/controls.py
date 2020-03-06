@@ -5,7 +5,7 @@ from IPython.display import display
 from regulus import HasTree
 
 
-class TreeControler(HasTree):
+class TreeController(HasTree):
     def __init__(self, ref, attr, func, widget=None):
         self._attr = None
         self.monitored = None
@@ -51,7 +51,7 @@ class TreeControler(HasTree):
         display(HBox([self.label, self.widget]))
 
 
-class TreeFilter(TreeControler):
+class TreeFilter(TreeController):
     visible = Set(allow_none=True)
 
     def __init__(self, ref, attr, func, **kwargs):
@@ -83,7 +83,7 @@ class TreeFilter(TreeControler):
             self._cbs.remove(func)
 
 
-class TreeReducer(TreeControler):
+class TreeReducer(TreeController):
     def update(self, change):
         super().update(change)
         if self.ref is not None and self.monitored is not None:
