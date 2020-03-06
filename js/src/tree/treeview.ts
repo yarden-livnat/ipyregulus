@@ -81,6 +81,7 @@ class TreeView extends DOMWidgetView {
     let self = this;
     setTimeout( function() {
         self.panel.resize();
+        self.on_show_measure_changed();
         self.on_attrs_changed();
         self.on_attr_changed();
         self.on_show_attr_changed();

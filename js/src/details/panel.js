@@ -72,7 +72,6 @@ export default function Panel(ctrl) {
   }
 
   function model_changed() {
-    // console.log('details: model_changed');
     let p = model.previous('data');
     if (p) p.off('change:version', model_updated);
 
@@ -83,7 +82,6 @@ export default function Panel(ctrl) {
   }
 
   function model_updated() {
-    // console.log('details: model updated');
     update_data_model(model.get('data'));
 
     update_color();
@@ -107,7 +105,6 @@ export default function Panel(ctrl) {
   }
   function show_info_changed() {
     let info = model.get('show_info');
-    console.log('details: info_changed');
     show_info = new Map();
     let max = 0;
     let max_intercept = 0;
@@ -149,7 +146,6 @@ export default function Panel(ctrl) {
   }
 
   function inverse_changed() {
-    // console.log('details: inverse _changed');
     let new_lines = model.get('inverse');
     if (!new_lines) return;
 
@@ -170,7 +166,6 @@ export default function Panel(ctrl) {
   }
 
   function color_changed() {
-    // console.log('details: color changed');
     if (measure_idx === -1)  return;
     let idx = color_idx;
     update_color();
@@ -462,6 +457,13 @@ export default function Panel(ctrl) {
     sync();
   }
 
+  let resize_timer = null;
+
+  function trigger_resize() {
+    resize_timer = null;
+    render();
+  }
+
   return {
     el(_) {
       root = _;
@@ -473,7 +475,9 @@ export default function Panel(ctrl) {
     },
 
     resize() {
-      render();
+       if (resize_timer)
+        clearTimeout(resize_timer);
+      resize_timer = setTimeout( trigger_resize, 250);
       return this;
     },
 

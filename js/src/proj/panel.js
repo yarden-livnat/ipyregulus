@@ -156,8 +156,8 @@ export default function Panel(view, el) {
       axis.max = axis_model.get('max');
       axis.disabled = axis_model.get('disabled');
 
-     let domain = !pts_extent || !pts_extent.length ? [0, 1] :
-                   axis.col> 0 ? pts_extent[axis.col-1] : attrs_extent[y_idx];
+      let domain = !pts_extent || !pts_extent.length ? [0, 1] :
+        axis.col> 0 ? pts_extent[axis.col-1] : attrs_extent[y_idx];
       axis.sx.domain(domain).range([0, axis.len * Math.cos(axis.theta)]);
       axis.sy.domain(domain).range([0, axis.len * Math.sin(axis.theta)]);
 
@@ -203,9 +203,9 @@ export default function Panel(view, el) {
   }
 
 
-   /*
-   * Dragging
-   */
+  /*
+  * Dragging
+  */
 
   let drag_x = 0;
   let drag_y = 0;
@@ -281,9 +281,9 @@ export default function Panel(view, el) {
     }
   }
 
-   /*
-   * Zoom
-   */
+  /*
+  * Zoom
+  */
 
   let zoom = d3.zoom()
     .scaleExtent([0.1, 8])
@@ -306,31 +306,31 @@ export default function Panel(view, el) {
       .data(bg_pts)
       .call(transform);
 
-   svg.select('.fg').selectAll('.pt')
-    .data(active_pts)
-    .call(transform);
+    svg.select('.fg').selectAll('.pt')
+      .data(active_pts)
+      .call(transform);
 
-  svg.select('.graph').selectAll('.pt')
-    .data(graph_pts)
-    .call(transform);
+    svg.select('.graph').selectAll('.pt')
+      .data(graph_pts)
+      .call(transform);
 
-  render_axes();
-  render_graph();
+    render_axes();
+    render_graph();
   }
 
   function transform(selection) {
     let tr = d3.zoomTransform(svg.node());
     selection.attr('transform', d => {
-        [d.zx, d.zy] = tr.apply([d.x, d.y]);     // save zoomed coordinates so graph edges can use them
-        return `translate(${d.zx}, ${d.zy})`;
-      });
+      [d.zx, d.zy] = tr.apply([d.x, d.y]);     // save zoomed coordinates so graph edges can use them
+      return `translate(${d.zx}, ${d.zy})`;
+    });
   }
 
   /*
    * updates
    */
 
-   function validate() {
+  function validate() {
     if (active_invalid) {
       update_active();
       graph_invalid = true;
@@ -432,98 +432,99 @@ export default function Panel(view, el) {
   }
 
   function render() {
-     if (disabled) return;
+    if (disabled) return;
 
-     validate();
-     render_pts();
-     render_graph();
-     render_axes();
+    validate();
+    render_pts();
+    render_graph();
+    render_axes();
   }
 
   function render_axes() {
-   let o = svg.select('.axes').selectAll('.pt').data([origin]);
-   o.enter()
+    let o = svg.select('.axes').selectAll('.pt').data([origin]);
+    o.enter()
       .append('circle')
       .attr('class', 'pt')
       .attr('r', DEFAULT_POINT_SIZE)
       .attr('cx', 0)
       .attr('cy', 0)
-     .merge(o)
+      .merge(o)
       .call(transform);
 
-   let tr = d3.zoomTransform(svg.node());
-   let active = axes.filter(a => !a.disabled);
-   active.forEach( d => [d.zx, d.zy] = tr.apply([d.x, d.y]));
+    let tr = d3.zoomTransform(svg.node());
+    let active = axes.filter(a => !a.disabled);
+    active.forEach( d => [d.zx, d.zy] = tr.apply([d.x, d.y]));
 
-   let a = svg.select('.axes').selectAll('.axis')
-     .data(active, d => d.label);
+    let a = svg.select('.axes').selectAll('.axis')
+      .data(active, d => d.label);
 
-   a.enter()
-     .append('line')
+    a.enter()
+      .append('line')
       .attr('class', 'axis')
       .attr("marker-end", "url(#arrowhead-end)")
       .call(drag)
-     .merge(a)
+      .merge(a)
       .attr('x1', origin.zx)
       .attr('y1', origin.zy)
       .attr('x2', d => d.zx + d.x)
       .attr('y2', d => d.zy + d.y);
 
-   a.exit().remove();
+    a.exit().remove();
 
-   let names = svg.select('.axes').selectAll('.label').data(active);
-   names.enter()
-     .append('text')
-       .attr('class', 'label')
+    let names = svg.select('.axes').selectAll('.label').data(active);
+    names.enter()
+      .append('text')
+      .attr('class', 'label')
       .call(drag)
-     .merge(names)
+      .merge(names)
       .text(d => d.label)
-       .attr('x', d => d.zx + d.x + 10)
-       .attr('y', d => d.zy + d.y);
+      .attr('x', d => d.zx + d.x + 10)
+      .attr('y', d => d.zy + d.y);
 
-   names.exit().remove();
+    names.exit().remove();
   }
 
   function render_pts_group(group, group_pts) {
-     let g = svg.select(group).selectAll('.pt').data(group_pts);
+    let g = svg.select(group).selectAll('.pt').data(group_pts);
 
-     g.exit().remove();
+    g.exit().remove();
 
-     return g.enter()
-       .append('circle')
-        .attr('class', 'pt')
-        .attr('r', 3)
-        .merge(g)
-          .attr('cx', d => d.x)
-          .attr('cy', d => d.y)
-          .style('fill', d => d.color)
-          .call(transform)
+    return g.enter()
+      .append('circle')
+      .attr('class', 'pt')
+      .attr('r', 3)
+      .merge(g)
+      .attr('cx', d => d.x)
+      .attr('cy', d => d.y)
+      .style('fill', d => d.color)
+      .call(transform)
   }
 
   function render_pts() {
-     render_pts_group('.bg', bg_pts)
-       .attr('r', 1);
+    render_pts_group('.bg', bg_pts)
+      .attr('r', 1);
 
-     render_pts_group('.fg', active_pts);
+    render_pts_group('.fg', active_pts);
   }
 
   function render_graph() {
-     render_pts_group('.graph', graph_pts);
+    render_pts_group('.graph', graph_pts)
+      .attr('r', 5);
 
     let edges = svg.select('.graph').selectAll('.edge')
       .data(graph, d => d.pid);
 
     edges.enter()
       .append('line')
-        .attr('class', 'edge')
-        .on('mouseover', d => highlight_partition(d, true))
-        .on('mouseout',d => highlight_partition(d, false))
+      .attr('class', 'edge')
+      .on('mouseover', d => highlight_partition(d, true))
+      .on('mouseout',d => highlight_partition(d, false))
       .merge(edges)
-        .classed('highlight', d => d.id === highlight)
-        .attr('x1', d => d.min.zx + d.min.x)
-        .attr('y1', d => d.min.zy + d.min.y)
-        .attr('x2', d => d.max.zx + d.max.x)
-        .attr('y2', d => d.max.zy + d.max.y);
+      .classed('highlight', d => d.id === highlight)
+      .attr('x1', d => d.min.zx + d.min.x)
+      .attr('y1', d => d.min.zy + d.min.y)
+      .attr('x2', d => d.max.zx + d.max.x)
+      .attr('y2', d => d.max.zy + d.max.y);
 
     edges.exit().remove();
   }
@@ -539,7 +540,7 @@ export default function Panel(view, el) {
     let g = svg.append('g');
 
     g.append('g')
-        .attr('class', 'axes');
+      .attr('class', 'axes');
 
     g.append('g')
       .attr('class', 'bg');
@@ -551,30 +552,38 @@ export default function Panel(view, el) {
       .attr('class', 'graph');
 
     let svgDefs = svg.select('defs');
-      if (svgDefs.empty())
-        svgDefs = svg.append('defs');
+    if (svgDefs.empty())
+      svgDefs = svg.append('defs');
 
     svgDefs.selectAll('marker')
       .data(defs, d => d.id)
       .enter()
       .append('marker')
-        .attr('id', d => d.id)
-        .attr("viewBox", d => d.box)
-        .attr("refX", d => d.refx)
-        .attr("refY", d => d.refy)
-        .attr("markerWidth", 6)
-        .attr("markerHeight", 6)
-        .attr("orient", "auto")
-        .attr('markerUnits', 'userSpaceOnUse')
-        .attr('stroke-width', '1px')
-        .append("path")
-        .attr("d", d => d.path);
+      .attr('id', d => d.id)
+      .attr("viewBox", d => d.box)
+      .attr("refX", d => d.refx)
+      .attr("refY", d => d.refy)
+      .attr("markerWidth", 6)
+      .attr("markerHeight", 6)
+      .attr("orient", "auto")
+      .attr('markerUnits', 'userSpaceOnUse')
+      .attr('stroke-width', '1px')
+      .append("path")
+      .attr("d", d => d.path);
 
     enableZoom();
   }
 
 
   init();
+
+  let resize_timer = null;
+
+  function trigger_resize() {
+    resize_timer = null;
+    active_invalid = true;
+    render();
+  }
 
   // API
   return {
@@ -583,8 +592,10 @@ export default function Panel(view, el) {
       let h = parseInt(svg.style('height'));
       svg.attr('viewBox', [-w/2, -h/2, w, h]);
       zoom.extent([[0,0], [w,h]]);
-      active_invalid = true;
-      render();
+
+      if (resize_timer)
+        clearTimeout(resize_timer);
+      resize_timer = setTimeout( trigger_resize, 250);
       return this;
     },
   }
