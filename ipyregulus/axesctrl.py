@@ -31,7 +31,7 @@ class AxesCtrl(GridBox, HasLinks):
 
     def __init__(self, data=data, **kwargs):
         super().__init__(**kwargs)
-        self.layout = Layout(grid_template_columns='50px auto', grid_gap='5px')
+        self.layout = Layout(grid_template_columns='auto auto', grid_gap='5px')
         self.current = {}
         if data is not None:
             self.data = data
@@ -44,6 +44,7 @@ class AxesCtrl(GridBox, HasLinks):
         for axis in axes:
             name = axis.label
             check = Checkbox(value=True, indent=False)
+            check.style.width = None
             cl = link((axis, 'label'), (check, 'description'))
 
             slider = UnboundedFloatSlider(value=axis.len, min=0, max=200)
