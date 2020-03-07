@@ -1,3 +1,4 @@
+from math import pi
 import pandas as pd
 from traitlets import  Instance, observe, validate
 from ipywidgets import Checkbox, GridBox, FloatSlider,link, dlink, Layout
@@ -71,8 +72,12 @@ class AxesCtrl(GridBox, HasLinks):
     def update_axes(self, change=None):
         if self.data is not None and self.data.data is not None:
             dataset = self.data.data
-            self.axes = self.create_axes(dataset.y, cols=[0]) + \
+            axes = self.create_axes(dataset.y, cols=[0]) + \
                         self.create_axes(dataset.pts.original_x, cols=range(1, 1 + dataset.x.shape[1]))
+            n = len(axes)
+            for i in range(n):
+                axes[i].theta = -pi / 2 + 2 * pi * i / n
+            self.axes = axes
 
     def create_axes(self, pts, cols=None):
         axes = []
