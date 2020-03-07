@@ -30,7 +30,7 @@ class ProjModel extends RegulusViewModel {
       axes: [],
       show: [],
       show_graph: true,
-      show_pts: true,
+      show_pts: false,
       highlight: -2,
       color: '',
       color_info: []

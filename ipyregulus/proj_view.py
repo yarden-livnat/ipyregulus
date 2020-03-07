@@ -14,8 +14,8 @@ class ProjView(RegulusDOMWidget):
 
     data = Instance(klass=DataWidget, allow_none=True).tag(sync=True, **widget_serialization)
     show = List(Int()).tag(sync=True)
-    show_graph = Bool(False).tag(sync=True)
-    show_pts = Bool(True).tag(sync=True)
+    show_graph = Bool(True).tag(sync=True)
+    show_pts = Bool(False).tag(sync=True)
     highlight = Int(-2).tag(sync=True)
     axes = TypedTuple(trait=AxisTraitType()).tag(sync=True, **widget_serialization)
     color = Unicode(None, allow_none=True).tag(sync=True)
