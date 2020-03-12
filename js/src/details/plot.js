@@ -79,9 +79,14 @@ export default function Plot() {
 
 
       svg.select('.rg_plot_line')
+        .attr('display', null)
         .attr('d', inverse(d.inverse));
       svg.select('.rg_plot_area')
+        .attr('display', null)
         .attr('d', area(d.inverse));
+    } else {
+      svg.select('.rg_plot_line').attr('display', 'none');
+      svg.select('.rg_plot_area').attr('display', 'none');
     }
 
     if (d.model) {

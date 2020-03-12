@@ -46,7 +46,7 @@ export default function Panel(view, el) {
 
   let graph = [];
   let graph_pts = [];
-  let origin = {x: 0, y:0};
+  let origin = {px: 0, py:0, x:0, y:0};
 
   let show_graph = true;
   let show_pts = true;
@@ -150,10 +150,10 @@ export default function Panel(view, el) {
 
     let axis = axes.find( d => d.model === axis_model);
     if (axis) {
+      axis.col = axis.model.get('col');
       axis.label = axis_model.get('label');
       axis.theta = axis_model.get('theta');
       axis.len = axis_model.get('len');
-      axis.max = axis_model.get('max');
       axis.disabled = axis_model.get('disabled');
 
       let domain = !pts_extent || !pts_extent.length ? [0, 1] :
@@ -161,9 +161,11 @@ export default function Panel(view, el) {
       axis.sx.domain(domain).range([0, axis.len * Math.cos(axis.theta)]);
       axis.sy.domain(domain).range([0, axis.len * Math.sin(axis.theta)]);
 
-      axis.x = axis.sx(axis.max);
-      axis.y = axis.sy(axis.max);
+      axis.max = domain[1];
+      axis.px = axis.sx(axis.max * 1.1);
+      axis.py = axis.sy(axis.max * 1.1);
 
+      transform([axis]);
       pts_invalid = true;
       render();
     }
@@ -187,6 +189,8 @@ export default function Panel(view, el) {
     if (show.has(highlight) || bg_pts.length > 0) {
       active_invalid = true;
       render();
+    } else{
+      render_graph();
     }
   }
 
@@ -207,39 +211,39 @@ export default function Panel(view, el) {
   * Dragging
   */
 
-  let drag_x = 0;
-  let drag_y = 0;
-  let start_x = 0;
-  let start_y = 0;
-
-
   let drag = d3.drag()
     .on('start', axisDragStart)
     .on('drag', axisDrag)
     .on('end', axisDragEnd);
 
+  let drag_dx = 0;
+  let drag_dy = 0;
 
   function axisDragStart(d){
-    drag_x = d3.event.x;
-    drag_y = d3.event.y;
-    start_x = d.sx(d.max);
-    start_y = d.sy(d.max);
     dragging = true;
+    drag_dx = d3.event.x - d.x;
+    drag_dy = d3.event.y - d.y;
   }
 
   function axisDrag(d) {
-    let dx = d3.event.x - drag_x;
-    let dy = d3.event.y - drag_y;
+    let tr = d3.zoomTransform(svg.node());
+    let [x, y] = tr.invert ([d3.event.x - drag_dx, d3.event.y - drag_dy]);
 
-    let x = start_x + dx;
-    let y = start_y + dy;
-    d.theta = Math.atan2(y, x );
+    let theta = Math.atan2(y, x );
+    if (d3.event.sourceEvent.shiftKey) {
+      theta = Math.round(theta*2/Math.PI)*Math.PI/2;
+    }
+    d.theta = theta;
     d.len = Math.sqrt(x*x + y*y);
+
     d.sx.range([0, d.len*Math.cos(d.theta)]);
     d.sy.range([0, d.len*Math.sin(d.theta)]);
 
-    d.x = d.sx(d.max);
-    d.y = d.sy(d.max);
+    d.px = d.sx(d.max * 1.1);
+    d.py = d.sy(d.max * 1.1);
+
+    transform([d]);
+
     setTimeout( function() {
       d.model.set({
         theta: d.theta,
@@ -276,9 +280,10 @@ export default function Panel(view, el) {
           y += axis.sy(v);
         }
       }
-      pt.x = x;
-      pt.y = y;
+      pt.px = x;
+      pt.py = y;
     }
+    transform(pts_list);
   }
 
   /*
@@ -302,28 +307,17 @@ export default function Panel(view, el) {
   }
 
   function zoomed() {
-    svg.select('.bg').selectAll('.pt')
-      .data(bg_pts)
-      .call(transform);
-
-    svg.select('.fg').selectAll('.pt')
-      .data(active_pts)
-      .call(transform);
-
-    svg.select('.graph').selectAll('.pt')
-      .data(graph_pts)
-      .call(transform);
-
-    render_axes();
-    render_graph();
+    transform(bg_pts);
+    transform(active_pts);
+    transform(graph_pts);
+    transform([origin]);
+    transform(axes);
+    render();
   }
 
-  function transform(selection) {
+  function transform(objs) {
     let tr = d3.zoomTransform(svg.node());
-    selection.attr('transform', d => {
-      [d.zx, d.zy] = tr.apply([d.x, d.y]);     // save zoomed coordinates so graph edges can use them
-      return `translate(${d.zx}, ${d.zy})`;
-    });
+    objs.forEach(d => [d.x, d.y] = tr.apply([d.px, d.py]));
   }
 
   /*
@@ -446,40 +440,37 @@ export default function Panel(view, el) {
       .append('circle')
       .attr('class', 'pt')
       .attr('r', DEFAULT_POINT_SIZE)
-      .attr('cx', 0)
-      .attr('cy', 0)
       .merge(o)
-      .call(transform);
+        .attr('cx', d => d.x)
+        .attr('cy', d => d.y);
 
-    let tr = d3.zoomTransform(svg.node());
     let active = axes.filter(a => !a.disabled);
-    active.forEach( d => [d.zx, d.zy] = tr.apply([d.x, d.y]));
 
     let a = svg.select('.axes').selectAll('.axis')
       .data(active, d => d.label);
 
     a.enter()
       .append('line')
-      .attr('class', 'axis')
-      .attr("marker-end", "url(#arrowhead-end)")
-      .call(drag)
+        .attr('class', 'axis')
+        .attr("marker-end", "url(#arrowhead-end)")
+        .call(drag)
       .merge(a)
-      .attr('x1', origin.zx)
-      .attr('y1', origin.zy)
-      .attr('x2', d => d.zx + d.x)
-      .attr('y2', d => d.zy + d.y);
+        .attr('x1', origin.x)
+        .attr('y1', origin.y)
+        .attr('x2', d => d.x)
+        .attr('y2', d => d.y);
 
     a.exit().remove();
 
     let names = svg.select('.axes').selectAll('.label').data(active);
     names.enter()
       .append('text')
-      .attr('class', 'label')
-      .call(drag)
+        .attr('class', 'label')
+        .call(drag)
       .merge(names)
-      .text(d => d.label)
-      .attr('x', d => d.zx + d.x + 10)
-      .attr('y', d => d.zy + d.y);
+        .text(d => d.label)
+        .attr('x', d => d.x + 10)
+        .attr('y', d => d.y);
 
     names.exit().remove();
   }
@@ -491,13 +482,12 @@ export default function Panel(view, el) {
 
     return g.enter()
       .append('circle')
-      .attr('class', 'pt')
-      .attr('r', 3)
+        .attr('class', 'pt')
+        .attr('r', 3)
       .merge(g)
-      .attr('cx', d => d.x)
-      .attr('cy', d => d.y)
-      .style('fill', d => d.color)
-      .call(transform)
+        .attr('cx', d => d.x)
+        .attr('cy', d => d.y)
+        .style('fill', d => d.color);
   }
 
   function render_pts() {
@@ -520,11 +510,11 @@ export default function Panel(view, el) {
       .on('mouseover', d => highlight_partition(d, true))
       .on('mouseout',d => highlight_partition(d, false))
       .merge(edges)
-      .classed('highlight', d => d.id === highlight)
-      .attr('x1', d => d.min.zx + d.min.x)
-      .attr('y1', d => d.min.zy + d.min.y)
-      .attr('x2', d => d.max.zx + d.max.x)
-      .attr('y2', d => d.max.zy + d.max.y);
+        .classed('highlight', d => d.id === highlight)
+        .attr('x1', d => d.min.x)
+        .attr('y1', d => d.min.y)
+        .attr('x2', d => d.max.x)
+        .attr('y2', d => d.max.y);
 
     edges.exit().remove();
   }
@@ -540,13 +530,13 @@ export default function Panel(view, el) {
     let g = svg.append('g');
 
     g.append('g')
-      .attr('class', 'axes');
-
-    g.append('g')
       .attr('class', 'bg');
 
     g.append('g')
       .attr('class', 'fg');
+
+    g.append('g')
+      .attr('class', 'axes');
 
     g.append('g')
       .attr('class', 'graph');
@@ -590,6 +580,7 @@ export default function Panel(view, el) {
     resize() {
       let w = parseInt(svg.style('width'));
       let h = parseInt(svg.style('height'));
+      // console.log('resize:',w , h);
       svg.attr('viewBox', [-w/2, -h/2, w, h]);
       zoom.extent([[0,0], [w,h]]);
 

@@ -124,7 +124,7 @@ class DetailsView(RegulusDOMWidget):
         if new is not None:
             self.color = new.measure
             new.observe(self._model_changed, names='state')
-        self._inverse_cache.clear()
+        self.reset_inverse()
 
     def _model_changed(self, change):
         op, name = change['new']

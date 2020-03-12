@@ -9,12 +9,12 @@
 }
 
 .rg_proj .axes .axis:hover {
-    stroke: red;
+    stroke: lightgreen;
     stroke-width: 3px;
 }
 
 .rg_proj .axes .label:hover {
-    stroke: red;
+    stroke: lightgreen;
     /*stroke-width: 3px;*/
 }
 

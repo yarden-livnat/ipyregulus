@@ -9,10 +9,9 @@ class Axis(RegulusWidget):
     _model_name = Unicode('AxisModel').tag(sync=True)
 
     label = Unicode('').tag(sync=True)
-    col = Int().tag(sync=True)
-    max = Float().tag(sync=True)
-    theta = Float(None, allow_none=True).tag(sync=True)
-    len = Float(200, allow_none=True).tag(sync=True)
+    col = Int(-1).tag(sync=True)
+    theta = Float(0).tag(sync=True)
+    len = Float(200).tag(sync=True)
     disabled = Bool(False).tag(sync=True)
 
 

@@ -8,9 +8,9 @@ class AxisModel extends RegulusModel {
        _model_name: 'AxisModel',
 
        label: '',
-       max: 0,
-       theta: null,
-       len: null,
+       col: 0,
+       theta: 0,
+       len: 100,
        disabled: false
      }
    }

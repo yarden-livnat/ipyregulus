@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import * as chromatic from 'd3-scale-chromatic';
+// import '../utils/keybinding';
 
 import {
   Partition
@@ -42,6 +43,7 @@ export default function Panel(ctrl) {
   let highlighted = -2;
   let inverse = new Map();
   let show_info = new Map();
+  let show_inverse = false;
 
   let initial_cmap = 'RdYlBu';
   let colorScale = d3.scaleSequential(chromatic['interpolate' + initial_cmap]);
@@ -63,12 +65,14 @@ export default function Panel(ctrl) {
     model.on('change:show_info', show_info_changed);
     model.on('change:highlight', highlight_changed);
     model.on('change:inverse', inverse_changed);
+    model.on('change:show_inverse', show_inverse_changed);
     model.on('change:cmap', cmap_changed);
     model.on('change:color', color_changed);
     model.on('change:local_norm', norm_changed);
     model.on('change:show_model', show_model_changed);
     model_changed();
     show_info_changed();
+    show_inverse_changed();
   }
 
   function model_changed() {
@@ -103,6 +107,7 @@ export default function Panel(ctrl) {
       render();
     }
   }
+
   function show_info_changed() {
     let info = model.get('show_info');
     show_info = new Map();
@@ -143,6 +148,12 @@ export default function Panel(ctrl) {
     if (measure_idx !== -1) {
       render_rows();
     }
+  }
+
+  function show_inverse_changed() {
+    show_inverse = model.get('show_inverse');
+    update_plots();
+    render();
   }
 
   function inverse_changed() {
@@ -305,7 +316,7 @@ export default function Panel(ctrl) {
            filtered: filtered,
            color: colorScale,
            model: model,
-           inverse: inverse.has(row.id) && inverse.get(row.id)[col.idx],
+           inverse: show_inverse && inverse.has(row.id) && inverse.get(row.id)[col.idx],
            bar: show_info.has(row.id) && show_info.get(row.id).n_coef[col.idx]
          };
          plots.push(p);
@@ -468,6 +479,7 @@ export default function Panel(ctrl) {
     resize_timer = null;
     render();
   }
+
 
   return {
     el(_) {

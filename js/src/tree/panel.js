@@ -105,7 +105,7 @@ export default function Panel() {
 
   function color(d) {
     let v = value(d);
-    return v != null && colorScale(v) || 'lightgray';
+    return v != null && colorScale(v) || 'white';
   }
 
   function render() {

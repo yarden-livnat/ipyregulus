@@ -73,7 +73,7 @@ class AxesCtrl(GridBox, HasLinks):
         if self.data is not None and self.data.data is not None:
             dataset = self.data.data
             axes = self.create_axes(dataset.y, cols=[0]) + \
-                        self.create_axes(dataset.pts.original_x, cols=range(1, 1 + dataset.x.shape[1]))
+                   self.create_axes(dataset.pts.original_x, cols=range(1, 1 + dataset.x.shape[1]))
             n = len(axes)
             for i in range(n):
                 axes[i].theta = -pi / 2 + 2 * pi * i / n
@@ -87,49 +87,11 @@ class AxesCtrl(GridBox, HasLinks):
             cols = [cols]
 
         if isinstance(pts, pd.DataFrame):
-            axes = [Axis(label=l, col=c, max=m) for l, c, m in zip(list(pts), cols, pts.abs().max())]
+            axes = [Axis(label=l, col=c) for l, c in zip(list(pts), cols)]
         elif isinstance(pts, pd.Series):
-            axes = [Axis(label=pts.name, col=cols[0], max=max(abs(pts)))]
+            axes = [Axis(label=pts.name, col=0)]
         else:
             raise ValueError('pts must be Pandas DataFrame or Series')
         return axes
 
-
-    # @observe('axes')
-    # def _axes(self, change):
-    #     new = change['new']
-    #     children = []
-    #     sliders = {}
-    #     for axis in new:
-    #         name = axis.label
-    #         if name in self.current:
-    #             rec = self.current[name]
-    #             slider = rec['slider']
-    #             sliders[name] = rec
-    #             del self.current[name]
-    #         else:
-    #             slider = UnboundedFloatSlider(value=axis.len, min=0, max=200)
-    #             l1 = link((slider, 'value'), (axis, 'len'))
-    #             l2 = link((axis, 'label'), (slider, 'description'))
-    #             # axis.observe(self.update, names=['len'])
-    #             check = Checkbox(value=False)
-    #             l3 = link((check, 'value'), (slider, 'disabled'))
-    #             box = HBox(children=[check, slider])
-    #             sliders[name] = dict(slider=slider, links=[l1, l2, l3], axis=axis)
-    #         children.append(box)
-    #     # disconnect
-    #     for rec in self.current.values():
-    #         for l in rec.links:
-    #             l.unlink()
-    #     # set new values
-    #     self.current = sliders
-    #     self.children = children
-
-    # def update(self, change):
-    #     value = change['new']
-    #     owner = change['owner']
-    #     slider = self.sliders[owner.label]['slider']
-    #     if value > slider.max:
-    #         slider.max = value
-    #     slider.value = value
 

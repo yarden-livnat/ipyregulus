@@ -22,7 +22,7 @@
 }
 
 .rg_tree .view .node.selected.highlight {
-   fill: lightgray;
+   fill: lightgreen;
   /*stroke: green;*/
   /*stroke-width: 4px;*/
 }

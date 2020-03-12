@@ -13,10 +13,11 @@ class TreeView(BaseTreeView):
     options = List(Unicode(), ['span',
                                'fitness', 'parent_fitness', 'child_fitness', 'shared_fitness',
                                'coef_change', 'coef_similarity',
-                               'q_fitness',
+                               'inv_fitness',
                                'min', 'max', 'unique_max', 'unique_min',
-                               'dim_parent_score', 'dim_child_score',
-                               'dim_min_fitness',  'dim_max_fitness'
+                               'dim_parent', 'dim_child',
+                               'dim_min',  'dim_max',
+                               'q_fitness',
                                ])
 
     x_value = Tuple(default_value=(0, 1))
