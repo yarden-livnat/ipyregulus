@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import tip from 'd3-tip'
 
 import './panel.css';
 import * as chromatic from "d3-scale-chromatic";
@@ -22,8 +23,10 @@ export default function Panel(view, el) {
   let highlight = -2;
   let highlight_ignored = false;
   // let colors = [];
+  let show_inverse = false;
   let color = '';
   let color_info = [null, 0, 1];
+  let inverse = new Map();
 
   let colorScale = d3.scaleSequential(chromatic['interpolate' + DEFAULT_CMAP]);
 
@@ -31,6 +34,7 @@ export default function Panel(view, el) {
   let color_invalid = false;
   let active_invalid = false;
   let graph_invalid = false;
+  let inverse_invalid = false;
 
   let data = null;
   let partitions = new Map();
@@ -44,7 +48,7 @@ export default function Panel(view, el) {
   let y_idx = 0;
   let measure = '';
 
-  let graph = [];
+  let graph_edges = [];
   let graph_pts = [];
   let origin = {px: 0, py:0, x:0, y:0};
 
@@ -53,6 +57,12 @@ export default function Panel(view, el) {
   let disabled = true;
   let dragging = false;
 
+  let node_tip;
+  let tip_spec = [
+    d => ['value', d3.format('.3f')(d.value)],
+    d => ['id', d3.format('d')(d.id)],
+    d => ['pid', d.partitions.map(d3.format('d'))]
+  ];
   let defs = [
     {id: 'arrowhead-start', path: "M10,-5L0,0L10,5", box: "0 -5 10 10", color: '#aaa', refx: 0, refy: 0 },
     {id: 'arrowhead-end', path: "M0,-5L10,0L0,5", box: "0 -5 10 10", color: '#ccc', refx: 0, refy: 0}
@@ -69,6 +79,8 @@ export default function Panel(view, el) {
     model.on('change:highlight', highlight_changed);
     model.on('change:show_graph', show_graph_changed);
     model.on('change:show_pts', show_pts_changed);
+    model.on('change:inverse', inverse_changed);
+    model.on('change:show_inverse', show_inverse_changed);
 
     disabled = true;
     data_changed();
@@ -78,6 +90,7 @@ export default function Panel(view, el) {
     show_changed();
     show_pts_changed();
     show_graph_changed();
+    show_inverse_changed();
     disabled = false;
     render()
   }
@@ -162,11 +175,12 @@ export default function Panel(view, el) {
       axis.sy.domain(domain).range([0, axis.len * Math.sin(axis.theta)]);
 
       axis.max = domain[1];
-      axis.px = axis.sx(axis.max * 1.1);
-      axis.py = axis.sy(axis.max * 1.1);
+      axis.px = axis.sx(axis.max);
+      axis.py = axis.sy(axis.max);
 
       transform([axis]);
       pts_invalid = true;
+      inverse_invalid = true;
       render();
     }
   }
@@ -174,6 +188,7 @@ export default function Panel(view, el) {
   function color_changed() {
     color_info = model.get('color_info');
     colorScale.domain([color_info[2], color_info[1]]);
+    graph_invalid = true;
     color_invalid = true;
     render();
   }
@@ -206,6 +221,25 @@ export default function Panel(view, el) {
     render();
   }
 
+  function show_inverse_changed() {
+    show_inverse = model.get('show_inverse');
+    if (show_inverse)
+      inverse_invalid = true;
+    render();
+  }
+
+  function inverse_changed() {
+    let new_lines = model.get('inverse');
+    if (!new_lines) return;
+
+    for (let [pid, line] of Object.entries(new_lines)) {
+      inverse.set(parseInt(pid), {id: pid, values:line} );
+    }
+    if (show_inverse) {
+      inverse_invalid = true;
+      render();
+    }
+  }
 
   /*
   * Dragging
@@ -239,8 +273,8 @@ export default function Panel(view, el) {
     d.sx.range([0, d.len*Math.cos(d.theta)]);
     d.sy.range([0, d.len*Math.sin(d.theta)]);
 
-    d.px = d.sx(d.max * 1.1);
-    d.py = d.sy(d.max * 1.1);
+    d.px = d.sx(d.max);
+    d.py = d.sy(d.max);
 
     transform([d]);
 
@@ -253,6 +287,7 @@ export default function Panel(view, el) {
     }, 0);
 
     pts_invalid = true;
+    if (show_inverse) inverse_invalid = true;
     render();
   }
 
@@ -286,6 +321,21 @@ export default function Panel(view, el) {
     transform(pts_list);
   }
 
+  function project_curve(curve) {
+    for (let pt of curve.values) {
+      let x = 0, y = 0, v;
+      for (let axis of axes) {
+        if (!axis.disabled) {
+          v = pt[axis.col];
+          x += axis.sx(v);
+          y += axis.sy(v);
+        }
+      }
+      pt.px = x;
+      pt.py = y;
+    }
+  }
+
   /*
   * Zoom
   */
@@ -312,6 +362,8 @@ export default function Panel(view, el) {
     transform(graph_pts);
     transform([origin]);
     transform(axes);
+    if (show_inverse)
+      inverse_invalid = true;
     render();
   }
 
@@ -349,6 +401,17 @@ export default function Panel(view, el) {
       update_graph();
       graph_invalid = false;
     }
+
+    if (inverse_invalid){
+      for (let edge of graph_edges)
+        if (inverse.has(edge.id)) {
+          let curve = inverse.get(edge.id);
+          project_curve(curve);
+          transform(curve.values);
+          // curves.push({id: edge.id, curve: curve.values});
+        }
+      inverse_invalid = false;
+    }
   }
 
   function update_colors() {
@@ -368,17 +431,41 @@ export default function Panel(view, el) {
   }
 
   function update_graph() {
-    graph = [];
+    graph_edges = [];
     graph_pts = [];
+    let pts_map = new Map();
+
     if (show_graph) {
       for (let pid of show) {
         let p = partitions.get(pid);
-        let min_pt = {id: p.minmax_idx[0], x: 0, y: 0};
-        let max_pt = {id: p.minmax_idx[1], x: 0, y: 0};
-        graph.push({id: pid, min: min_pt, max: max_pt});
-        graph_pts.push(min_pt);
-        graph_pts.push(max_pt);
+        let min_pt, max_pt;
+        if (pts_map.has(p.minmax_idx[0])) {
+          min_pt = pts_map.get(p.minmax_idx[0]);
+          min_pt.partitions.push(pid);
+        } else {
+          min_pt = {
+            id: p.minmax_idx[0],
+            x: 0, y: 0,
+            value: attrs.get(p.minmax_idx[0], color_info[0]),
+            partitions: [pid]
+          };
+          pts_map.set(p.minmax_idx[0], min_pt);
+        }
+        if (pts_map.has(p.minmax_idx[1])) {
+          max_pt = pts_map.get(p.minmax_idx[1]);
+          max_pt.partitions.push(pid)
+        } else {
+          max_pt = {
+            id: p.minmax_idx[1],
+            x: 0, y: 0,
+            value:attrs.get(p.minmax_idx[1], color_info[0]),
+            partitions: [pid]
+          };
+          pts_map.set(p.minmax_idx[1], max_pt);
+        }
+        graph_edges.push({id: pid, min: min_pt, max: max_pt});
       }
+      graph_pts = Array.from(pts_map.values());
 
       project(graph_pts);
       for (let pt of graph_pts) {
@@ -475,15 +562,22 @@ export default function Panel(view, el) {
     names.exit().remove();
   }
 
-  function render_pts_group(group, group_pts) {
+  function render_pts_group(group, group_pts, tip=false) {
     let g = svg.select(group).selectAll('.pt').data(group_pts);
 
     g.exit().remove();
 
-    return g.enter()
+    let enter = g.enter()
       .append('circle')
         .attr('class', 'pt')
-        .attr('r', 3)
+        .attr('r', 3);
+
+    if (tip)
+      enter
+        .on('mouseenter', show_tip)
+        .on('mouseleave', hide_tip);
+
+    return enter
       .merge(g)
         .attr('cx', d => d.x)
         .attr('cy', d => d.y)
@@ -498,30 +592,98 @@ export default function Panel(view, el) {
   }
 
   function render_graph() {
-    render_pts_group('.graph', graph_pts)
+    render_pts_group('.graph', graph_pts, true)
       .attr('r', 5);
 
-    let edges = svg.select('.graph').selectAll('.edge')
-      .data(graph, d => d.pid);
+    let edges = [];
+    let curves = [];
 
-    edges.enter()
+    if (show_inverse) {
+      for (let edge of graph_edges)
+        if (inverse.has(edge.id)) {
+          let curve = inverse.get(edge.id);
+          curves.push({id: edge.id, curve: curve.values});
+        }
+        else
+          edges.push(edge);
+    } else {
+      edges = graph_edges;
+    }
+
+    let d3edges = svg.select('.graph').selectAll('.edge')
+      .data(edges, d => d.pid);
+
+    d3edges.enter()
       .append('line')
       .attr('class', 'edge')
-      .on('mouseover', d => highlight_partition(d, true))
-      .on('mouseout',d => highlight_partition(d, false))
-      .merge(edges)
+      .on('mouseover', d => highlight_partition(d.id, true))
+      .on('mouseout',d => highlight_partition(d.id, false))
+      .merge(d3edges)
         .classed('highlight', d => d.id === highlight)
         .attr('x1', d => d.min.x)
         .attr('y1', d => d.min.y)
         .attr('x2', d => d.max.x)
         .attr('y2', d => d.max.y);
 
-    edges.exit().remove();
+    d3edges.exit().remove();
+
+    let curve = d3.line().x(d => d.x).y(d => d.y);
+
+    let d3curves = svg.select('.graph').selectAll('.curve')
+      .data(curves, d => d.id);
+
+    d3curves.enter()
+      .append('path')
+      .attr('class', 'curve')
+      .on('mouseover', d => highlight_partition(d, true))
+      .on('mouseout',d => highlight_partition(d, false))
+      .merge(d3curves)
+        .classed('highlight', d => d.id === highlight)
+        .attr('d', d => curve(d.curve));
+
+    d3curves.exit().remove();
   }
 
-  function highlight_partition(p, on) {
-    model.set('highlight', on ? p.id : -1);
+  function highlight_partition(id, on) {
+    model.set('highlight', on ? id : -1);
     view.touch();
+  }
+
+  /*
+   * tip
+   */
+
+  let tip_timer = null;
+
+  function show_tip(d) {
+    if (tip_timer) {
+      clearTimeout(tip_timer);
+      tip_timer = null;
+    }
+    node_tip.show.apply(this, arguments);
+    d3.select(this).on('mousemove', update_tip);
+    for (let id of d.partitions) {
+      // console.log('highlight:', id);
+      highlight_partition(id, true);
+    }
+  }
+
+  function hide_tip() {
+    tip_timer = setTimeout( remove_tip, 250, this, arguments);
+    d3.select(this).on('mousemove', null);
+  }
+
+  function remove_tip(self, args) {
+    tip_timer = null;
+    node_tip.hide.apply(self, args);
+    for (let id of args[0].partitions) {
+      // console.log('highlight:', id);
+      highlight_partition(id, false);
+    }
+  }
+
+  function update_tip() {
+    node_tip.show.apply(this, arguments);
   }
 
   function setup() {
@@ -540,6 +702,23 @@ export default function Panel(view, el) {
 
     g.append('g')
       .attr('class', 'graph');
+
+   node_tip = tip()
+      .attr('class', 'd3-tip')
+      .offset( function() {
+        let m = d3.mouse(this);
+        let bb = this.getBBox();
+        return [m[1]-bb.y-20, m[0]-bb.x-bb.width/2];
+      })
+      .html(d => {
+        let content = tip_spec.map(spec => {
+          let rec = spec(d);
+          return `<tr><td>${rec[0]}:</td><td style="text-align: right">${rec[1]}</td></tr>`;
+        }).join('');
+        return `<table>${content}</table>`;
+      });
+
+    svg.call(node_tip);
 
     let svgDefs = svg.select('defs');
     if (svgDefs.empty())

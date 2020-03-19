@@ -43,3 +43,14 @@
     stroke-width: 3px;
 }
 
+
+.rg_proj .graph .curve {
+    fill: none;
+    stroke: gray;
+    stroke-width: 2px;
+}
+
+.rg_proj .graph .curve.highlight {
+    stroke: red;
+    stroke-width: 3px;
+}
