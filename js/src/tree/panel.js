@@ -131,7 +131,7 @@ export default function Panel() {
       .attr('y', d => sy(d.pos.yp))
       .attr('width', d => Math.max(1, sx(d.pos.x + d.pos.w) - sx(d.pos.x)-1))
       .attr('height', d => Math.max(0, sy(d.pos.y) - sy(d.pos.yp)-1))
-      .style('fill', d => d.id === highlighted ? 'lightgray' : color(d))
+      .style('fill', d => d.id === highlighted ? 'lightgreen' : color(d))
       .classed('highlight', d => d.id === highlighted)
       .classed('selected', d => selected.has(d.id))
       .classed('details', d => detailed.has(d.id));

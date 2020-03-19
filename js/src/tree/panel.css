@@ -11,7 +11,7 @@
 }
 
 .rg_tree .view .node.highlight {
-  fill: lightgray;
+  fill: lightgreen;
   /*stroke: green;*/
   /*stroke-width: 1px;*/
 }
