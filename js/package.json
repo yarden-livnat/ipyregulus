@@ -28,28 +28,28 @@
     "@types/d3": "^5.7.2",
     "@types/ndarray": "^1.0.7",
     "@types/node": "^12.12.28",
-    "copy-webpack-plugin": "^5.1.1",
+    "copy-webpack-plugin": "^11.0.0",
     "rimraf": "^2.7.1",
-    "source-map-loader": "^0.2.4",
-    "ts-loader": "^6.2.1",
+    "source-map-loader": "^4.0.1",
+    "ts-loader": "^9.4.2",
     "typescript": "^3.8.2",
-    "webpack": "^4.41.6",
-    "webpack-cli": "^3.3.11",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1",
     "webpack-node-externals": "^1.7.2"
   },
   "dependencies": {
     "@jupyter-widgets/base": "^2.0.2",
     "@jupyter-widgets/jupyterlab-manager": "^1.1.0",
     "@jupyterlab/application": "^1.2.1",
-    "css-loader": "^3.4.2",
+    "css-loader": "^6.7.3",
     "d3": "^5.15.0",
     "d3-scale-chromatic": "^1.5.0",
     "d3-tip": "^0.9.1",
-    "file-loader": "^4.3.0",
+    "file-loader": "^6.2.0",
     "jupyter-dataserializers": "^2.1.0",
     "jupyter-datawidgets": "^5.2.0",
     "ndarray": "^1.0.19",
-    "raw-loader": "^3.0.0",
-    "style-loader": "^0.23.1"
+    "raw-loader": "^4.0.2",
+    "style-loader": "^3.3.1"
   }
 }
